@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.45
+// @version      0.451
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -225,7 +225,7 @@ function createAdditionalButtons() {
 
         let textarea = getUiElement("mainFrame_textarea");
 
-        textarea.value = "[#bgss" + random + "]";
+        textarea.value = "[#bgs" + random + "]";
         textarea.dispatchEvent(new Event("input"));
 
         // Click Send button
