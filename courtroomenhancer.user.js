@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.39
+// @version      0.4
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
@@ -12,7 +12,7 @@
 // @grant        GM_setValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @run-at document-end
+// @run-at       document-end
 // ==/UserScript==
 
 var scriptSetting = {
@@ -119,7 +119,7 @@ function createSettingsElements() {
         return div;
     }
 
-    let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Warn on page exit", function(e) {
+    let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Ask confirmation on page exit", function(e) {
         let value = e.target.checked;
         setSetting("warn_on_exit", value);
     })
@@ -127,7 +127,7 @@ function createSettingsElements() {
     let extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette button", function(e) {
         let value = e.target.checked;
         setSetting("evid_roulette", value);
-        document.querySelector("div#extra_roulette_button").style.visibility = getSetting("evid_roulette") ? "visible" : "hidden"
+        document.querySelector("div#extra_roulette_button").style.visibility = getSetting("evid_roulette", true) ? "visible" : "hidden"
     });
 
     extra_settings_col.append(extra_warn_on_exit, extra_evid_roulette);
@@ -138,6 +138,9 @@ function createSettingsElements() {
 function createRouletteButton() {
     // Upper limit of random evidence number
     var max_evid = 461000;
+
+    //sound upper limit = 38630
+    //music upper limit = 128604
 
     let elem_div = document.createElement("div");
     elem_div.setAttribute('class','px-1');
@@ -170,11 +173,11 @@ function createRouletteButton() {
         document.querySelector("#app > div div div button i.mdi-send").parentNode.parentNode.click();
 
         // Update textarea value with ID
-        textarea.value = "Last evidence: [#evd" + random + "] (" + String(random) + ")";
+        textarea.value = "Last evidence: [#evd" + random + "]";
         textarea.dispatchEvent(new Event("input"));
     }
 
-    elem_div.style.visibility = getSetting("evid_roulette") ? "visible" : "hidden";
+    elem_div.style.visibility = getSetting("evid_roulette", true) ? "visible" : "hidden";
 }
 
 function confirmClose (zEvent) {
