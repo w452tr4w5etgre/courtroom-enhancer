@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.41
+// @version      0.42
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
@@ -177,7 +177,7 @@ function createAdditionalButtons() {
         let elem_div = document.createElement("div");
         elem_div.setAttribute('class','px-1');
         elem_div.id = id + "_button"
-        elem_div.style.display = getSetting(id, true) ? "inline" : "none";
+        elem_div.style.display = getSetting(id, false) ? "inline" : "none";
 
         let elem_button = document.createElement("button");
         elem_button.setAttribute("class","v-btn v-btn--has-bg theme--dark v-size--small primary");
