@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.44
+// @version      0.45
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -215,8 +215,9 @@ function createAdditionalButtons() {
 
         // Show last ID on the right chatbox
         getUiElement("chatLog_textField").value = "Last evidence: " + random;
-        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+        getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
     });
+
     let soundRouletteButton = createButton("sound_roulette","SND", function() {
         // Upper limit for roulettes
         let max = 38700
@@ -232,8 +233,9 @@ function createAdditionalButtons() {
 
         // Show last ID on the right chatbox
         getUiElement("chatLog_textField").value = "Last sound: " + random;
-        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+        getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
     });
+
     let musicRouletteButton = createButton("music_roulette","MUS", function() {
         // Upper limit for roulettes
         let max = 129000;
@@ -249,7 +251,7 @@ function createAdditionalButtons() {
 
         // Show last ID on the right chatbox
         getUiElement("chatLog_textField").value = "Last music: " + random;
-        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+        getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
     });
 
     let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
