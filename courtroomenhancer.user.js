@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.4
+// @version      0.41
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
@@ -17,10 +17,30 @@
 
 var scriptSetting = {
     "warn_on_exit": getSetting("warn_on_exit", true),
-    "evid_roulette": getSetting("evid_roulette", true)
+    "evid_roulette": getSetting("evid_roulette", true),
+    "sound_roulette": getSetting("sound_roulette", false),
+    "music_roulette": getSetting("music_roulette", false)
 };
 
-var storedUsername = GM_getValue("courtroom_username","")
+var storedUsername = getStoredUsername()
+
+var uiElement = {
+    "joinBox_container": "#app > div.v-dialog__content.v-dialog__content--active > div > div",
+    "joinBox_joinButton": "#app > div.v-dialog__content.v-dialog__content--active > div > div > form > div.v-card__actions > button:nth-child(3)",
+    "joinBox_usernameInput": "#app > div.v-dialog__content > div > div > form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
+
+    "settings_usernameChangeInput": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(1) > div > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
+    "settings_hrSeparator": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > hr:nth-child(10)",
+
+    "mainFrame_textarea": "#app > div > div > main > div textarea.frameTextarea",
+    "mainFrame_sendButton": "#app > div div div button i.mdi-send",
+
+    "chatLog_textField": "#app > div.v-application--wrap > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]"
+};
+
+function getUiElement(name, parent=document) {
+    return parent.querySelector(uiElement[name]);
+}
 
 window.addEventListener('beforeunload', confirmClose, false);
 
@@ -28,23 +48,23 @@ window.addEventListener('beforeunload', confirmClose, false);
 
 function checkJoinBoxReady(changes, observer) {
     // Wait for the Join pop-up to show up
-    if(document.querySelector("#app > div.v-dialog__content.v-dialog__content--active > div > div")) {
+    let ui_joinBox_container;
+    if (ui_joinBox_container = getUiElement("joinBox_container")) {
         observer.disconnect();
-        let username_join_input = document.querySelector("#app > div.v-dialog__content > div > div > form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input");
-        username_join_input.value = storedUsername;
-        username_join_input.dispatchEvent(new Event("input"));
+        let ui_joinBox_usernameInput = getUiElement("joinBox_usernameInput");
+        ui_joinBox_usernameInput.value = storedUsername;
+        ui_joinBox_usernameInput.dispatchEvent(new Event("input"));
 
         // When the "Join" button is clicked
-        document.querySelector("#app > div.v-dialog__content.v-dialog__content--active > div > div > form > div.v-card__actions > button:nth-child(3) > span").parentNode.addEventListener('click', function(){
-            storedUsername = username_join_input.value
-            GM_setValue("courtroom_username", username_join_input.value);
+        //getUiElement("joinBox_joinButton").addEventListener('click', function(){
+        getUiElement("joinBox_joinButton", ui_joinBox_container).addEventListener('click', function(){
+            setStoredUsername(ui_joinBox_usernameInput.value);
         });
 
         // When "Enter" is pressed in the username input box
-        username_join_input.addEventListener("keydown", function(e) {
-            if (username_join_input.value && (e.keyCode == 13 || e.key == "Enter")) {
-                storedUsername = username_join_input.value
-                GM_setValue("courtroom_username", username_join_input.value);
+        ui_joinBox_usernameInput.addEventListener("keydown", function(e) {
+            if (ui_joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
+                setStoredUsername(ui_joinBox_usernameInput.value);
             }
         });
 
@@ -52,12 +72,11 @@ function checkJoinBoxReady(changes, observer) {
         let onUsernameChange = function(e) {
             // Set a timeout because for some reason the name box reverts for a split second on change
             setTimeout(function() {
-                storedUsername = username_change_input.value
-                GM_setValue("courtroom_username", storedUsername);
+                setStoredUsername(username_change_input.value);
             }, 100);
         }
 
-        let username_change_input = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(1) > div > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]")
+        let username_change_input = getUiElement("settings_usernameChangeInput");
         username_change_input.addEventListener("focusout", function(e) {
             onUsernameChange();
         });
@@ -72,13 +91,13 @@ function checkJoinBoxReady(changes, observer) {
         createSettingsElements();
 
         // Create EVD roulette button
-        createRouletteButton();
+        createAdditionalButtons();
     }
 }
 
 function createSettingsElements() {
     // Get the <hr> separator on the Settings page
-    let settings_separator = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > hr:nth-child(10)");
+    let settings_separator = getUiElement("settings_hrSeparator");
 
     let div_switch = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(2) > div > div.v-input--switch");
 
@@ -108,6 +127,7 @@ function createSettingsElements() {
         input.id = id;
         input.checked = scriptSetting[id];
         input.setAttribute("class","theme--dark v-input--selection-controls__input pointer-item");
+        input.setAttribute("style","margin-right:4px");
         input.addEventListener("change",callback);
 
         let label = document.createElement("label");
@@ -119,65 +139,122 @@ function createSettingsElements() {
         return div;
     }
 
-    let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Ask confirmation on page exit", function(e) {
+    let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Confirm on exit", function(e) {
         let value = e.target.checked;
         setSetting("warn_on_exit", value);
     })
 
-    let extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette button", function(e) {
+    let extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette", function(e) {
         let value = e.target.checked;
         setSetting("evid_roulette", value);
-        document.querySelector("div#extra_roulette_button").style.visibility = getSetting("evid_roulette", true) ? "visible" : "hidden"
+        document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
     });
 
-    extra_settings_col.append(extra_warn_on_exit, extra_evid_roulette);
+    let extra_sound_roulette = create_extra_setting_elem("sound_roulette", "Sound roulette", function(e) {
+        let value = e.target.checked;
+        setSetting("sound_roulette", value);
+        document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
+    });
+
+    let extra_music_roulette = create_extra_setting_elem("music_roulette", "Music roulette", function(e) {
+        let value = e.target.checked;
+        setSetting("music_roulette", value);
+        document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
+    });
+
+    extra_settings_col.append(extra_warn_on_exit,
+                              extra_evid_roulette,
+                              extra_sound_roulette,
+                             extra_music_roulette);
+
     settings_separator.after(extra_settings);
     extra_settings.after(settings_separator.cloneNode());
 }
 
-function createRouletteButton() {
-    // Upper limit of random evidence number
-    var max_evid = 461000;
+function createAdditionalButtons() {
 
-    //sound upper limit = 38630
-    //music upper limit = 128604
+    function createButton(id, label, callback) {
+        let elem_div = document.createElement("div");
+        elem_div.setAttribute('class','px-1');
+        elem_div.id = id + "_button"
+        elem_div.style.display = getSetting(id, true) ? "inline" : "none";
 
-    let elem_div = document.createElement("div");
-    elem_div.setAttribute('class','px-1');
-    elem_div.id = "extra_roulette_button"
-    let elem_button = document.createElement("button");
-    elem_button.setAttribute("class","v-btn v-btn--has-bg theme--dark v-size--small primary");
-    elem_button.setAttribute("type","button");
-    elem_button.style = 'background-color: #f37821 !important;';
-    let elem_span = document.createElement("span");
-    elem_span.setAttribute("class","v-btn__content");
-    let elem_i=document.createElement("i");
-    elem_i.setAttribute("class","v-icon notranslate mdi theme--dark");
-    elem_i.textContent = "EVD";
-    elem_i.style.fontSize = "18px";
+        let elem_button = document.createElement("button");
+        elem_button.setAttribute("class","v-btn v-btn--has-bg theme--dark v-size--small primary");
+        elem_button.setAttribute("type","button");
+        elem_button.style = 'background-color: #f37821 !important;';
+        elem_button.addEventListener("click", callback)
 
-    elem_span.appendChild(elem_i);
-    elem_button.appendChild(elem_span);
-    elem_div.appendChild(elem_button);
+        let elem_span = document.createElement("span");
+        elem_span.setAttribute("class","v-btn__content");
 
-    let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
-    existing_button.parentNode.parentNode.firstChild.before(elem_div);
+        let elem_i = document.createElement("i");
+        elem_i.setAttribute("class","v-icon notranslate mdi theme--dark");
+        elem_i.textContent = label;
+        elem_i.style.fontSize = "18px";
 
-    elem_button.onclick = function() {
-        let textarea = document.querySelector("#app > div > div > main > div textarea.frameTextarea");
-        let random = Math.floor(Math.random() * max_evid)
+        elem_span.appendChild(elem_i);
+        elem_button.appendChild(elem_span);
+        elem_div.appendChild(elem_button);
+
+        return elem_div;
+    }
+    
+    let evdRouletteButton = createButton("evid_roulette","EVD", function() {
+        // Upper limit for roulettes
+        let max = 461000
+        let random = Math.floor(Math.random() * max)
+
+        let textarea = getUiElement("mainFrame_textarea");
+
         textarea.value = "[#evd" + random + "]";
         textarea.dispatchEvent(new Event("input"));
 
         // Click Send button
-        document.querySelector("#app > div div div button i.mdi-send").parentNode.parentNode.click();
+        getUiElement("mainFrame_sendButton").parentNode.parentNode.click();
 
-        // Update textarea value with ID
-        textarea.value = "Last evidence: [#evd" + random + "]";
+        // Show last ID on the right chatbox
+        getUiElement("chatLog_textField").value = "Last evidence: " + random;
+        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+    });
+    let soundRouletteButton = createButton("sound_roulette","SND", function() {
+        // Upper limit for roulettes
+        let max = 38700
+        let random = Math.floor(Math.random() * max)
+
+        let textarea = getUiElement("mainFrame_textarea");
+
+        textarea.value = "[#bgss" + random + "]";
         textarea.dispatchEvent(new Event("input"));
-    }
 
-    elem_div.style.visibility = getSetting("evid_roulette", true) ? "visible" : "hidden";
+        // Click Send button
+        getUiElement("mainFrame_sendButton").parentNode.parentNode.click();
+
+        // Show last ID on the right chatbox
+        getUiElement("chatLog_textField").value = "Last sound: " + random;
+        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+    });
+    let musicRouletteButton = createButton("music_roulette","MUS", function() {
+        // Upper limit for roulettes
+        let max = 129000;
+        let random = Math.floor(Math.random() * max)
+
+        let textarea = getUiElement("mainFrame_textarea");
+
+        textarea.value = "[#bgm" + random + "]";
+        textarea.dispatchEvent(new Event("input"));
+
+        // Click Send button
+        getUiElement("mainFrame_sendButton").parentNode.parentNode.click();
+
+        // Show last ID on the right chatbox
+        getUiElement("chatLog_textField").value = "Last music: " + random;
+        //getUiElement("chatLog_textField").dispatchEvent(new Event("input"));
+    });
+
+    let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
+        existing_button.parentNode.parentNode.firstChild.before(evdRouletteButton, soundRouletteButton, musicRouletteButton);
+
 }
 
 function confirmClose (zEvent) {
@@ -192,6 +269,15 @@ function getSetting(setting_name, default_value) {
 }
 
 function setSetting(setting_name, value) {
-    scriptSetting[setting_name] = value
-    return GM_setValue("setting_" + setting_name, value)
+    scriptSetting[setting_name] = value;
+    return GM_setValue("setting_" + setting_name, value);
+}
+
+function getStoredUsername() {
+    return GM_getValue("courtroom_username","")
+}
+
+function setStoredUsername(username) {
+    storedUsername = username;
+    return GM_setValue("courtroom_username", username);
 }
