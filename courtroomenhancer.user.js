@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.42
+// @version      0.43
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
@@ -17,12 +17,12 @@
 
 var scriptSetting = {
     "warn_on_exit": getSetting("warn_on_exit", true),
-    "evid_roulette": getSetting("evid_roulette", true),
+    "evid_roulette": getSetting("evid_roulette", false),
     "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false)
 };
 
-var storedUsername = getStoredUsername()
+var storedUsername = getStoredUsername();
 
 var uiElement = {
     "joinBox_container": "#app > div.v-dialog__content.v-dialog__content--active > div > div",
