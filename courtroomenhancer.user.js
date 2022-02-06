@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.34
+// @version      0.35
 // @author       You
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
@@ -140,7 +140,7 @@ function createRouletteButton() {
         document.querySelector("#app > div div div button i.mdi-send").parentNode.parentNode.click();
     }
 
-    elem_button.style.display = getSetting("evid_roulette") ? "block" : "none"
+    elem_div.style.display = getSetting("evid_roulette") ? "block" : "none"
 }
 
 function confirmClose (zEvent) {
