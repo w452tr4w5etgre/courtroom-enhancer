@@ -2,8 +2,8 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.37
-// @author       w452tr4w5etgre
+// @version      0.38
+// @author       You
 // @match        https://objection.lol/courtroom/*
 // @icon         https://www.google.com/s2/favicons?domain=objection.lol
 // @downloadURL  https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/courtroomenhancer.user.js
@@ -47,13 +47,24 @@ function checkJoinBoxReady(changes, observer) {
             }
         });
 
-        let username_change_input = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(1) > div > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]")
-        username_change_input.addEventListener("focusout", function(e) {
+        // Handle username changes and update the stored username
+        let onUsernameChange = function(e) {
             // Set a timeout because for some reason the name box reverts for a split second on change
             setTimeout(function() {
-            storedUsername = username_change_input.value
-            GM_setValue("courtroom_username", username_change_input.value);
-            }, 1000);
+                storedUsername = username_change_input.value
+                GM_setValue("courtroom_username", storedUsername);
+            }, 100);
+        }
+
+        let username_change_input = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(1) > div > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]")
+        username_change_input.addEventListener("focusout", function(e) {
+            onUsernameChange();
+        });
+
+        username_change_input.addEventListener("keydown", function (e) {
+            if (e.keyCode == 13 || e.key == "Enter") {
+                onUsernameChange();
+            }
         });
 
         // Add setting options under the Settings tab
