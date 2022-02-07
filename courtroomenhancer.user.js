@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.47
+// @version      0.48
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -20,7 +20,10 @@ let scriptSetting = {
     "evid_roulette": getSetting("evid_roulette", false),
     "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false),
-    "clickable_links": getSetting("clickable_links", true)
+    "clickable_links": getSetting("clickable_links", true),
+    "ping_on_mention": getSetting("ping_on_mention", false),
+    "ping_sound_file": getSetting("ping_sound_file", "https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/ping.mp3"),
+    "ping_sound_volume": getSetting("ping_sound_volume", 0.5)
 };
 
 let storedUsername = getStoredUsername();
@@ -182,13 +185,18 @@ function checkJoinBoxReady(changes, observer) {
                 extra_clickable_links = create_extra_setting_elem("clickable_links", "Clickable links", function(e) {
                     let value = e.target.checked;
                     setSetting("clickable_links", value);
+                }),
+                extra_ping_on_mention = create_extra_setting_elem("ping_on_mention", "Ping on mention", function(e) {
+                    let value = e.target.checked;
+                    setSetting("ping_on_mention", value);
                 });
 
             extra_settings_col.append(extra_warn_on_exit,
                                       extra_evid_roulette,
                                       extra_sound_roulette,
                                       extra_music_roulette,
-                                      extra_clickable_links);
+                                      extra_clickable_links,
+                                      extra_ping_on_mention);
 
             settings_separator.after(extra_settings_row_head, extra_settings_row);
             extra_settings_row.after(settings_separator.cloneNode());
@@ -288,23 +296,42 @@ function checkJoinBoxReady(changes, observer) {
                     continue;
                 }
                 for (const node of mutation.addedNodes) {
+                    // Make sure the added node is an element
                     if (node.nodeType !== Node.ELEMENT_NODE) {continue;}
 
                     let message = node.querySelector(".chat-text");
+
+                    // Make sure the message node was found
                     if (message === null) {continue;}
 
-                    if (scriptSetting.clickable_links === false) {continue;}
-                    message.innerHTML = message.textContent.replaceAll('&', '&amp;')
-                        .replaceAll('<', '&lt;')
-                        .replaceAll('>', '&gt;')
-                        .replaceAll('"', '&quot;')
-                        .replaceAll("'", '&#039;')
-                        .replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a href="$&" target="_blank" rel="noreferrer">$&</a>')
-                        .replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a href="http://$2" target="_blank">$2</a>');
+                    // Make sure the message is a message and not a system notification
+                    if (message.previousSibling === null || message.previousSibling.nodeType !== Node.ELEMENT_NODE) {continue;}
 
+                    if (scriptSetting.clickable_links === true) {
+                        message.innerHTML = message.textContent.replaceAll('&', '&amp;')
+                            .replaceAll('<', '&lt;')
+                            .replaceAll('>', '&gt;')
+                            .replaceAll('"', '&quot;')
+                            .replaceAll("'", '&#039;')
+                            .replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a href="$&" target="_blank" rel="noreferrer">$&</a>')
+                            .replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a href="http://$2" target="_blank">$2</a>');
+                    }
+
+                    if (scriptSetting.ping_on_mention === true) {
+                        if (message.textContent.match("\\b"+storedUsername+"\\b")) {
+                            if (!document.hasFocus()) {
+                                pingSound.play();
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        let pingSound = new Audio();
+        pingSound.src = scriptSetting.ping_sound_file;
+        pingSound.volume = scriptSetting.ping_sound_volume;
+        pingSound.loop = false;
     }
 }
 
