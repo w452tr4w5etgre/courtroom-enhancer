@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.49
+// @version      0.491
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -281,6 +281,7 @@ function checkJoinBoxReady(changes, observer) {
             extra_ping_sound_volume.querySelector("input").maxLength = "3";
             extra_ping_sound_volume.querySelector("input").min = "0";
             extra_ping_sound_volume.querySelector("input").max = "100";
+            extra_ping_sound_volume.querySelector("input").style.width = "45px";
 
             extra_settings_row_2_col_1.append(
                 extra_ping_on_mention,
