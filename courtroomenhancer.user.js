@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.492
+// @version      0.494
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -387,7 +387,6 @@ function checkJoinBoxReady(changes, observer) {
 
             let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
             existing_button.parentNode.parentNode.firstChild.before(evdRouletteButton, soundRouletteButton, musicRouletteButton);
-
         }
 
         const chatLogObserver = new MutationObserver(chatLogWatcher);
@@ -401,20 +400,29 @@ function checkJoinBoxReady(changes, observer) {
                 if (mutation.type != "childList") {
                     continue;
                 }
+
                 for (const node of mutation.addedNodes) {
                     // Make sure the added node is an element
-                    if (node.nodeType !== Node.ELEMENT_NODE) {continue;}
+                    if (node.nodeType !== Node.ELEMENT_NODE) {
+                        continue;
+                    }
 
-                    let message = node.querySelector(".chat-text");
+                    let message = node.lastChild.lastChild;
 
                     // Make sure the message node was found
-                    if (message === null) {continue;}
+                    if (message === null) {
+                        continue;
+                    }
+
+                    if (message.classList.contains("chat-text") == false) {
+                        continue;
+                    }
 
                     // Make sure the message is a message and not a system notification
                     if (message.previousSibling === null || message.previousSibling.nodeType !== Node.ELEMENT_NODE) {continue;}
 
-                    if (scriptSetting.clickable_links === true) {
-                        message.innerHTML = message.textContent.replaceAll('&', '&amp;')
+                    if (scriptSetting.clickable_links) {
+                        message.innerHTML = message.innerHTML.replaceAll('&', '&amp;')
                             .replaceAll('<', '&lt;')
                             .replaceAll('>', '&gt;')
                             .replaceAll('"', '&quot;')
@@ -423,7 +431,7 @@ function checkJoinBoxReady(changes, observer) {
                             .replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a href="http://$2" target="_blank">$2</a>');
                     }
 
-                    if (scriptSetting.ping_on_mention === true) {
+                    if (scriptSetting.ping_on_mention) {
                         if (message.textContent.match("\\b"+storedUsername+"\\b")) {
                             if (!document.hasFocus()) {
                                 if (typeof pingSound !== undefined && pingSound.src !== null) {
