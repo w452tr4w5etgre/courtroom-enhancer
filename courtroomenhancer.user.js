@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.494
+// @version      0.496
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -20,8 +20,8 @@ let scriptSetting = {
     "evid_roulette": getSetting("evid_roulette", false),
     "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false),
-    "clickable_links": getSetting("clickable_links", true),
-    "ping_on_mention": getSetting("ping_on_mention", false),
+    "clickable_links": false,
+    "ping_on_mention": false,
     "ping_sound_file": getSetting("ping_sound_file", "https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/ping.mp3"),
     "ping_sound_volume": getSetting("ping_sound_volume", 50)
 };
@@ -259,8 +259,9 @@ function checkJoinBoxReady(changes, observer) {
 
             extra_settings_row_1.appendChild(extra_settings_row_1_col_1);
 
-            extra_settings_row_1_col_1.append(extra_warn_on_exit,
-                                              extra_clickable_links);
+            /*extra_settings_row_1_col_1.append(extra_warn_on_exit,
+                                              extra_clickable_links);*/
+            extra_settings_row_1_col_1.append(extra_warn_on_exit);
 
             // Row 2
 
@@ -284,10 +285,10 @@ function checkJoinBoxReady(changes, observer) {
             extra_ping_sound_volume.querySelector("input").max = "100";
             extra_ping_sound_volume.querySelector("input").style.width = "45px";
 
-            extra_settings_row_2_col_1.append(
+            /*extra_settings_row_2_col_1.append(
                 extra_ping_on_mention,
                 extra_ping_sound_file,
-                extra_ping_sound_volume);
+                extra_ping_sound_volume);*/
 
             // Row 3
             let extra_settings_row_3 = ui_settings_switchDiv.cloneNode();
@@ -389,65 +390,7 @@ function checkJoinBoxReady(changes, observer) {
             existing_button.parentNode.parentNode.firstChild.before(evdRouletteButton, soundRouletteButton, musicRouletteButton);
         }
 
-        const chatLogObserver = new MutationObserver(chatLogWatcher);
-        chatLogObserver.observe(ui_chatLog_chatList, {
-            childList: true,
-            subtree: true
-        });
-
-        function chatLogWatcher(mutations, observer) {
-            for (const mutation of mutations) {
-                if (mutation.type != "childList") {
-                    continue;
-                }
-
-                for (const node of mutation.addedNodes) {
-                    // Make sure the added node is an element
-                    if (node.nodeType !== Node.ELEMENT_NODE) {
-                        continue;
-                    }
-
-                    let message = node.lastChild.lastChild;
-
-                    // Make sure the message node was found
-                    if (message === null) {
-                        continue;
-                    }
-
-                    if (message.classList.contains("chat-text") == false) {
-                        continue;
-                    }
-
-                    // Make sure the message is a message and not a system notification
-                    if (message.previousSibling === null || message.previousSibling.nodeType !== Node.ELEMENT_NODE) {continue;}
-
-                    if (scriptSetting.clickable_links) {
-                        message.innerHTML = message.innerHTML.replaceAll('&', '&amp;')
-                            .replaceAll('<', '&lt;')
-                            .replaceAll('>', '&gt;')
-                            .replaceAll('"', '&quot;')
-                            .replaceAll("'", '&#039;')
-                            .replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a href="$&" target="_blank" rel="noreferrer">$&</a>')
-                            .replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a href="http://$2" target="_blank">$2</a>');
-                    }
-
-                    if (scriptSetting.ping_on_mention) {
-                        if (message.textContent.match("\\b"+storedUsername+"\\b")) {
-                            if (!document.hasFocus()) {
-                                if (typeof pingSound !== undefined && pingSound.src !== null) {
-                                    pingSound.play();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        let pingSound = new Audio();
-        pingSound.src = scriptSetting.ping_sound_file;
-        pingSound.volume = scriptSetting.ping_sound_volume / 100;
-        pingSound.loop = false;
+        
     }
 }
 
