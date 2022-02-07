@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.462
+// @version      0.47
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -19,7 +19,8 @@ let scriptSetting = {
     "warn_on_exit": getSetting("warn_on_exit", true),
     "evid_roulette": getSetting("evid_roulette", false),
     "sound_roulette": getSetting("sound_roulette", false),
-    "music_roulette": getSetting("music_roulette", false)
+    "music_roulette": getSetting("music_roulette", false),
+    "clickable_links": getSetting("clickable_links", true)
 };
 
 let storedUsername = getStoredUsername();
@@ -39,10 +40,10 @@ const uiElement = {
     "mainFrame_sendButton": "#app > div > div.container > main > div > div > div.row.no-gutters > div:nth-child(1) > div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div > button > span > i.mdi-send",
 
     "chatLog_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div",
-    "chatLog_chat": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item.v-window-item--active > div > div.chat",
-    "chatLog_textField": "#app > div.v-application--wrap > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]",
-    "chatLog_singleMessageText": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item.v-window-item--active > div > div.chat > div > div > div.v-list-item__content.py-1 > div.v-list-item__subtitle.black--text.chat-text",
-    "chatLog_sendButton": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item.v-window-item--active > div > div:nth-child(2) > div > div > div > div.v-input__append-inner > div > button"
+    "chatLog_chat": "div.v-window-item > div > div.chat",
+    "chatLog_chatList": "div.v-list",
+    "chatLog_textField": "div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]",
+    "chatLog_sendButton": "div > button"
 };
 
 function getUiElement(name, parent=document) {
@@ -51,11 +52,7 @@ function getUiElement(name, parent=document) {
 
 window.addEventListener('beforeunload', confirmClose, false);
 
-const observer = new MutationObserver(checkJoinBoxReady);
-observer.observe(document, {
-    childList: true,
-    subtree: true
-});
+(new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
 
 function checkJoinBoxReady(changes, observer) {
     // Wait for the Join pop-up to show up
@@ -89,6 +86,7 @@ function checkJoinBoxReady(changes, observer) {
 
         let ui_chatLog_container = getUiElement("chatLog_container"),
             ui_chatLog_chat = getUiElement("chatLog_chat", ui_chatLog_container),
+            ui_chatLog_chatList = getUiElement("chatLog_chatList", ui_chatLog_chat),
             ui_chatLog_textField = getUiElement("chatLog_textField", ui_chatLog_container);
 
         // Handle username changes and update the stored username
@@ -113,13 +111,14 @@ function checkJoinBoxReady(changes, observer) {
         createSettingsElements();
 
         // Create EVD roulette button
-        createAdditionalButtons();
+        createRouletteButtons();
 
         function createSettingsElements() {
             // Get the <hr> separator on the Settings page
             let settings_separator = ui_settings_separator;
 
             let extra_settings_row_head = ui_settings_switchDiv.cloneNode();
+            extra_settings_row_head.classList.remove("mt-2")
             extra_settings_row_head.append(document.createElement("h3").textContent="Courtroom Enhancer");
 
             let extra_settings_row = ui_settings_switchDiv.cloneNode();
@@ -166,31 +165,36 @@ function checkJoinBoxReady(changes, observer) {
                 setSetting("warn_on_exit", value);
             }),
                 extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette", function(e) {
-                let value = e.target.checked;
-                setSetting("evid_roulette", value);
-                document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
-            }),
+                    let value = e.target.checked;
+                    setSetting("evid_roulette", value);
+                    document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
+                }),
                 extra_sound_roulette = create_extra_setting_elem("sound_roulette", "Sound roulette", function(e) {
-                let value = e.target.checked;
-                setSetting("sound_roulette", value);
-                document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
-            }),
+                    let value = e.target.checked;
+                    setSetting("sound_roulette", value);
+                    document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
+                }),
                 extra_music_roulette = create_extra_setting_elem("music_roulette", "Music roulette", function(e) {
-                let value = e.target.checked;
-                setSetting("music_roulette", value);
-                document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
-            });
+                    let value = e.target.checked;
+                    setSetting("music_roulette", value);
+                    document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
+                }),
+                extra_clickable_links = create_extra_setting_elem("clickable_links", "Clickable links", function(e) {
+                    let value = e.target.checked;
+                    setSetting("clickable_links", value);
+                });
 
             extra_settings_col.append(extra_warn_on_exit,
                                       extra_evid_roulette,
                                       extra_sound_roulette,
-                                      extra_music_roulette);
+                                      extra_music_roulette,
+                                      extra_clickable_links);
 
             settings_separator.after(extra_settings_row_head, extra_settings_row);
             extra_settings_row.after(settings_separator.cloneNode());
         }
 
-        function createAdditionalButtons() {
+        function createRouletteButtons() {
 
             function createButton(id, label, callback) {
                 let elem_div = document.createElement("div");
@@ -270,6 +274,36 @@ function checkJoinBoxReady(changes, observer) {
             let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
             existing_button.parentNode.parentNode.firstChild.before(evdRouletteButton, soundRouletteButton, musicRouletteButton);
 
+        }
+
+        const chatLogObserver = new MutationObserver(chatLogWatcher);
+        chatLogObserver.observe(ui_chatLog_chatList, {
+            childList: true,
+            subtree: true
+        });
+
+        function chatLogWatcher(mutations, observer) {
+            for (const mutation of mutations) {
+                if (mutation.type != "childList") {
+                    continue;
+                }
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType !== Node.ELEMENT_NODE) {continue;}
+
+                    let message = node.querySelector(".chat-text");
+                    if (message === null) {continue;}
+
+                    if (scriptSetting.clickable_links === false) {continue;}
+                    message.innerHTML = message.textContent.replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#039;')
+                        .replace(/\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim, '<a href="$&" target="_blank" rel="noreferrer">$&</a>')
+                        .replace(/(^|[^\/])(www\.[\S]+(\b|$))/gim, '$1<a href="http://$2" target="_blank">$2</a>');
+
+                }
+            }
         }
     }
 }
