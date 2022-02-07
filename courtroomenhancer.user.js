@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.48
+// @version      0.49
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -23,7 +23,7 @@ let scriptSetting = {
     "clickable_links": getSetting("clickable_links", true),
     "ping_on_mention": getSetting("ping_on_mention", false),
     "ping_sound_file": getSetting("ping_sound_file", "https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/ping.mp3"),
-    "ping_sound_volume": getSetting("ping_sound_volume", 0.5)
+    "ping_sound_volume": getSetting("ping_sound_volume", 50)
 };
 
 let storedUsername = getStoredUsername();
@@ -117,19 +117,8 @@ function checkJoinBoxReady(changes, observer) {
         createRouletteButtons();
 
         function createSettingsElements() {
-            // Get the <hr> separator on the Settings page
-            let settings_separator = ui_settings_separator;
 
-            let extra_settings_row_head = ui_settings_switchDiv.cloneNode();
-            extra_settings_row_head.classList.remove("mt-2")
-            extra_settings_row_head.append(document.createElement("h3").textContent="Courtroom Enhancer");
-
-            let extra_settings_row = ui_settings_switchDiv.cloneNode();
-            let extra_settings_col = ui_settings_switchDiv.firstChild.cloneNode();
-
-            extra_settings_row.appendChild(extra_settings_col);
-
-            function create_extra_setting_elem(id, text, callback, input_type="checkbox") {
+            function create_extra_setting_elem_checkbox(id, text, callback) {
                 let div = document.createElement("div");
                 div.setAttribute("class", "v-input d-inline-block mr-4");
 
@@ -147,10 +136,10 @@ function checkJoinBoxReady(changes, observer) {
 
                 let input = document.createElement("input");
                 div_input_selection.appendChild(input);
-                input.type = input_type;
+                input.type = "checkbox";
                 input.id = id;
                 input.checked = scriptSetting[id];
-                input.setAttribute("class","theme--dark v-input--selection-controls__input pointer-item");
+                input.setAttribute("class"," v-input--selection-controls__input pointer-item");
                 input.setAttribute("style","margin-right:4px");
                 input.addEventListener("change",callback);
 
@@ -163,43 +152,158 @@ function checkJoinBoxReady(changes, observer) {
                 return div;
             }
 
-            let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Confirm on exit", function(e) {
+            function create_extra_setting_elem_text(id, text, callback, input_type="text") {
+                let div_column = document.createElement("div");
+                div_column.setAttribute("class", "d-inline-block col-sm-5 col-6");
+
+                let div = document.createElement("div");
+                div.setAttribute("class", "v-input v-text-field");
+                div.style.padding = "0px";
+                div_column.appendChild(div);
+
+
+                let div_input_control = document.createElement("div");
+                div_input_control.setAttribute("class", "v-input__control");
+                div.appendChild(div_input_control);
+
+                let div_input_slot = document.createElement("div");
+                div_input_slot.setAttribute("class", "v-input__slot");
+                div_input_slot.style.margin = "0";
+                div_input_control.appendChild(div_input_slot);
+
+                let div_input_selection = document.createElement("div");
+                div_input_selection.setAttribute("class", "v-text-field__slot");
+                div_input_slot.appendChild(div_input_selection);
+
+                let label = document.createElement("label");
+                label.setAttribute("for",id);
+                label.setAttribute("class","v-label v-label--active");
+                label.setAttribute("style","left: 0px; right: auto; position: absolute;");
+                label.textContent = text;
+                div_input_slot.appendChild(label);
+
+                let input = document.createElement("input");
+                input.type = input_type;
+                input.id = id;
+                input.value = scriptSetting[id];
+                input.setAttribute("class"," v-input--selection-controls__input");
+                input.style.marginRight = "0";
+                input.addEventListener("focusout",callback);
+
+                div_input_selection.append(label, input);
+
+                return div_column;
+            }
+
+            let extra_warn_on_exit = create_extra_setting_elem_checkbox("warn_on_exit", "Confirm on exit", function(e) {
                 let value = e.target.checked;
                 setSetting("warn_on_exit", value);
             }),
-                extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette", function(e) {
+                extra_evid_roulette = create_extra_setting_elem_checkbox("evid_roulette", "Evidence roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
                     document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
                 }),
-                extra_sound_roulette = create_extra_setting_elem("sound_roulette", "Sound roulette", function(e) {
+                extra_sound_roulette = create_extra_setting_elem_checkbox("sound_roulette", "Sound roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
                     document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
                 }),
-                extra_music_roulette = create_extra_setting_elem("music_roulette", "Music roulette", function(e) {
+                extra_music_roulette = create_extra_setting_elem_checkbox("music_roulette", "Music roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
                     document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
                 }),
-                extra_clickable_links = create_extra_setting_elem("clickable_links", "Clickable links", function(e) {
+                extra_clickable_links = create_extra_setting_elem_checkbox("clickable_links", "Clickable links", function(e) {
                     let value = e.target.checked;
                     setSetting("clickable_links", value);
                 }),
-                extra_ping_on_mention = create_extra_setting_elem("ping_on_mention", "Ping on mention", function(e) {
+                extra_ping_on_mention = create_extra_setting_elem_checkbox("ping_on_mention", "Beep on mention", function(e) {
                     let value = e.target.checked;
                     setSetting("ping_on_mention", value);
-                });
+                    extra_ping_sound_file.style.setProperty("display", value ? "inline-block" : "none", "important");
+                    extra_ping_sound_volume.style.setProperty("display", value ? "inline-block" : "none", "important");
+                }),
+                extra_ping_sound_file = create_extra_setting_elem_text("ping_sound_file", "Beep sound URL", function(e) {
+                    let value = e.target.value;
+                    if (value) {
+                        setSetting("ping_sound_file", value);
+                    } else {
+                        e.target.value = scriptSetting.ping_sound_file;
+                        e.preventDefault();
+                        return false;
+                    }
 
-            extra_settings_col.append(extra_warn_on_exit,
-                                      extra_evid_roulette,
-                                      extra_sound_roulette,
-                                      extra_music_roulette,
-                                      extra_clickable_links,
-                                      extra_ping_on_mention);
+                }, "text"),
+                extra_ping_sound_volume = create_extra_setting_elem_text("ping_sound_volume", "volume", function(e) {
+                    let value = e.target.value;
+                    if (value >= 0 && value <= 100) {
+                        setSetting("ping_sound_volume", value);
+                    } else {
+                        e.target.value = scriptSetting.ping_sound_volume;
+                        e.preventDefault();
+                        return false;
+                    }
+                }, "number");
 
-            settings_separator.after(extra_settings_row_head, extra_settings_row);
-            extra_settings_row.after(settings_separator.cloneNode());
+            // Get the <hr> separator on the Settings page
+            let settings_separator = ui_settings_separator;
+
+            let extra_settings_row_head = ui_settings_switchDiv.cloneNode();
+            extra_settings_row_head.classList.remove("mt-2")
+            extra_settings_row_head.append(document.createElement("h3").textContent="Courtroom Enhancer");
+
+            let extra_settings_row_1 = ui_settings_switchDiv.cloneNode();
+            let extra_settings_row_1_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
+
+            extra_settings_row_1.appendChild(extra_settings_row_1_col_1);
+
+            extra_settings_row_1_col_1.append(extra_warn_on_exit,
+                                              extra_clickable_links);
+
+            // Row 2
+
+            let extra_settings_row_2 = ui_settings_switchDiv.cloneNode();
+            let extra_settings_row_2_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
+
+            extra_settings_row_2.appendChild(extra_settings_row_2_col_1);
+
+            extra_ping_sound_file.querySelector("input").maxLength = "255";
+            extra_ping_sound_file.setAttribute("class","d-inline-block col-sm-6 mr-1");
+            extra_ping_sound_file.style.padding = "0";
+
+            extra_ping_sound_file.style.setProperty("display", scriptSetting.ping_on_mention ? "inline-block" : "none", "important");
+            extra_ping_sound_volume.style.setProperty("display", scriptSetting.ping_on_mention ? "inline-block" : "none", "important");
+
+            extra_ping_sound_volume.setAttribute("class","d-inline-block col-sm-2, ml-1");
+            extra_ping_sound_volume.style.padding = "0";
+
+            extra_ping_sound_volume.querySelector("input").maxLength = "3";
+            extra_ping_sound_volume.querySelector("input").min = "0";
+            extra_ping_sound_volume.querySelector("input").max = "100";
+
+            extra_settings_row_2_col_1.append(
+                extra_ping_on_mention,
+                extra_ping_sound_file,
+                extra_ping_sound_volume);
+
+            // Row 3
+            let extra_settings_row_3 = ui_settings_switchDiv.cloneNode();
+            let extra_settings_row_3_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
+
+            extra_settings_row_3.appendChild(extra_settings_row_3_col_1);
+
+            extra_settings_row_3_col_1.append(
+                extra_evid_roulette,
+                extra_sound_roulette,
+                extra_music_roulette);
+
+            settings_separator.after(extra_settings_row_head,
+                                     extra_settings_row_1,
+                                     extra_settings_row_2,
+                                     extra_settings_row_3);
+
+            extra_settings_row_3.after(settings_separator.cloneNode());
         }
 
         function createRouletteButtons() {
@@ -320,7 +424,9 @@ function checkJoinBoxReady(changes, observer) {
                     if (scriptSetting.ping_on_mention === true) {
                         if (message.textContent.match("\\b"+storedUsername+"\\b")) {
                             if (!document.hasFocus()) {
-                                pingSound.play();
+                                if (typeof pingSound !== undefined && pingSound.src !== null) {
+                                    pingSound.play();
+                                }
                             }
                         }
                     }
@@ -330,7 +436,7 @@ function checkJoinBoxReady(changes, observer) {
 
         let pingSound = new Audio();
         pingSound.src = scriptSetting.ping_sound_file;
-        pingSound.volume = scriptSetting.ping_sound_volume;
+        pingSound.volume = scriptSetting.ping_sound_volume / 100;
         pingSound.loop = false;
     }
 }
