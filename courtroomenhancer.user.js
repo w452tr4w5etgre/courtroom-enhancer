@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.491
+// @version      0.492
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -227,6 +227,7 @@ function checkJoinBoxReady(changes, observer) {
                 extra_ping_sound_file = create_extra_setting_elem_text("ping_sound_file", "Beep sound URL", function(e) {
                     let value = e.target.value;
                     if (value) {
+                        pingSound.src = value;
                         setSetting("ping_sound_file", value);
                     } else {
                         e.target.value = scriptSetting.ping_sound_file;
