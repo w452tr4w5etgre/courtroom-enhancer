@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.46
+// @version      0.462
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -31,6 +31,7 @@ const uiElement = {
 
     "settings_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div.v-window__container > div.v-window-item:nth-child(4)",
     "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
+    "settings_switchDiv": "div > div:nth-child(2) > div > div.v-input--switch",
     "settings_hrSeparator": "div > hr:last-of-type",
 
     "mainFrame_container": "#app > div > div.container > main > div > div > div > div:nth-child(1)",
@@ -79,6 +80,7 @@ function checkJoinBoxReady(changes, observer) {
 
         let ui_settings_container = getUiElement("settings_container"),
             ui_settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui_settings_container),
+            ui_settings_switchDiv = getUiElement("settings_switchDiv", ui_settings_container).parentNode.parentNode,
             ui_settings_separator = getUiElement("settings_hrSeparator", ui_settings_container);
 
         let ui_mainFrame_container = getUiElement("mainFrame_container"),
@@ -117,11 +119,13 @@ function checkJoinBoxReady(changes, observer) {
             // Get the <hr> separator on the Settings page
             let settings_separator = ui_settings_separator;
 
-            let div_switch = document.querySelector("#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div > div.v-window-item > div > div:nth-child(2) > div > div.v-input--switch");
+            let extra_settings_row_head = ui_settings_switchDiv.cloneNode();
+            extra_settings_row_head.append(document.createElement("h3").textContent="Courtroom Enhancer");
 
-            let extra_settings = div_switch.parentNode.parentNode.cloneNode();
-            let extra_settings_col = div_switch.parentNode.cloneNode();
-            extra_settings.appendChild(extra_settings_col);
+            let extra_settings_row = ui_settings_switchDiv.cloneNode();
+            let extra_settings_col = ui_settings_switchDiv.firstChild.cloneNode();
+
+            extra_settings_row.appendChild(extra_settings_col);
 
             function create_extra_setting_elem(id, text, callback, input_type="checkbox") {
                 let div = document.createElement("div");
@@ -151,7 +155,7 @@ function checkJoinBoxReady(changes, observer) {
                 let label = document.createElement("label");
                 div_input_slot.appendChild(label);
                 label.setAttribute("for",id);
-                label.setAttribute("class","v-label theme--dark pointer-item");
+                label.setAttribute("class","v-label pointer-item");
                 label.textContent = text;
 
                 return div;
@@ -160,21 +164,18 @@ function checkJoinBoxReady(changes, observer) {
             let extra_warn_on_exit = create_extra_setting_elem("warn_on_exit", "Confirm on exit", function(e) {
                 let value = e.target.checked;
                 setSetting("warn_on_exit", value);
-            })
-
-            let extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette", function(e) {
+            }),
+                extra_evid_roulette = create_extra_setting_elem("evid_roulette", "Evidence roulette", function(e) {
                 let value = e.target.checked;
                 setSetting("evid_roulette", value);
                 document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
-            });
-
-            let extra_sound_roulette = create_extra_setting_elem("sound_roulette", "Sound roulette", function(e) {
+            }),
+                extra_sound_roulette = create_extra_setting_elem("sound_roulette", "Sound roulette", function(e) {
                 let value = e.target.checked;
                 setSetting("sound_roulette", value);
                 document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
-            });
-
-            let extra_music_roulette = create_extra_setting_elem("music_roulette", "Music roulette", function(e) {
+            }),
+                extra_music_roulette = create_extra_setting_elem("music_roulette", "Music roulette", function(e) {
                 let value = e.target.checked;
                 setSetting("music_roulette", value);
                 document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
@@ -185,8 +186,8 @@ function checkJoinBoxReady(changes, observer) {
                                       extra_sound_roulette,
                                       extra_music_roulette);
 
-            settings_separator.after(extra_settings);
-            extra_settings.after(settings_separator.cloneNode());
+            settings_separator.after(extra_settings_row_head, extra_settings_row);
+            extra_settings_row.after(settings_separator.cloneNode());
         }
 
         function createAdditionalButtons() {
@@ -198,7 +199,7 @@ function checkJoinBoxReady(changes, observer) {
                 elem_div.style.display = getSetting(id, false) ? "inline" : "none";
 
                 let elem_button = document.createElement("button");
-                elem_button.setAttribute("class","v-btn v-btn--has-bg theme--dark v-size--small primary");
+                elem_button.setAttribute("class","v-btn v-btn--has-bg v-size--small primary");
                 elem_button.setAttribute("type","button");
                 elem_button.style = 'background-color: #f37821 !important;';
                 elem_button.addEventListener("click", callback)
@@ -207,7 +208,7 @@ function checkJoinBoxReady(changes, observer) {
                 elem_span.setAttribute("class","v-btn__content");
 
                 let elem_i = document.createElement("i");
-                elem_i.setAttribute("class","v-icon notranslate mdi theme--dark");
+                elem_i.setAttribute("class","v-icon notranslate mdi");
                 elem_i.textContent = label;
                 elem_i.style.fontSize = "18px";
 
@@ -273,11 +274,9 @@ function checkJoinBoxReady(changes, observer) {
     }
 }
 
-
-
 function confirmClose (zEvent) {
     if (getSetting("warn_on_exit", true)) {
-        zEvent.preventDefault ();
+        zEvent.preventDefault();
         zEvent.returnValue = "Are you sure?";
     }
 }
