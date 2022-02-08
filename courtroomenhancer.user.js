@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.496
+// @version      0.50
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -20,6 +20,9 @@ let scriptSetting = {
     "evid_roulette": getSetting("evid_roulette", false),
     "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false),
+    "evid_roulette_max": getSetting("evid_roulette_max", 463000),
+    "sound_roulette_max": getSetting("sound_roulette_max", 39000),
+    "music_roulette_max": getSetting("music_roulette_max", 129000),
     "clickable_links": false,
     "ping_on_mention": false,
     "ping_sound_file": getSetting("ping_sound_file", "https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/ping.mp3"),
@@ -120,7 +123,7 @@ function checkJoinBoxReady(changes, observer) {
 
             function create_extra_setting_elem_checkbox(id, text, callback) {
                 let div = document.createElement("div");
-                div.setAttribute("class", "v-input d-inline-block mr-4");
+                div.setAttribute("class", "v-input d-inline-block mr-2");
 
                 let div_input_control = document.createElement("div");
                 div_input_control.setAttribute("class", "v-input__control");
@@ -139,8 +142,7 @@ function checkJoinBoxReady(changes, observer) {
                 input.type = "checkbox";
                 input.id = id;
                 input.checked = scriptSetting[id];
-                input.setAttribute("class"," v-input--selection-controls__input pointer-item");
-                input.setAttribute("style","margin-right:4px");
+                input.setAttribute("class"," v-input--selection-controls__input pointer-item mr-4");
                 input.addEventListener("change",callback);
 
                 let label = document.createElement("label");
@@ -154,31 +156,51 @@ function checkJoinBoxReady(changes, observer) {
 
             function create_extra_setting_elem_text(id, text, callback, input_type="text") {
                 let div_column = document.createElement("div");
-                div_column.setAttribute("class", "d-inline-block col-sm-5 col-6");
+                div_column.setAttributes({
+                    className: "d-inline-block"
+                });
 
                 let div = document.createElement("div");
-                div.setAttribute("class", "v-input v-text-field");
-                div.style.padding = "0px";
+                div.setAttributes({
+                    className: "v-input v-text-field",
+                    style: {
+                        padding: "0px"
+                    }
+                });
                 div_column.appendChild(div);
 
-
                 let div_input_control = document.createElement("div");
-                div_input_control.setAttribute("class", "v-input__control");
+                div_input_control.setAttributes({
+                    className: "v-input__control"
+                });
                 div.appendChild(div_input_control);
 
                 let div_input_slot = document.createElement("div");
-                div_input_slot.setAttribute("class", "v-input__slot");
-                div_input_slot.style.margin = "0";
+                div_input_slot.setAttributes({
+                    className: "v-input__slot",
+                    style: {
+                        margin: "0"
+                    }
+                });
                 div_input_control.appendChild(div_input_slot);
 
                 let div_input_selection = document.createElement("div");
-                div_input_selection.setAttribute("class", "v-text-field__slot");
+                div_input_selection.setAttributes({
+                    className: "v-text-field__slot"
+                });
                 div_input_slot.appendChild(div_input_selection);
 
                 let label = document.createElement("label");
-                label.setAttribute("for",id);
-                label.setAttribute("class","v-label v-label--active");
-                label.setAttribute("style","left: 0px; right: auto; position: absolute;");
+                label.setAttributes({
+                    for: id,
+                    className: "v-label v-label--active",
+                    style: {
+                        left: "0px",
+                        right: "auto",
+                        position: "absolute"
+                    }
+                });
+
                 label.textContent = text;
                 div_input_slot.appendChild(label);
 
@@ -186,9 +208,23 @@ function checkJoinBoxReady(changes, observer) {
                 input.type = input_type;
                 input.id = id;
                 input.value = scriptSetting[id];
-                input.setAttribute("class"," v-input--selection-controls__input");
-                input.style.marginRight = "0";
-                input.addEventListener("focusout",callback);
+                input.setAttributes({
+                    className: "v-input--selection-controls__input",
+                    style: {
+                        marginRight: "0"
+                    }
+                });
+
+                input.addEventListener("focus", function(e) {
+                    div.classList.add("v-input--is-focused","primary--text");
+                    label.classList.add("primary--text");
+                });
+
+                input.addEventListener("focusout",function (e) {
+                    div.classList.remove("v-input--is-focused","primary--text");
+                    label.classList.remove("primary--text");
+                    callback(e)
+                });
 
                 div_input_selection.append(label, input);
 
@@ -202,18 +238,51 @@ function checkJoinBoxReady(changes, observer) {
                 extra_evid_roulette = create_extra_setting_elem_checkbox("evid_roulette", "Evidence roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
-                    document.querySelector("div#evid_roulette_button").style.display = getSetting("evid_roulette", true) ? "inline" : "none"
+                    document.querySelector("div#evid_roulette_button").style.display = value ? "inline" : "none"
+                    extra_evid_roulette_max.style.display = value ? "inline-block" : "none"
                 }),
                 extra_sound_roulette = create_extra_setting_elem_checkbox("sound_roulette", "Sound roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
-                    document.querySelector("div#sound_roulette_button").style.display = getSetting("sound_roulette", true) ? "inline" : "none"
+                    document.querySelector("div#sound_roulette_button").style.display = value ? "inline" : "none"
+                    extra_sound_roulette_max.style.display = value ? "inline-block" : "none"
                 }),
                 extra_music_roulette = create_extra_setting_elem_checkbox("music_roulette", "Music roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
-                    document.querySelector("div#music_roulette_button").style.display = getSetting("music_roulette", true) ? "inline" : "none"
+                    document.querySelector("div#music_roulette_button").style.display = value ? "inline" : "none"
+                    extra_music_roulette_max.style.display = value ? "inline-block" : "none"
                 }),
+                extra_evid_roulette_max = create_extra_setting_elem_text("evid_roulette_max", "max", function(e) {
+                    let value = parseInt(e.target.value);
+                    if (value) {
+                        setSetting("evid_roulette_max", value);
+                    } else {
+                        e.target.value = scriptSetting.evid_roulette_max;
+                        e.preventDefault();
+                        return false;
+                    }
+                }, "number"),
+                extra_sound_roulette_max = create_extra_setting_elem_text("sound_roulette_max", "max", function(e) {
+                    let value = parseInt(e.target.value);
+                    if (value) {
+                        setSetting("sound_roulette_max", value);
+                    } else {
+                        e.target.value = scriptSetting.sound_roulette_max;
+                        e.preventDefault();
+                        return false;
+                    }
+                }, "number"),
+                extra_music_roulette_max = create_extra_setting_elem_text("music_roulette_max", "max", function(e) {
+                    let value = parseInt(e.target.value);
+                    if (value) {
+                        setSetting("music_roulette_max", value);
+                    } else {
+                        e.target.value = scriptSetting.music_roulette_max;
+                        e.preventDefault();
+                        return false;
+                    }
+                }, "number"),
                 extra_clickable_links = create_extra_setting_elem_checkbox("clickable_links", "Clickable links", function(e) {
                     let value = e.target.checked;
                     setSetting("clickable_links", value);
@@ -227,7 +296,7 @@ function checkJoinBoxReady(changes, observer) {
                 extra_ping_sound_file = create_extra_setting_elem_text("ping_sound_file", "Beep sound URL", function(e) {
                     let value = e.target.value;
                     if (value) {
-                        pingSound.src = value;
+                        //pingSound.src = value;
                         setSetting("ping_sound_file", value);
                     } else {
                         e.target.value = scriptSetting.ping_sound_file;
@@ -250,9 +319,8 @@ function checkJoinBoxReady(changes, observer) {
             // Get the <hr> separator on the Settings page
             let settings_separator = ui_settings_separator;
 
-            let extra_settings_row_head = ui_settings_switchDiv.cloneNode();
-            extra_settings_row_head.classList.remove("mt-2")
-            extra_settings_row_head.append(document.createElement("h3").textContent="Courtroom Enhancer");
+            let extra_settings_row_head = document.createElement("h3");
+            extra_settings_row_head.textContent = "Courtroom Enhancer";
 
             let extra_settings_row_1 = ui_settings_switchDiv.cloneNode();
             let extra_settings_row_1_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
@@ -270,6 +338,7 @@ function checkJoinBoxReady(changes, observer) {
 
             extra_settings_row_2.appendChild(extra_settings_row_2_col_1);
 
+            /* Chat parser disabled
             extra_ping_sound_file.querySelector("input").maxLength = "255";
             extra_ping_sound_file.setAttribute("class","d-inline-block col-sm-6 mr-1");
             extra_ping_sound_file.style.padding = "0";
@@ -285,10 +354,11 @@ function checkJoinBoxReady(changes, observer) {
             extra_ping_sound_volume.querySelector("input").max = "100";
             extra_ping_sound_volume.querySelector("input").style.width = "45px";
 
-            /*extra_settings_row_2_col_1.append(
+            extra_settings_row_2_col_1.append(
                 extra_ping_on_mention,
                 extra_ping_sound_file,
-                extra_ping_sound_volume);*/
+                extra_ping_sound_volume);
+            */
 
             // Row 3
             let extra_settings_row_3 = ui_settings_switchDiv.cloneNode();
@@ -296,10 +366,64 @@ function checkJoinBoxReady(changes, observer) {
 
             extra_settings_row_3.appendChild(extra_settings_row_3_col_1);
 
+            extra_evid_roulette_max.classList.remove("d-inline-block");
+            extra_evid_roulette_max.setAttributes({
+                style: {
+                    display: scriptSetting.evid_roulette ? "inline-block" : "none",
+                    padding: "0px",
+                    marginRight: "8px"
+                }
+            });
+            extra_evid_roulette_max.querySelector("input").setAttributes({
+                maxLength: "7",
+                min: "0",
+                max: "9999999",
+                style: {
+                    width:"65px"
+                }
+            });
+
+            extra_sound_roulette_max.classList.remove("d-inline-block");
+            extra_sound_roulette_max.setAttributes({
+                style: {
+                    display: scriptSetting.sound_roulette ? "inline-block" : "none",
+                    padding: "0px",
+                    marginRight: "8px"
+                }
+            });
+            extra_sound_roulette_max.querySelector("input").setAttributes({
+                maxLength: "7",
+                min: "0",
+                max: "9999999",
+                style: {
+                    width:"65px"
+                }
+            });
+
+            extra_music_roulette_max.classList.remove("d-inline-block");
+            extra_music_roulette_max.setAttributes({
+                style: {
+                    display: scriptSetting.music_roulette ? "inline-block" : "none",
+                    padding: "0px",
+                    marginRight: "8px"
+                }
+            });
+            extra_music_roulette_max.querySelector("input").setAttributes({
+                maxLength: "7",
+                min: "0",
+                max: "9999999",
+                style: {
+                    width:"65px"
+                }
+            });
+
             extra_settings_row_3_col_1.append(
                 extra_evid_roulette,
+                extra_evid_roulette_max,
                 extra_sound_roulette,
-                extra_music_roulette);
+                extra_sound_roulette_max,
+                extra_music_roulette,
+                extra_music_roulette_max);
 
             settings_separator.after(extra_settings_row_head,
                                      extra_settings_row_1,
@@ -314,7 +438,7 @@ function checkJoinBoxReady(changes, observer) {
             function createButton(id, label, callback) {
                 let elem_div = document.createElement("div");
                 elem_div.setAttribute('class','px-1');
-                elem_div.id = id + "_button"
+                elem_div.id = id + "_button";
                 elem_div.style.display = getSetting(id, false) ? "inline" : "none";
 
                 let elem_button = document.createElement("button");
@@ -339,9 +463,7 @@ function checkJoinBoxReady(changes, observer) {
             }
 
             let evdRouletteButton = createButton("evid_roulette","EVD", function() {
-                // Upper limit for roulettes
-                let max = 461000
-                let random = Math.floor(Math.random() * max)
+                let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#evd" + random + "]";
                 ui_mainFrame_textarea.dispatchEvent(new Event("input"));
@@ -355,9 +477,7 @@ function checkJoinBoxReady(changes, observer) {
             });
 
             let soundRouletteButton = createButton("sound_roulette","SND", function() {
-                // Upper limit for roulettes
-                let max = 38700
-                let random = Math.floor(Math.random() * max)
+                let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgs" + random + "]";
                 ui_mainFrame_textarea.dispatchEvent(new Event("input"));
@@ -371,9 +491,7 @@ function checkJoinBoxReady(changes, observer) {
             });
 
             let musicRouletteButton = createButton("music_roulette","MUS", function() {
-                // Upper limit for roulettes
-                let max = 129000;
-                let random = Math.floor(Math.random() * max)
+                let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgm" + random + "]";
                 ui_mainFrame_textarea.dispatchEvent(new Event("input"));
@@ -387,10 +505,13 @@ function checkJoinBoxReady(changes, observer) {
             });
 
             let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
-            existing_button.parentNode.parentNode.firstChild.before(evdRouletteButton, soundRouletteButton, musicRouletteButton);
+            existing_button.parentNode.parentNode.firstChild.before(
+                evdRouletteButton,
+                soundRouletteButton,
+                musicRouletteButton);
         }
 
-        
+
     }
 }
 
@@ -402,7 +523,16 @@ function confirmClose (zEvent) {
 }
 
 function getSetting(setting_name, default_value) {
-    return GM_getValue("setting_" + setting_name, default_value);
+    let value = GM_getValue("setting_" + setting_name, default_value);
+    switch (typeof default_value) {
+        case "number":
+            value = parseInt(value) || default_value;
+            break;
+        case "boolean":
+            value = Boolean(value);
+            break;
+    }
+    return value;
 }
 
 function setSetting(setting_name, value) {
@@ -411,10 +541,12 @@ function setSetting(setting_name, value) {
 }
 
 function getStoredUsername() {
-    return GM_getValue("courtroom_username","")
+    return String(GM_getValue("courtroom_username",""));
 }
 
 function setStoredUsername(username) {
     storedUsername = username;
-    return GM_setValue("courtroom_username", username);
+    return GM_setValue("courtroom_username", String(username));
 }
+
+Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
