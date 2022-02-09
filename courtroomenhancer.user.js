@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.522
+// @version      0.523
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -306,7 +306,7 @@ function checkJoinBoxReady(changes, observer) {
             let ui_extraSettings_rowHeader = document.createElement("h3");
             ui_extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset and refresh", function() {
+            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", function() {
                 let storedSettings = GM_listValues();
                 for (let val in storedSettings) {
                     GM_deleteValue(storedSettings[val]);
@@ -410,7 +410,7 @@ function checkJoinBoxReady(changes, observer) {
             extraSettings_rows[extraSettings_rows.length - 1].after(settings_separator.cloneNode());
         }
 
-        function createButton(id, label, callback) {
+        function createButton(id, label, icon=null, callback) {
             let elem_div = document.createElement("div");
             elem_div.setAttributes({
                 className: "px-1",
@@ -434,6 +434,14 @@ function checkJoinBoxReady(changes, observer) {
 
             elem_span.textContent = label;
 
+            if (icon) {
+                let elem_icon = document.createElement("i");
+                elem_icon.setAttributes({
+                    className: "v-icon v-icon--left mdi mdi-"+icon+" theme--dark"
+                });
+                elem_span.firstChild.before(elem_icon);
+            }
+
             elem_button.appendChild(elem_span);
             elem_div.appendChild(elem_button);
 
@@ -441,7 +449,7 @@ function checkJoinBoxReady(changes, observer) {
         }
 
         function createRouletteButtons() {
-            let evidRouletteButton = createButton("evid_roulette","EVD", function() {
+            let evidRouletteButton = createButton("evid_roulette", "EVD", "dice-multiple", function() {
                 let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#evd" + random + "]";
@@ -459,8 +467,10 @@ function checkJoinBoxReady(changes, observer) {
                     display: scriptSetting.evid_roulette ? "inline" : "none"
                 }
             });
+            evidRouletteButton.firstChild.style.padding = "0px 5px";
+            evidRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            let soundRouletteButton = createButton("sound_roulette", "SND",function() {
+            let soundRouletteButton = createButton("sound_roulette", "SFX", "dice-multiple", function() {
                 let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgs" + random + "]";
@@ -478,8 +488,10 @@ function checkJoinBoxReady(changes, observer) {
                     display: scriptSetting.sound_roulette ? "inline" : "none"
                 }
             });
+            soundRouletteButton.firstChild.style.padding = "0px 5px";
+            soundRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            let musicRouletteButton = createButton("music_roulette","MUS", function() {
+            let musicRouletteButton = createButton("music_roulette", "MUS", "dice-multiple", function() {
                 let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgm" + random + "]";
@@ -497,6 +509,8 @@ function checkJoinBoxReady(changes, observer) {
                     display: scriptSetting.music_roulette ? "inline" : "none"
                 }
             });
+            musicRouletteButton.firstChild.style.padding = "0px 5px";
+            musicRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
             ui_mainFrame_sendButton.parentNode.parentNode.firstChild.before(
                 evidRouletteButton,
