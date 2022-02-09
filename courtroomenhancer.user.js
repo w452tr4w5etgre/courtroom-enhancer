@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.521
+// @version      0.522
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -422,7 +422,7 @@ function checkJoinBoxReady(changes, observer) {
                 className: "v-btn v-btn--has-bg v-size--small theme--dark",
                 type: "button",
                 style: {
-                    background: "rgb(123 33 243)"
+                    background: "rgb(184 39 146)"
                 }
             });
             elem_button.addEventListener("click", callback)
