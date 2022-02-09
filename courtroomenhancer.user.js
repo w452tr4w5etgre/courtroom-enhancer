@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.50
+// @version      0.51
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -22,11 +22,7 @@ let scriptSetting = {
     "music_roulette": getSetting("music_roulette", false),
     "evid_roulette_max": getSetting("evid_roulette_max", 463000),
     "sound_roulette_max": getSetting("sound_roulette_max", 39000),
-    "music_roulette_max": getSetting("music_roulette_max", 129000),
-    "clickable_links": false,
-    "ping_on_mention": false,
-    "ping_sound_file": getSetting("ping_sound_file", "https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/ping.mp3"),
-    "ping_sound_volume": getSetting("ping_sound_volume", 50)
+    "music_roulette_max": getSetting("music_roulette_max", 129000)
 };
 
 let storedUsername = getStoredUsername();
@@ -116,39 +112,51 @@ function checkJoinBoxReady(changes, observer) {
         // Add setting options under the Settings tab
         createSettingsElements();
 
-        // Create EVD roulette button
+        // Create roulette buttons
         createRouletteButtons();
 
         function createSettingsElements() {
 
             function create_extra_setting_elem_checkbox(id, text, callback) {
                 let div = document.createElement("div");
-                div.setAttribute("class", "v-input d-inline-block mr-2");
+                div.setAttributes({
+                    className: "v-input d-inline-block mr-2"
+                });
 
                 let div_input_control = document.createElement("div");
-                div_input_control.setAttribute("class", "v-input__control");
+                div_input_control.setAttributes({
+                    className: "v-input__control"
+                });
                 div.appendChild(div_input_control);
 
                 let div_input_slot = document.createElement("div");
-                div_input_slot.setAttribute("class", "v-input__slot");
+                div_input_slot.setAttributes({
+                    className: "v-input__slot"
+                });
                 div_input_control.appendChild(div_input_slot);
 
                 let div_input_selection = document.createElement("div");
-                div_input_selection.setAttribute("class", "v-input--selection-controls__input");
+                div_input_selection.setAttributes({
+                    className: "v-input--selection-controls__input"
+                });
                 div_input_slot.appendChild(div_input_selection);
 
                 let input = document.createElement("input");
                 div_input_selection.appendChild(input);
-                input.type = "checkbox";
-                input.id = id;
-                input.checked = scriptSetting[id];
-                input.setAttribute("class"," v-input--selection-controls__input pointer-item mr-4");
+                input.setAttributes({
+                    className: "v-input--selection-controls__input pointer-item mr-4",
+                    checked: scriptSetting[id],
+                    id: id,
+                    type: "checkbox"
+                });
                 input.addEventListener("change",callback);
 
                 let label = document.createElement("label");
                 div_input_slot.appendChild(label);
-                label.setAttribute("for",id);
-                label.setAttribute("class","v-label pointer-item");
+                label.setAttributes({
+                    htmlFor: id,
+                    className: "v-label pointer-item"
+                });
                 label.textContent = text;
 
                 return div;
@@ -192,7 +200,7 @@ function checkJoinBoxReady(changes, observer) {
 
                 let label = document.createElement("label");
                 label.setAttributes({
-                    for: id,
+                    htmlFor: id,
                     className: "v-label v-label--active",
                     style: {
                         left: "0px",
@@ -231,29 +239,29 @@ function checkJoinBoxReady(changes, observer) {
                 return div_column;
             }
 
-            let extra_warn_on_exit = create_extra_setting_elem_checkbox("warn_on_exit", "Confirm on exit", function(e) {
+            let ui_extraSettings_warnOnExit = create_extra_setting_elem_checkbox("warn_on_exit", "Confirm on exit", function(e) {
                 let value = e.target.checked;
                 setSetting("warn_on_exit", value);
             }),
-                extra_evid_roulette = create_extra_setting_elem_checkbox("evid_roulette", "Evidence roulette", function(e) {
+                ui_extraSettings_rouletteEvid = create_extra_setting_elem_checkbox("evid_roulette", "Evidence roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
                     document.querySelector("div#evid_roulette_button").style.display = value ? "inline" : "none"
-                    extra_evid_roulette_max.style.display = value ? "inline-block" : "none"
+                    ui_extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none"
                 }),
-                extra_sound_roulette = create_extra_setting_elem_checkbox("sound_roulette", "Sound roulette", function(e) {
+                ui_extraSettings_rouletteSound = create_extra_setting_elem_checkbox("sound_roulette", "Sound roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
                     document.querySelector("div#sound_roulette_button").style.display = value ? "inline" : "none"
-                    extra_sound_roulette_max.style.display = value ? "inline-block" : "none"
+                    ui_extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none"
                 }),
-                extra_music_roulette = create_extra_setting_elem_checkbox("music_roulette", "Music roulette", function(e) {
+                ui_extraSettings_rouletteMusic = create_extra_setting_elem_checkbox("music_roulette", "Music roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
                     document.querySelector("div#music_roulette_button").style.display = value ? "inline" : "none"
-                    extra_music_roulette_max.style.display = value ? "inline-block" : "none"
+                    ui_extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none"
                 }),
-                extra_evid_roulette_max = create_extra_setting_elem_text("evid_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteEvidMax = create_extra_setting_elem_text("evid_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("evid_roulette_max", value);
@@ -263,7 +271,7 @@ function checkJoinBoxReady(changes, observer) {
                         return false;
                     }
                 }, "number"),
-                extra_sound_roulette_max = create_extra_setting_elem_text("sound_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteSoundMax = create_extra_setting_elem_text("sound_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("sound_roulette_max", value);
@@ -273,7 +281,7 @@ function checkJoinBoxReady(changes, observer) {
                         return false;
                     }
                 }, "number"),
-                extra_music_roulette_max = create_extra_setting_elem_text("music_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteMusicMax = create_extra_setting_elem_text("music_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("music_roulette_max", value);
@@ -282,99 +290,37 @@ function checkJoinBoxReady(changes, observer) {
                         e.preventDefault();
                         return false;
                     }
-                }, "number"),
-                extra_clickable_links = create_extra_setting_elem_checkbox("clickable_links", "Clickable links", function(e) {
-                    let value = e.target.checked;
-                    setSetting("clickable_links", value);
-                }),
-                extra_ping_on_mention = create_extra_setting_elem_checkbox("ping_on_mention", "Beep on mention", function(e) {
-                    let value = e.target.checked;
-                    setSetting("ping_on_mention", value);
-                    extra_ping_sound_file.style.setProperty("display", value ? "inline-block" : "none", "important");
-                    extra_ping_sound_volume.style.setProperty("display", value ? "inline-block" : "none", "important");
-                }),
-                extra_ping_sound_file = create_extra_setting_elem_text("ping_sound_file", "Beep sound URL", function(e) {
-                    let value = e.target.value;
-                    if (value) {
-                        //pingSound.src = value;
-                        setSetting("ping_sound_file", value);
-                    } else {
-                        e.target.value = scriptSetting.ping_sound_file;
-                        e.preventDefault();
-                        return false;
-                    }
-
-                }, "text"),
-                extra_ping_sound_volume = create_extra_setting_elem_text("ping_sound_volume", "volume", function(e) {
-                    let value = e.target.value;
-                    if (value >= 0 && value <= 100) {
-                        setSetting("ping_sound_volume", value);
-                    } else {
-                        e.target.value = scriptSetting.ping_sound_volume;
-                        e.preventDefault();
-                        return false;
-                    }
-                }, "number");
+                }, "number")
 
             // Get the <hr> separator on the Settings page
             let settings_separator = ui_settings_separator;
 
-            let extra_settings_row_head = document.createElement("h3");
-            extra_settings_row_head.textContent = "Courtroom Enhancer";
+            // Row 1 - Header
+            let extraSettings_rows = [];
+            let ui_extraSettings_rowHeader = document.createElement("h3");
+            ui_extraSettings_rowHeader.textContent = "Courtroom Enhancer";
+            extraSettings_rows.push(ui_extraSettings_rowHeader);
 
-            let extra_settings_row_1 = ui_settings_switchDiv.cloneNode();
-            let extra_settings_row_1_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
+            // Row 2 - Buttons
+            let ui_extraSettings_rowButtons = ui_settings_switchDiv.cloneNode();
+            ui_extraSettings_rowButtons.appendChild(ui_settings_switchDiv.firstChild.cloneNode());
+            ui_extraSettings_rowButtons.lastChild.append(ui_extraSettings_warnOnExit);
+            extraSettings_rows.push(ui_extraSettings_rowButtons);
 
-            extra_settings_row_1.appendChild(extra_settings_row_1_col_1);
+            // Row 3 - Roulettes
+            let ui_extraSettings_rowRoulettes = ui_settings_switchDiv.cloneNode();
 
-            /*extra_settings_row_1_col_1.append(extra_warn_on_exit,
-                                              extra_clickable_links);*/
-            extra_settings_row_1_col_1.append(extra_warn_on_exit);
+            ui_extraSettings_rowRoulettes.appendChild(ui_settings_switchDiv.firstChild.cloneNode());
 
-            // Row 2
-
-            let extra_settings_row_2 = ui_settings_switchDiv.cloneNode();
-            let extra_settings_row_2_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
-
-            extra_settings_row_2.appendChild(extra_settings_row_2_col_1);
-
-            /* Chat parser disabled
-            extra_ping_sound_file.querySelector("input").maxLength = "255";
-            extra_ping_sound_file.setAttribute("class","d-inline-block col-sm-6 mr-1");
-            extra_ping_sound_file.style.padding = "0";
-
-            extra_ping_sound_file.style.setProperty("display", scriptSetting.ping_on_mention ? "inline-block" : "none", "important");
-            extra_ping_sound_volume.style.setProperty("display", scriptSetting.ping_on_mention ? "inline-block" : "none", "important");
-
-            extra_ping_sound_volume.setAttribute("class","d-inline-block col-sm-2, ml-1");
-            extra_ping_sound_volume.style.padding = "0";
-
-            extra_ping_sound_volume.querySelector("input").maxLength = "3";
-            extra_ping_sound_volume.querySelector("input").min = "0";
-            extra_ping_sound_volume.querySelector("input").max = "100";
-            extra_ping_sound_volume.querySelector("input").style.width = "45px";
-
-            extra_settings_row_2_col_1.append(
-                extra_ping_on_mention,
-                extra_ping_sound_file,
-                extra_ping_sound_volume);
-            */
-
-            // Row 3
-            let extra_settings_row_3 = ui_settings_switchDiv.cloneNode();
-            let extra_settings_row_3_col_1 = ui_settings_switchDiv.firstChild.cloneNode();
-
-            extra_settings_row_3.appendChild(extra_settings_row_3_col_1);
-
-            extra_evid_roulette_max.classList.remove("d-inline-block");
-            extra_evid_roulette_max.setAttributes({
+            ui_extraSettings_rouletteEvidMax.classList.remove("d-inline-block");
+            ui_extraSettings_rouletteEvidMax.setAttributes({
                 style: {
                     display: scriptSetting.evid_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            extra_evid_roulette_max.querySelector("input").setAttributes({
+            ui_extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -383,15 +329,15 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            extra_sound_roulette_max.classList.remove("d-inline-block");
-            extra_sound_roulette_max.setAttributes({
+            ui_extraSettings_rouletteSoundMax.classList.remove("d-inline-block");
+            ui_extraSettings_rouletteSoundMax.setAttributes({
                 style: {
                     display: scriptSetting.sound_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            extra_sound_roulette_max.querySelector("input").setAttributes({
+            ui_extraSettings_rouletteSoundMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -400,15 +346,15 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            extra_music_roulette_max.classList.remove("d-inline-block");
-            extra_music_roulette_max.setAttributes({
+            ui_extraSettings_rouletteMusicMax.classList.remove("d-inline-block");
+            ui_extraSettings_rouletteMusicMax.setAttributes({
                 style: {
                     display: scriptSetting.music_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            extra_music_roulette_max.querySelector("input").setAttributes({
+            ui_extraSettings_rouletteMusicMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -417,20 +363,27 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            extra_settings_row_3_col_1.append(
-                extra_evid_roulette,
-                extra_evid_roulette_max,
-                extra_sound_roulette,
-                extra_sound_roulette_max,
-                extra_music_roulette,
-                extra_music_roulette_max);
+            ui_extraSettings_rowRoulettes.lastChild.append(
+                ui_extraSettings_rouletteEvid,
+                ui_extraSettings_rouletteEvidMax,
+                ui_extraSettings_rouletteSound,
+                ui_extraSettings_rouletteSoundMax,
+                ui_extraSettings_rouletteMusic,
+                ui_extraSettings_rouletteMusicMax);
+            extraSettings_rows.push(ui_extraSettings_rowRoulettes);
 
-            settings_separator.after(extra_settings_row_head,
-                                     extra_settings_row_1,
-                                     extra_settings_row_2,
-                                     extra_settings_row_3);
+            // Append each row to the <hr> separator
+            for (let row in extraSettings_rows) {
+                // If this is the first row, append it to the separator, if not append it to the last row
+                if (row == 0) {
+                    settings_separator.after(extraSettings_rows[row]);
+                } else {
+                    extraSettings_rows[row-1].after(extraSettings_rows[row]);
+                }
+            }
 
-            extra_settings_row_3.after(settings_separator.cloneNode());
+            // Add the <hr> separator after the last row
+            extraSettings_rows[extraSettings_rows.length - 1].after(settings_separator.cloneNode());
         }
 
         function createRouletteButtons() {
@@ -516,7 +469,7 @@ function checkJoinBoxReady(changes, observer) {
 }
 
 function confirmClose (zEvent) {
-    if (getSetting("warn_on_exit", true)) {
+    if (scriptSetting.warn_on_exit) {
         zEvent.preventDefault();
         zEvent.returnValue = "Are you sure?";
     }
@@ -549,4 +502,5 @@ function setStoredUsername(username) {
     return GM_setValue("courtroom_username", String(username));
 }
 
+// Helper function to set multiple element attributes at once
 Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
