@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.51
+// @version      0.52
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -15,15 +15,21 @@
 // @run-at       document-end
 // ==/UserScript==
 
-let scriptSetting = {
-    "warn_on_exit": getSetting("warn_on_exit", true),
-    "evid_roulette": getSetting("evid_roulette", false),
-    "sound_roulette": getSetting("sound_roulette", false),
-    "music_roulette": getSetting("music_roulette", false),
-    "evid_roulette_max": getSetting("evid_roulette_max", 463000),
-    "sound_roulette_max": getSetting("sound_roulette_max", 39000),
-    "music_roulette_max": getSetting("music_roulette_max", 129000)
+let scriptSetting = {};
+
+function initSettings() {
+    scriptSetting = {
+        "warn_on_exit": getSetting("warn_on_exit", true),
+        "evid_roulette": getSetting("evid_roulette", false),
+        "sound_roulette": getSetting("sound_roulette", false),
+        "music_roulette": getSetting("music_roulette", false),
+        "evid_roulette_max": getSetting("evid_roulette_max", 463000),
+        "sound_roulette_max": getSetting("sound_roulette_max", 39000),
+        "music_roulette_max": getSetting("music_roulette_max", 129000)
+    };
 };
+
+initSettings();
 
 let storedUsername = getStoredUsername();
 
@@ -110,14 +116,14 @@ function checkJoinBoxReady(changes, observer) {
         });
 
         // Add setting options under the Settings tab
-        createSettingsElements();
+        createExtraSettingsElements();
 
         // Create roulette buttons
         createRouletteButtons();
 
-        function createSettingsElements() {
+        function createExtraSettingsElements() {
 
-            function create_extra_setting_elem_checkbox(id, text, callback) {
+            function createExtraSettingElemCheckbox(id, text, callback) {
                 let div = document.createElement("div");
                 div.setAttributes({
                     className: "v-input d-inline-block mr-2"
@@ -162,7 +168,7 @@ function checkJoinBoxReady(changes, observer) {
                 return div;
             }
 
-            function create_extra_setting_elem_text(id, text, callback, input_type="text") {
+            function createExtraSettingElemText(id, text, callback, input_type="text") {
                 let div_column = document.createElement("div");
                 div_column.setAttributes({
                     className: "d-inline-block"
@@ -239,29 +245,29 @@ function checkJoinBoxReady(changes, observer) {
                 return div_column;
             }
 
-            let ui_extraSettings_warnOnExit = create_extra_setting_elem_checkbox("warn_on_exit", "Confirm on exit", function(e) {
+            let ui_extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", function(e) {
                 let value = e.target.checked;
                 setSetting("warn_on_exit", value);
             }),
-                ui_extraSettings_rouletteEvid = create_extra_setting_elem_checkbox("evid_roulette", "Evidence roulette", function(e) {
+                ui_extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
                     document.querySelector("div#evid_roulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none"
                 }),
-                ui_extraSettings_rouletteSound = create_extra_setting_elem_checkbox("sound_roulette", "Sound roulette", function(e) {
+                ui_extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
                     document.querySelector("div#sound_roulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none"
                 }),
-                ui_extraSettings_rouletteMusic = create_extra_setting_elem_checkbox("music_roulette", "Music roulette", function(e) {
+                ui_extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
                     document.querySelector("div#music_roulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none"
                 }),
-                ui_extraSettings_rouletteEvidMax = create_extra_setting_elem_text("evid_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("evid_roulette_max", value);
@@ -271,7 +277,7 @@ function checkJoinBoxReady(changes, observer) {
                         return false;
                     }
                 }, "number"),
-                ui_extraSettings_rouletteSoundMax = create_extra_setting_elem_text("sound_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("sound_roulette_max", value);
@@ -281,7 +287,7 @@ function checkJoinBoxReady(changes, observer) {
                         return false;
                     }
                 }, "number"),
-                ui_extraSettings_rouletteMusicMax = create_extra_setting_elem_text("music_roulette_max", "max", function(e) {
+                ui_extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", function(e) {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("music_roulette_max", value);
@@ -299,6 +305,22 @@ function checkJoinBoxReady(changes, observer) {
             let extraSettings_rows = [];
             let ui_extraSettings_rowHeader = document.createElement("h3");
             ui_extraSettings_rowHeader.textContent = "Courtroom Enhancer";
+
+            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset (needs reload)", function() {
+                let storedSettings = GM_listValues();
+                for (let val in storedSettings) {
+                    GM_deleteValue(storedSettings[val]);
+                }
+            });
+
+            ui_extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
+            ui_extraSettings_resetButton.firstChild.setAttributes({
+                style: {
+                    backgroundColor: "rgb(161 35 35)"
+                }
+            });
+
+            ui_extraSettings_rowHeader.appendChild(ui_extraSettings_resetButton);
             extraSettings_rows.push(ui_extraSettings_rowHeader);
 
             // Row 2 - Buttons
@@ -386,36 +408,38 @@ function checkJoinBoxReady(changes, observer) {
             extraSettings_rows[extraSettings_rows.length - 1].after(settings_separator.cloneNode());
         }
 
+        function createButton(id, label, callback) {
+            let elem_div = document.createElement("div");
+            elem_div.setAttributes({
+                className: "px-1",
+                id: id + "_button"
+            });
+
+            let elem_button = document.createElement("button");
+            elem_button.setAttributes({
+                className: "v-btn v-btn--has-bg v-size--small theme--dark",
+                type: "button",
+                style: {
+                    background: "rgb(123 33 243)"
+                }
+            });
+            elem_button.addEventListener("click", callback)
+
+            let elem_span = document.createElement("span");
+            elem_span.setAttributes({
+                className: "v-btn__content"
+            });
+
+            elem_span.textContent = label;
+
+            elem_button.appendChild(elem_span);
+            elem_div.appendChild(elem_button);
+
+            return elem_div;
+        }
+
         function createRouletteButtons() {
-
-            function createButton(id, label, callback) {
-                let elem_div = document.createElement("div");
-                elem_div.setAttribute('class','px-1');
-                elem_div.id = id + "_button";
-                elem_div.style.display = getSetting(id, false) ? "inline" : "none";
-
-                let elem_button = document.createElement("button");
-                elem_button.setAttribute("class","v-btn v-btn--has-bg v-size--small primary");
-                elem_button.setAttribute("type","button");
-                elem_button.style = 'background-color: #f37821 !important;';
-                elem_button.addEventListener("click", callback)
-
-                let elem_span = document.createElement("span");
-                elem_span.setAttribute("class","v-btn__content");
-
-                let elem_i = document.createElement("i");
-                elem_i.setAttribute("class","v-icon notranslate mdi");
-                elem_i.textContent = label;
-                elem_i.style.fontSize = "18px";
-
-                elem_span.appendChild(elem_i);
-                elem_button.appendChild(elem_span);
-                elem_div.appendChild(elem_button);
-
-                return elem_div;
-            }
-
-            let evdRouletteButton = createButton("evid_roulette","EVD", function() {
+            let evidRouletteButton = createButton("evid_roulette","EVD", function() {
                 let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#evd" + random + "]";
@@ -428,8 +452,13 @@ function checkJoinBoxReady(changes, observer) {
                 ui_chatLog_textField.value = "Last evidence: " + random;
                 ui_chatLog_textField.dispatchEvent(new Event("input"));
             });
+            evidRouletteButton.setAttributes({
+                style: {
+                    display: scriptSetting.evid_roulette ? "inline" : "none"
+                }
+            });
 
-            let soundRouletteButton = createButton("sound_roulette","SND", function() {
+            let soundRouletteButton = createButton("sound_roulette", "SND",function() {
                 let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgs" + random + "]";
@@ -441,6 +470,11 @@ function checkJoinBoxReady(changes, observer) {
                 // Show last ID on the right chatbox
                 ui_chatLog_textField.value = "Last sound: " + random;
                 ui_chatLog_textField.dispatchEvent(new Event("input"));
+            });
+            soundRouletteButton.setAttributes({
+                style: {
+                    display: scriptSetting.sound_roulette ? "inline" : "none"
+                }
             });
 
             let musicRouletteButton = createButton("music_roulette","MUS", function() {
@@ -456,14 +490,17 @@ function checkJoinBoxReady(changes, observer) {
                 ui_chatLog_textField.value = "Last music: " + random;
                 ui_chatLog_textField.dispatchEvent(new Event("input"));
             });
+            musicRouletteButton.setAttributes({
+                style: {
+                    display: scriptSetting.music_roulette ? "inline" : "none"
+                }
+            });
 
-            let existing_button = document.querySelector("#app div.v-application--wrap div.pl-1 button");
-            existing_button.parentNode.parentNode.firstChild.before(
-                evdRouletteButton,
+            ui_mainFrame_sendButton.parentNode.parentNode.firstChild.before(
+                evidRouletteButton,
                 soundRouletteButton,
                 musicRouletteButton);
         }
-
 
     }
 }
