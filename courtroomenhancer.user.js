@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.52
+// @version      0.521
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -306,10 +306,12 @@ function checkJoinBoxReady(changes, observer) {
             let ui_extraSettings_rowHeader = document.createElement("h3");
             ui_extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset (needs reload)", function() {
+            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset and refresh", function() {
                 let storedSettings = GM_listValues();
                 for (let val in storedSettings) {
                     GM_deleteValue(storedSettings[val]);
+                    scriptSetting.warn_on_exit = false;
+                    window.location.reload();
                 }
             });
 
