@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.523
+// @version      0.524
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -491,7 +491,7 @@ function checkJoinBoxReady(changes, observer) {
             soundRouletteButton.firstChild.style.padding = "0px 5px";
             soundRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            let musicRouletteButton = createButton("music_roulette", "MUS", "dice-multiple", function() {
+            let musicRouletteButton = createButton("music_roulette", "BGM", "dice-multiple", function() {
                 let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgm" + random + "]";
