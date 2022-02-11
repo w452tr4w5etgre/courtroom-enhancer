@@ -47,3 +47,6 @@ let chatobserver = new MutationObserver( mutations => {
 
 node=document.querySelector("#app > div > div.container.pa-0.pa-lg-2.container--fluid > main > div > div > div.row.no-gutters > div:nth-child(2) > div > div > div > div > div.v-window-item.v-window-item--active > div > div.chat > div > div:last-child");
 chatobserver.observe(node, {subtree:true, childList:true});
+
+////////
+window.Howler._howls.forEach( howl=> {if (howl._loop) {console.log(howl._src)}})
