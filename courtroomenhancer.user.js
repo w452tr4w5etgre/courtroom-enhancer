@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.54
+// @version      0.541
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -587,7 +587,6 @@ function checkJoinBoxReady(changes, observer) {
             let Logger = {
                 lines: [],
                 log: function(str,icon=null) {
-                    console.log("logging")
                     if (this.lines.length >= 5) {
                         this.lines.shift();
                     }
@@ -614,13 +613,16 @@ function checkJoinBoxReady(changes, observer) {
                                 border: "1px line rgbrgb(126 85 143)",
                                 borderRadius: "4px",
                                 backgroundColor: "rgb(126 85 143)",
-                                //maxWidth: "150px",
                                 userSelect: "all",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis"
                             }
                         });
                         item.append(document.createTextNode(entry.str));
+
+                        if (ui_customButtons_rowLogContainer.style.display == "none") {
+                            ui_customButtons_rowLogContainer.style.display = "flex";
+                        }
                         ui_customButtons_logArea.append(item);
                     });
                 }
@@ -633,9 +635,9 @@ function checkJoinBoxReady(changes, observer) {
 
             let ui_customButtons_rowLogContainer = document.createElement("div");
             ui_customButtons_rowLogContainer.setAttributes({
-                className: "d-flex",
                 style: {
-                    width: "100%"
+                    width: "100%",
+                    display: "none"
                 }
             });
             ui_customButtons_rowLog.append(ui_customButtons_rowLogContainer);
