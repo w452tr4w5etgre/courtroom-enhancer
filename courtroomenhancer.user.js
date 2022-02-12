@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.541
+// @version      0.542
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -479,7 +479,7 @@ function checkJoinBoxReady(changes, observer) {
 
                 // Click Send button
                 ui_mainFrame_sendButton.click()
-                Logger.log("[#evd" + random + "]", "text-box");
+                Logger.log("[#evd" + random + "]", "image");
 
             });
             ui_customButtons_evidRouletteButton.setAttributes({
