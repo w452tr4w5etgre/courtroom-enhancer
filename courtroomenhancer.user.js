@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.53
+// @version      0.54
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -122,16 +122,13 @@ function checkJoinBoxReady(changes, observer) {
         // Add setting options under the Settings tab
         createExtraSettingsElements();
 
-        // Create roulette buttons
-        createRouletteButtons();
-
         // Create additional buttons container below the right panels
         createCustomButtonsContainer();
 
         function createButton(id, label, icon=null, callback) {
             let elem_div = document.createElement("div");
             elem_div.setAttributes({
-                className: "px-1",
+                className: "pr-2",
                 id: id + "_button"
             });
 
@@ -303,19 +300,19 @@ function checkJoinBoxReady(changes, observer) {
                 ui_extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
-                    document.querySelector("div#evid_roulette_button").style.display = value ? "inline" : "none"
+                    document.querySelector("div#customButtons_evidRoulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none"
                 }),
                 ui_extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
-                    document.querySelector("div#sound_roulette_button").style.display = value ? "inline" : "none"
+                    document.querySelector("div#customButtons_soundRoulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none"
                 }),
                 ui_extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", function(e) {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
-                    document.querySelector("div#music_roulette_button").style.display = value ? "inline" : "none"
+                    document.querySelector("div#customButtons_musicRoulette_button").style.display = value ? "inline" : "none"
                     ui_extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none"
                 }),
                 ui_extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", function(e) {
@@ -457,29 +454,46 @@ function checkJoinBoxReady(changes, observer) {
             ui_settings_afterSeparator.insertAdjacentElement("beforebegin",settings_separator.cloneNode());
         }
 
-        function createRouletteButtons() {
-            let evidRouletteButton = createButton("evid_roulette", "EVD", "dice-multiple", function() {
+        function createCustomButtonsContainer() {
+            let ui_customButtonsContainer = ui_rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
+            ui_customButtonsContainer.className = "mx-0 mx-md-2 mt-4 rounded-0";
+
+            let ui_customButtons_rows = []
+
+            // Roulette buttons row
+            let ui_customButtons_rowRoulette = document.createElement("div");
+            ui_customButtons_rowRoulette.setAttributes({
+                className: "row no-gutters"
+            });
+
+            let ui_customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", function() {
+                // Check if the send button is not on cooldown
+                if (ui_mainFrame_sendButton.disabled) {
+                    return;
+                }
+
                 let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#evd" + random + "]";
                 ui_mainFrame_textarea.dispatchEvent(new Event("input"));
 
                 // Click Send button
-                ui_mainFrame_sendButton.click();
+                ui_mainFrame_sendButton.click()
+                Logger.log("[#evd" + random + "]", "text-box");
 
-                // Show last ID on the right chatbox
-                ui_chatLog_textField.value = "Last evidence: " + random;
-                ui_chatLog_textField.dispatchEvent(new Event("input"));
             });
-            evidRouletteButton.setAttributes({
+            ui_customButtons_evidRouletteButton.setAttributes({
                 style: {
                     display: scriptSetting.evid_roulette ? "inline" : "none"
                 }
             });
-            evidRouletteButton.firstChild.style.padding = "0px 5px";
-            evidRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            let soundRouletteButton = createButton("sound_roulette", "SFX", "dice-multiple", function() {
+            let ui_customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", function() {
+                // Check if the send button is not on cooldown
+                if (ui_mainFrame_sendButton.disabled) {
+                    return;
+                }
+
                 let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgs" + random + "]";
@@ -488,19 +502,20 @@ function checkJoinBoxReady(changes, observer) {
                 // Click Send button
                 ui_mainFrame_sendButton.click();
 
-                // Show last ID on the right chatbox
-                ui_chatLog_textField.value = "Last sound: " + random;
-                ui_chatLog_textField.dispatchEvent(new Event("input"));
+                Logger.log("[#bgs" + random + "]", "volume-medium");
             });
-            soundRouletteButton.setAttributes({
+            ui_customButtons_soundRouletteButton.setAttributes({
                 style: {
                     display: scriptSetting.sound_roulette ? "inline" : "none"
                 }
             });
-            soundRouletteButton.firstChild.style.padding = "0px 5px";
-            soundRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            let musicRouletteButton = createButton("music_roulette", "BGM", "dice-multiple", function() {
+            let ui_customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", function() {
+                // Check if the send button is not on cooldown
+                if (ui_mainFrame_sendButton.disabled) {
+                    return;
+                }
+
                 let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
                 ui_mainFrame_textarea.value = "[#bgm" + random + "]";
@@ -509,62 +524,57 @@ function checkJoinBoxReady(changes, observer) {
                 // Click Send button
                 ui_mainFrame_sendButton.click();
 
-                // Show last ID on the right chatbox
-                ui_chatLog_textField.value = "Last music: " + random;
-                ui_chatLog_textField.dispatchEvent(new Event("input"));
+                Logger.log("[#bgm" + random + "]", "music-note");
             });
-            musicRouletteButton.setAttributes({
+            ui_customButtons_musicRouletteButton.setAttributes({
                 style: {
                     display: scriptSetting.music_roulette ? "inline" : "none"
                 }
             });
-            musicRouletteButton.firstChild.style.padding = "0px 5px";
-            musicRouletteButton.firstChild.firstChild.firstChild.style.margin = "0px 2px 0px 0px";
 
-            ui_mainFrame_sendButton.parentNode.parentNode.firstChild.before(
-                evidRouletteButton,
-                soundRouletteButton,
-                musicRouletteButton);
-        }
+            ui_customButtons_rowRoulette.append(
+                ui_customButtons_evidRouletteButton,
+                ui_customButtons_soundRouletteButton,
+                ui_customButtons_musicRouletteButton);
 
-        function createCustomButtonsContainer() {
-            let ui_customButtonsContainer = ui_rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
-            ui_customButtonsContainer.className = "mx-0 mx-md-2 mt-4 rounded-0";
+            ui_customButtons_rows.push(ui_customButtons_rowRoulette);
 
-            let ui_customButtons_rows = []
-
-
-            let ui_customButton_stopAllSounds = createButton("stop_all_sounds", "Stop all sounds", "music-off", function(){
-                if (typeof unsafeWindow !== "undefined") {
-                    unsafeWindow.Howler.stop();
-                }
-            });
-            ui_customButton_stopAllSounds.firstChild.setAttributes({
-                style: {
-                    backgroundColor: "teal"
-                }
-            });
-
-            let ui_customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get current BGM URL", "link-variant", function(){
-                if (typeof unsafeWindow !== "undefined") {
-                    for (let howl of unsafeWindow.Howler._howls) {
-                        if (howl._loop) {
-                            alert(howl._src);
-                            break;
-                        }
-                    };
-                };
-            });
-            ui_customButton_getCurMusicUrl.firstChild.setAttributes({
-                style: {
-                    backgroundColor: "teal"
-                }
-            });
-
-            if (typeof unsafeWindow !== "undefined") {
+            // Music buttons row
+            if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
                 let ui_customButtons_rowMusic = document.createElement("div");
                 ui_customButtons_rowMusic.setAttributes({
-                    className: "row no-gutters"
+                    className: "row mt-3 no-gutters"
+                });
+
+                let ui_customButton_stopAllSounds = createButton("stop_all_sounds", "Stop all sounds", "music-off", function(){
+                    if (typeof unsafeWindow !== "undefined") {
+                        unsafeWindow.Howler.stop();
+                    }
+                });
+
+                ui_customButton_stopAllSounds.classList.remove("px-1");
+
+                ui_customButton_stopAllSounds.firstChild.setAttributes({
+                    style: {
+                        backgroundColor: "teal"
+                    }
+                });
+
+                let ui_customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get current BGM URL", "link-variant", function(){
+                    if (typeof unsafeWindow !== "undefined") {
+                        for (let howl of unsafeWindow.Howler._howls) {
+                            if (howl._loop) {
+                                Logger.log(howl._src, "link-variant");
+                                break;
+                            }
+                        };
+                    };
+                });
+
+                ui_customButton_getCurMusicUrl.firstChild.setAttributes({
+                    style: {
+                        backgroundColor: "teal"
+                    }
                 });
 
                 ui_customButtons_rowMusic.append(ui_customButton_stopAllSounds,
@@ -572,6 +582,89 @@ function checkJoinBoxReady(changes, observer) {
 
                 ui_customButtons_rows.push(ui_customButtons_rowMusic);
             }
+
+            // Log row
+            let Logger = {
+                lines: [],
+                log: function(str,icon=null) {
+                    console.log("logging")
+                    if (this.lines.length >= 5) {
+                        this.lines.shift();
+                    }
+                    this.lines.push({
+                        str: str,
+                        icon: icon
+                    });
+
+                    while (ui_customButtons_logArea.firstChild) {
+                        ui_customButtons_logArea.firstChild.remove()
+                    }
+
+                    this.lines.forEach(entry => {
+                        let item = document.createElement("span")
+                        if (entry.icon) {
+                            icon = document.createElement("i");
+                            icon.classList.add("mdi","mr-1", "mdi-" + entry.icon);
+                            item.append(icon);
+                        }
+                        item.setAttributes({
+                            style: {
+                                display: "inline-block",
+                                padding: "2px 4px",
+                                border: "1px line rgbrgb(126 85 143)",
+                                borderRadius: "4px",
+                                backgroundColor: "rgb(126 85 143)",
+                                //maxWidth: "150px",
+                                userSelect: "all",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis"
+                            }
+                        });
+                        item.append(document.createTextNode(entry.str));
+                        ui_customButtons_logArea.append(item);
+                    });
+                }
+            }
+
+            let ui_customButtons_rowLog = document.createElement("div");
+            ui_customButtons_rowLog.setAttributes({
+                className: "row mt-3 no-gutters"
+            });
+
+            let ui_customButtons_rowLogContainer = document.createElement("div");
+            ui_customButtons_rowLogContainer.setAttributes({
+                className: "d-flex",
+                style: {
+                    width: "100%"
+                }
+            });
+            ui_customButtons_rowLog.append(ui_customButtons_rowLogContainer);
+
+            let ui_customButtons_showLogButton = document.createElement("i");
+            ui_customButtons_showLogButton.classList.add("mdi", "mdi-console", "v-icon", "theme--dark");
+            ui_customButtons_rowLogContainer.append(ui_customButtons_showLogButton);
+
+            let ui_customButtons_logArea = document.createElement("div");
+            ui_customButtons_logArea.setAttributes({
+                className: "d-flex ml-2",
+                style: {
+                    width: "100%",
+                    gap: "4px",
+                    overflow: "auto",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    flexWrap: "nowrap",
+                    fontSize: "12px",
+                    fontFamily: "monospace",
+                    textColor: "white",
+                    lineHeight: "15px",
+                    alignItems: "center"
+                }
+            });
+
+            ui_customButtons_rowLogContainer.append(ui_customButtons_logArea);
+
+            ui_customButtons_rows.push(ui_customButtons_rowLog);
 
             // Attach each rows to the custom buttons container
             ui_customButtons_rows.forEach(row => {
