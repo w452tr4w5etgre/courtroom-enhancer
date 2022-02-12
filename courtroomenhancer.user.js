@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.544
+// @version      0.56
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -20,20 +20,23 @@ let scriptSetting = {};
 function initSettings() {
     scriptSetting = {
         "warn_on_exit": getSetting("warn_on_exit", true),
+        "show_console": getSetting("show_console", false),
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
-        "evid_roulette_max": getSetting("evid_roulette_max", 463000),
-        "sound_roulette_max": getSetting("sound_roulette_max", 39000),
-        "music_roulette_max": getSetting("music_roulette_max", 129000)
+        "evid_roulette_max": getSetting("evid_roulette_max", 465000),
+        "sound_roulette_max": getSetting("sound_roulette_max", 40000),
+        "music_roulette_max": getSetting("music_roulette_max", 130000)
     };
 };
 
 initSettings();
 
+window.addEventListener('beforeunload', confirmClose, false);
+
 let storedUsername = getStoredUsername();
 
-const uiElement = {
+const uiElementSelector = {
     "joinBox_container": "#app > div.v-dialog__content.v-dialog__content--active > div > div",
     "joinBox_joinButton": "form > div.v-card__actions > button:nth-child(3)",
     "joinBox_usernameInput": "form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
@@ -57,49 +60,49 @@ const uiElement = {
 };
 
 function getUiElement(name, parent=document) {
-    return parent.querySelector(uiElement[name]);
+    return parent.querySelector(uiElementSelector[name]);
 }
 
-window.addEventListener('beforeunload', confirmClose, false);
+const ui = {};
 
 (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
 
 function checkJoinBoxReady(changes, observer) {
     // Wait for the Join pop-up to show up
-    let ui_joinBox_container;
-    if (ui_joinBox_container = getUiElement("joinBox_container")) {
+
+    if (ui.joinBox_container = getUiElement("joinBox_container")) {
         observer.disconnect();
-        let ui_joinBox_usernameInput = getUiElement("joinBox_usernameInput", ui_joinBox_container);
-        ui_joinBox_usernameInput.value = storedUsername;
-        ui_joinBox_usernameInput.dispatchEvent(new Event("input"));
+        ui.joinBox_usernameInput = getUiElement("joinBox_usernameInput", ui.joinBox_container);
+        ui.joinBox_usernameInput.value = storedUsername;
+        ui.joinBox_usernameInput.dispatchEvent(new Event("input"));
 
         // When the "Join" button is clicked
-        getUiElement("joinBox_joinButton", ui_joinBox_container).addEventListener('click', function(){
-            setStoredUsername(ui_joinBox_usernameInput.value);
+        getUiElement("joinBox_joinButton", ui.joinBox_container).addEventListener('click', function(){
+            setStoredUsername(ui.joinBox_usernameInput.value);
         });
 
         // When "Enter" is pressed in the username input box
-        ui_joinBox_usernameInput.addEventListener("keydown", function(e) {
-            if (ui_joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
-                setStoredUsername(ui_joinBox_usernameInput.value);
+        ui.joinBox_usernameInput.addEventListener("keydown", function(e) {
+            if (ui.joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
+                setStoredUsername(ui.joinBox_usernameInput.value);
             }
         });
 
-        let ui_mainFrame_container = getUiElement("mainFrame_container"),
-            ui_mainFrame_textarea = getUiElement("mainFrame_textarea", ui_mainFrame_container),
-            ui_mainFrame_sendButton = getUiElement("mainFrame_sendButton", ui_mainFrame_container).parentNode.parentNode;
+        ui.mainFrame_container = getUiElement("mainFrame_container");
+        ui.mainFrame_textarea = getUiElement("mainFrame_textarea", ui.mainFrame_container);
+        ui.mainFrame_sendButton = getUiElement("mainFrame_sendButton", ui.mainFrame_container).parentNode.parentNode;
 
-        let ui_rightFrame_container = getUiElement("rightFrame_container");
+        ui.rightFrame_container = getUiElement("rightFrame_container");
 
-        let ui_chatLog_container = getUiElement("chatLog_container", ui_rightFrame_container),
-            ui_chatLog_chat = getUiElement("chatLog_chat", ui_chatLog_container),
-            ui_chatLog_chatList = getUiElement("chatLog_chatList", ui_chatLog_chat),
-            ui_chatLog_textField = getUiElement("chatLog_textField", ui_chatLog_container);
+        ui.chatLog_container = getUiElement("chatLog_container", ui.rightFrame_container);
+        ui.chatLog_chat = getUiElement("chatLog_chat", ui.chatLog_container);
+        ui.chatLog_chatList = getUiElement("chatLog_chatList", ui.chatLog_chat);
+        ui.chatLog_textField = getUiElement("chatLog_textField", ui.chatLog_container);
 
-        let ui_settings_container = getUiElement("settings_container", ui_rightFrame_container),
-            ui_settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui_settings_container),
-            ui_settings_switchDiv = getUiElement("settings_switchDiv", ui_settings_container).parentNode.parentNode,
-            ui_settings_separator = getUiElement("settings_hrSeparator", ui_settings_container);
+        ui.settings_container = getUiElement("settings_container", ui.rightFrame_container);
+        ui.settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui.settings_container);
+        ui.settings_switchDiv = getUiElement("settings_switchDiv", ui.settings_container).parentNode.parentNode;
+        ui.settings_separator = getUiElement("settings_hrSeparator", ui.settings_container);
 
         // Handle username changes and update the stored username
         let onUsernameChange = function(name) {
@@ -109,11 +112,11 @@ function checkJoinBoxReady(changes, observer) {
             }, 100);
         };
 
-        ui_settings_usernameChangeInput.addEventListener("focusout", function(e) {
+        ui.settings_usernameChangeInput.addEventListener("focusout", function(e) {
             onUsernameChange(e.target.value);
         });
 
-        ui_settings_usernameChangeInput.addEventListener("keydown", function (e) {
+        ui.settings_usernameChangeInput.addEventListener("keydown", function (e) {
             if (e.keyCode == 13 || e.key == "Enter") {
                 onUsernameChange(e.target.value);
             }
@@ -293,68 +296,80 @@ function checkJoinBoxReady(changes, observer) {
                 return div_column;
             }
 
-            let ui_extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", function(e) {
+            ui.extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", function(e) {
                 let value = e.target.checked;
                 setSetting("warn_on_exit", value);
-            }),
-                ui_extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", function(e) {
-                    let value = e.target.checked;
-                    setSetting("evid_roulette", value);
-                    document.querySelector("div#customButtons_evidRoulette_button").style.display = value ? "inline" : "none"
-                    ui_extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none"
-                }),
-                ui_extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", function(e) {
-                    let value = e.target.checked;
-                    setSetting("sound_roulette", value);
-                    document.querySelector("div#customButtons_soundRoulette_button").style.display = value ? "inline" : "none"
-                    ui_extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none"
-                }),
-                ui_extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", function(e) {
-                    let value = e.target.checked;
-                    setSetting("music_roulette", value);
-                    document.querySelector("div#customButtons_musicRoulette_button").style.display = value ? "inline" : "none"
-                    ui_extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none"
-                }),
-                ui_extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", function(e) {
-                    let value = parseInt(e.target.value);
-                    if (value) {
-                        setSetting("evid_roulette_max", value);
-                    } else {
-                        e.target.value = scriptSetting.evid_roulette_max;
-                        e.preventDefault();
-                        return false;
-                    }
-                }, "number"),
-                ui_extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", function(e) {
-                    let value = parseInt(e.target.value);
-                    if (value) {
-                        setSetting("sound_roulette_max", value);
-                    } else {
-                        e.target.value = scriptSetting.sound_roulette_max;
-                        e.preventDefault();
-                        return false;
-                    }
-                }, "number"),
-                ui_extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", function(e) {
-                    let value = parseInt(e.target.value);
-                    if (value) {
-                        setSetting("music_roulette_max", value);
-                    } else {
-                        e.target.value = scriptSetting.music_roulette_max;
-                        e.preventDefault();
-                        return false;
-                    }
-                }, "number")
+            });
+
+            ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Enable log console", function(e) {
+                let value = e.target.checked;
+                setSetting("show_console", value);
+                ui.customButtons_rowLog.style.display = value ? "flex" : "none";
+            })
+
+            ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", function(e) {
+                let value = e.target.checked;
+                setSetting("evid_roulette", value);
+                ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none"
+                ui.extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none";
+            });
+
+            ui.extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", function(e) {
+                let value = e.target.checked;
+                setSetting("sound_roulette", value);
+                ui.customButtons_soundRouletteButton.style.display = value ? "inline" : "none"
+                ui.extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none";
+            });
+
+            ui.extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", function(e) {
+                let value = e.target.checked;
+                setSetting("music_roulette", value);
+                ui.customButtons_musicRouletteButton.style.display = value ? "inline" : "none"
+                ui.extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none";
+            });
+
+            ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", function(e) {
+                let value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("evid_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.evid_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }, "number");
+
+            ui.extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", function(e) {
+                let value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("sound_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.sound_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }, "number");
+
+            ui.extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", function(e) {
+                let value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("music_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.music_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }, "number")
 
             // Get the <hr> separator on the Settings page
-            let settings_separator = ui_settings_separator;
+            let settings_separator = ui.settings_separator;
 
             // Row 1 - Header
             let extraSettings_rows = [];
-            let ui_extraSettings_rowHeader = document.createElement("h3");
-            ui_extraSettings_rowHeader.textContent = "Courtroom Enhancer";
+            ui.extraSettings_rowHeader = document.createElement("h3");
+            ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-            let ui_extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", function() {
+            ui.extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", function() {
                 let storedSettings = GM_listValues();
                 for (let val in storedSettings) {
                     GM_deleteValue(storedSettings[val]);
@@ -363,36 +378,37 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui_extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
-            ui_extraSettings_resetButton.firstChild.setAttributes({
+            ui.extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
+            ui.extraSettings_resetButton.firstChild.setAttributes({
                 style: {
                     backgroundColor: "rgb(161 35 35)"
                 }
             });
 
-            ui_extraSettings_rowHeader.appendChild(ui_extraSettings_resetButton);
-            extraSettings_rows.push(ui_extraSettings_rowHeader);
+            ui.extraSettings_rowHeader.appendChild(ui.extraSettings_resetButton);
+            extraSettings_rows.push(ui.extraSettings_rowHeader);
 
             // Row 2 - Buttons
-            let ui_extraSettings_rowButtons = ui_settings_switchDiv.cloneNode();
-            ui_extraSettings_rowButtons.appendChild(ui_settings_switchDiv.firstChild.cloneNode());
-            ui_extraSettings_rowButtons.lastChild.append(ui_extraSettings_warnOnExit);
-            extraSettings_rows.push(ui_extraSettings_rowButtons);
+            ui.extraSettings_rowButtons = ui.settings_switchDiv.cloneNode();
+            ui.extraSettings_rowButtons.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
+            ui.extraSettings_rowButtons.lastChild.append(ui.extraSettings_warnOnExit,
+                                                         ui.extraSettings_showConsole);
+            extraSettings_rows.push(ui.extraSettings_rowButtons);
 
             // Row 3 - Roulettes
-            let ui_extraSettings_rowRoulettes = ui_settings_switchDiv.cloneNode();
+            ui.extraSettings_rowRoulettes = ui.settings_switchDiv.cloneNode();
 
-            ui_extraSettings_rowRoulettes.appendChild(ui_settings_switchDiv.firstChild.cloneNode());
+            ui.extraSettings_rowRoulettes.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
 
-            ui_extraSettings_rouletteEvidMax.classList.remove("d-inline-block");
-            ui_extraSettings_rouletteEvidMax.setAttributes({
+            ui.extraSettings_rouletteEvidMax.classList.remove("d-inline-block");
+            ui.extraSettings_rouletteEvidMax.setAttributes({
                 style: {
                     display: scriptSetting.evid_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            ui_extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
+            ui.extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -401,15 +417,15 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui_extraSettings_rouletteSoundMax.classList.remove("d-inline-block");
-            ui_extraSettings_rouletteSoundMax.setAttributes({
+            ui.extraSettings_rouletteSoundMax.classList.remove("d-inline-block");
+            ui.extraSettings_rouletteSoundMax.setAttributes({
                 style: {
                     display: scriptSetting.sound_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            ui_extraSettings_rouletteSoundMax.querySelector("input").setAttributes({
+            ui.extraSettings_rouletteSoundMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -418,15 +434,15 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui_extraSettings_rouletteMusicMax.classList.remove("d-inline-block");
-            ui_extraSettings_rouletteMusicMax.setAttributes({
+            ui.extraSettings_rouletteMusicMax.classList.remove("d-inline-block");
+            ui.extraSettings_rouletteMusicMax.setAttributes({
                 style: {
                     display: scriptSetting.music_roulette ? "inline-block" : "none",
                     padding: "0px",
                     marginRight: "8px"
                 }
             });
-            ui_extraSettings_rouletteMusicMax.querySelector("input").setAttributes({
+            ui.extraSettings_rouletteMusicMax.querySelector("input").setAttributes({
                 maxLength: "7",
                 min: "0",
                 max: "9999999",
@@ -435,133 +451,139 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui_extraSettings_rowRoulettes.lastChild.append(
-                ui_extraSettings_rouletteEvid,
-                ui_extraSettings_rouletteEvidMax,
-                ui_extraSettings_rouletteSound,
-                ui_extraSettings_rouletteSoundMax,
-                ui_extraSettings_rouletteMusic,
-                ui_extraSettings_rouletteMusicMax);
-            extraSettings_rows.push(ui_extraSettings_rowRoulettes);
+            ui.extraSettings_rowRoulettes.lastChild.append(
+                ui.extraSettings_rouletteEvid,
+                ui.extraSettings_rouletteEvidMax,
+                ui.extraSettings_rouletteSound,
+                ui.extraSettings_rouletteSoundMax,
+                ui.extraSettings_rouletteMusic,
+                ui.extraSettings_rouletteMusicMax);
+            extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
             // Find the element after the last <hr> and attach the extra settings before it
-            let ui_settings_afterSeparator = settings_separator.nextElementSibling;
+            ui.settings_afterSeparator = settings_separator.nextElementSibling;
             extraSettings_rows.forEach(row => {
-                ui_settings_afterSeparator.insertAdjacentElement("beforebegin", row);
+                ui.settings_afterSeparator.insertAdjacentElement("beforebegin", row);
             });
 
             // Add the <hr> separator after the last row
-            ui_settings_afterSeparator.insertAdjacentElement("beforebegin",settings_separator.cloneNode());
+            ui.settings_afterSeparator.insertAdjacentElement("beforebegin",settings_separator.cloneNode());
         }
 
         function createCustomButtonsContainer() {
-            let ui_customButtonsContainer = ui_rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
-            ui_customButtonsContainer.className = "mx-0 mx-md-4 mt-4 rounded-0";
+            ui.customButtonsContainer = ui.rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
+            ui.customButtonsContainer.className = "mx-0 mx-md-4 mt-4 rounded-0";
 
-            let ui_customButtons_rows = []
+            ui.customButtons_rows = []
 
             // Roulette buttons row
-            let ui_customButtons_rowRoulette = document.createElement("div");
-            ui_customButtons_rowRoulette.setAttributes({
+            ui.customButtons_rowRoulette = document.createElement("div");
+            ui.customButtons_rowRoulette.setAttributes({
                 className: "row no-gutters"
             });
 
-            let ui_customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", function() {
+            ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", function() {
                 // Check if the send button is not on cooldown
-                if (ui_mainFrame_sendButton.disabled) {
+                if (ui.mainFrame_sendButton.disabled) {
                     return;
                 }
 
                 let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
-                ui_mainFrame_textarea.value = "[#evd" + random + "]";
-                ui_mainFrame_textarea.dispatchEvent(new Event("input"));
+                ui.mainFrame_textarea.value = "[#evd" + random + "]";
+                ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
                 // Click Send button
-                ui_mainFrame_sendButton.click()
-                Logger.log("[#evd" + random + "]", "image");
+                ui.mainFrame_sendButton.click()
 
+                Logger.log("[#evd" + random + "]", "image");
             });
-            ui_customButtons_evidRouletteButton.setAttributes({
+            ui.customButtons_evidRouletteButton.setAttributes({
+                title: "Show a random piece of evidence",
                 style: {
                     display: scriptSetting.evid_roulette ? "inline" : "none"
                 }
             });
 
-            let ui_customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", function() {
+            ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", function() {
                 // Check if the send button is not on cooldown
-                if (ui_mainFrame_sendButton.disabled) {
+                if (ui.mainFrame_sendButton.disabled) {
                     return;
                 }
 
                 let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
-                ui_mainFrame_textarea.value = "[#bgs" + random + "]";
-                ui_mainFrame_textarea.dispatchEvent(new Event("input"));
+                ui.mainFrame_textarea.value = "[#bgs" + random + "]";
+                ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
                 // Click Send button
-                ui_mainFrame_sendButton.click();
+                ui.mainFrame_sendButton.click();
 
                 Logger.log("[#bgs" + random + "]", "volume-medium");
             });
-            ui_customButtons_soundRouletteButton.setAttributes({
+            ui.customButtons_soundRouletteButton.setAttributes({
+                title: "Play a random sound effect",
                 style: {
                     display: scriptSetting.sound_roulette ? "inline" : "none"
                 }
             });
 
-            let ui_customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", function() {
+            ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", function() {
                 // Check if the send button is not on cooldown
-                if (ui_mainFrame_sendButton.disabled) {
+                if (ui.mainFrame_sendButton.disabled) {
                     return;
                 }
 
                 let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
-                ui_mainFrame_textarea.value = "[#bgm" + random + "]";
-                ui_mainFrame_textarea.dispatchEvent(new Event("input"));
+                ui.mainFrame_textarea.value = "[#bgm" + random + "]";
+                ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
                 // Click Send button
-                ui_mainFrame_sendButton.click();
+                ui.mainFrame_sendButton.click();
 
                 Logger.log("[#bgm" + random + "]", "music-note");
             });
-            ui_customButtons_musicRouletteButton.setAttributes({
+            ui.customButtons_musicRouletteButton.setAttributes({
+                title: "Play a random Music",
                 style: {
                     display: scriptSetting.music_roulette ? "inline" : "none"
                 }
             });
 
-            ui_customButtons_rowRoulette.append(
-                ui_customButtons_evidRouletteButton,
-                ui_customButtons_soundRouletteButton,
-                ui_customButtons_musicRouletteButton);
+            ui.customButtons_rowRoulette.append(ui.customButtons_evidRouletteButton,
+                                                ui.customButtons_soundRouletteButton,
+                                                ui.customButtons_musicRouletteButton);
 
-            ui_customButtons_rows.push(ui_customButtons_rowRoulette);
+            ui.customButtons_rows.push(ui.customButtons_rowRoulette);
 
             // Music buttons row
             if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
-                let ui_customButtons_rowMusic = document.createElement("div");
-                ui_customButtons_rowMusic.setAttributes({
+                ui.customButtons_rowMusic = document.createElement("div");
+                ui.customButtons_rowMusic.setAttributes({
                     className: "row mt-4 no-gutters"
                 });
 
-                let ui_customButton_stopAllSounds = createButton("stop_all_sounds", "Stop all sounds", "music-off", function(){
+                ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Shut up", "headphones-off", function(){
                     if (typeof unsafeWindow !== "undefined") {
                         unsafeWindow.Howler.stop();
                     }
                 });
 
-                ui_customButton_stopAllSounds.firstChild.setAttributes({
+                ui.customButton_stopAllSounds.firstChild.setAttributes({
+                    title: "Stop all currently playing sounds and music (just for me)",
                     style: {
                         backgroundColor: "teal"
                     }
                 });
 
-                let ui_customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get current BGM URL", "link-variant", function(){
+                ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "Current BGM URL", "link-variant", function(){
                     if (typeof unsafeWindow !== "undefined") {
                         for (let howl of unsafeWindow.Howler._howls) {
-                            if (howl._loop) {
+                            if (howl._state == "loaded" && howl._loop) {
+                                if (!scriptSetting.show_console) {
+                                    alert(howl._src);
+                                }
                                 Logger.log(howl._src, "link-variant");
                                 break;
                             }
@@ -569,16 +591,17 @@ function checkJoinBoxReady(changes, observer) {
                     };
                 });
 
-                ui_customButton_getCurMusicUrl.firstChild.setAttributes({
+                ui.customButton_getCurMusicUrl.firstChild.setAttributes({
+                    title: "Get the URL for the currently playing Music",
                     style: {
                         backgroundColor: "teal"
                     }
                 });
 
-                ui_customButtons_rowMusic.append(ui_customButton_stopAllSounds,
-                                                 ui_customButton_getCurMusicUrl);
+                ui.customButtons_rowMusic.append(ui.customButton_stopAllSounds,
+                                                 ui.customButton_getCurMusicUrl);
 
-                ui_customButtons_rows.push(ui_customButtons_rowMusic);
+                ui.customButtons_rows.push(ui.customButtons_rowMusic);
             }
 
             // Log row
@@ -593,8 +616,8 @@ function checkJoinBoxReady(changes, observer) {
                         icon: icon
                     });
 
-                    while (ui_customButtons_logArea.firstChild) {
-                        ui_customButtons_logArea.firstChild.remove()
+                    while (ui.customButtons_logArea.firstChild) {
+                        ui.customButtons_logArea.firstChild.remove()
                     }
 
                     this.lines.forEach(entry => {
@@ -618,34 +641,37 @@ function checkJoinBoxReady(changes, observer) {
                         });
                         item.append(document.createTextNode(entry.str));
 
-                        if (ui_customButtons_rowLogContainer.style.display == "none") {
-                            ui_customButtons_rowLogContainer.style.display = "flex";
+                        if (scriptSetting.show_console && ui.customButtons_rowLog.style.display == "none") {
+                            ui.customButtons_rowLog.style.display = "flex";
                         }
-                        ui_customButtons_logArea.append(item);
+                        ui.customButtons_logArea.append(item);
                     });
                 }
             }
 
-            let ui_customButtons_rowLog = document.createElement("div");
-            ui_customButtons_rowLog.setAttributes({
-                className: "row mt-8 no-gutters"
-            });
-
-            let ui_customButtons_rowLogContainer = document.createElement("div");
-            ui_customButtons_rowLogContainer.setAttributes({
+            ui.customButtons_rowLog = document.createElement("div");
+            ui.customButtons_rowLog.setAttributes({
+                className: "row mt-8 no-gutters",
                 style: {
-                    width: "100%",
-                    display: "none"
+                    display: scriptSetting.show_console ? "flex" : "none"
                 }
             });
-            ui_customButtons_rowLog.append(ui_customButtons_rowLogContainer);
 
-            let ui_customButtons_showLogButton = document.createElement("i");
-            ui_customButtons_showLogButton.classList.add("mdi", "mdi-console", "v-icon", "theme--dark");
-            ui_customButtons_rowLogContainer.append(ui_customButtons_showLogButton);
+            ui.customButtons_rowLogContainer = document.createElement("div");
+            ui.customButtons_rowLogContainer.setAttributes({
+                style: {
+                    width: "100%",
+                    display: "flex"
+                }
+            });
+            ui.customButtons_rowLog.append(ui.customButtons_rowLogContainer);
 
-            let ui_customButtons_logArea = document.createElement("div");
-            ui_customButtons_logArea.setAttributes({
+            ui.customButtons_showLogButton = document.createElement("i");
+            ui.customButtons_showLogButton.classList.add("mdi", "mdi-console", "v-icon", "theme--dark");
+            ui.customButtons_rowLogContainer.append(ui.customButtons_showLogButton);
+
+            ui.customButtons_logArea = document.createElement("div");
+            ui.customButtons_logArea.setAttributes({
                 className: "d-flex ml-2",
                 style: {
                     width: "100%",
@@ -662,13 +688,13 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui_customButtons_rowLogContainer.append(ui_customButtons_logArea);
+            ui.customButtons_rowLogContainer.append(ui.customButtons_logArea);
 
-            ui_customButtons_rows.push(ui_customButtons_rowLog);
+            ui.customButtons_rows.push(ui.customButtons_rowLog);
 
             // Attach each rows to the custom buttons container
-            ui_customButtons_rows.forEach(row => {
-                ui_customButtonsContainer.append(row);
+            ui.customButtons_rows.forEach(row => {
+                ui.customButtonsContainer.append(row);
             });
 
             return true;
