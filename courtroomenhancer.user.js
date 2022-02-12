@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.561
+// @version      0.562
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -301,7 +301,7 @@ function checkJoinBoxReady(changes, observer) {
                 setSetting("warn_on_exit", value);
             });
 
-            ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Enable log console", function(e) {
+            ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", function(e) {
                 let value = e.target.checked;
                 setSetting("show_console", value);
                 ui.customButtons_rowLog.style.display = value ? "flex" : "none";
