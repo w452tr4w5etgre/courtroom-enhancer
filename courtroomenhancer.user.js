@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.543
+// @version      0.544
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -128,7 +128,7 @@ function checkJoinBoxReady(changes, observer) {
         function createButton(id, label, icon=null, callback) {
             let elem_div = document.createElement("div");
             elem_div.setAttributes({
-                className: "pr-2",
+                className: "pr-4",
                 id: id + "_button"
             });
 
@@ -543,7 +543,7 @@ function checkJoinBoxReady(changes, observer) {
             if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
                 let ui_customButtons_rowMusic = document.createElement("div");
                 ui_customButtons_rowMusic.setAttributes({
-                    className: "row mt-3 no-gutters"
+                    className: "row mt-4 no-gutters"
                 });
 
                 let ui_customButton_stopAllSounds = createButton("stop_all_sounds", "Stop all sounds", "music-off", function(){
@@ -551,8 +551,6 @@ function checkJoinBoxReady(changes, observer) {
                         unsafeWindow.Howler.stop();
                     }
                 });
-
-                ui_customButton_stopAllSounds.classList.remove("px-1");
 
                 ui_customButton_stopAllSounds.firstChild.setAttributes({
                     style: {
