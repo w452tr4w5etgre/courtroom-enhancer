@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.542
+// @version      0.543
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -456,7 +456,7 @@ function checkJoinBoxReady(changes, observer) {
 
         function createCustomButtonsContainer() {
             let ui_customButtonsContainer = ui_rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
-            ui_customButtonsContainer.className = "mx-0 mx-md-2 mt-4 rounded-0";
+            ui_customButtonsContainer.className = "mx-0 mx-md-4 mt-4 rounded-0";
 
             let ui_customButtons_rows = []
 
@@ -630,7 +630,7 @@ function checkJoinBoxReady(changes, observer) {
 
             let ui_customButtons_rowLog = document.createElement("div");
             ui_customButtons_rowLog.setAttributes({
-                className: "row mt-3 no-gutters"
+                className: "row mt-8 no-gutters"
             });
 
             let ui_customButtons_rowLogContainer = document.createElement("div");
