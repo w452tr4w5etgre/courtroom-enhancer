@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.56
+// @version      0.561
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -430,7 +430,7 @@ function checkJoinBoxReady(changes, observer) {
                 min: "0",
                 max: "9999999",
                 style: {
-                    width:"65px"
+                    width:"45px"
                 }
             });
 
@@ -447,7 +447,7 @@ function checkJoinBoxReady(changes, observer) {
                 min: "0",
                 max: "9999999",
                 style: {
-                    width:"65px"
+                    width:"55px"
                 }
             });
 
