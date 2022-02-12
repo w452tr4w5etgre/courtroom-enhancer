@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.524
+// @version      0.53
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -38,20 +38,22 @@ const uiElement = {
     "joinBox_joinButton": "form > div.v-card__actions > button:nth-child(3)",
     "joinBox_usernameInput": "form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
 
-    "settings_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div.v-window__container > div.v-window-item:nth-child(4)",
-    "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
-    "settings_switchDiv": "div > div:nth-child(2) > div > div.v-input--switch",
-    "settings_hrSeparator": "div > hr:last-of-type",
-
     "mainFrame_container": "#app > div > div.container > main > div > div > div > div:nth-child(1)",
     "mainFrame_textarea": "div textarea.frameTextarea",
     "mainFrame_sendButton": "#app > div > div.container > main > div > div > div.row.no-gutters > div:nth-child(1) > div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div > button > span > i.mdi-send",
 
-    "chatLog_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) > div > div > div > div",
-    "chatLog_chat": "div.v-window-item > div > div.chat",
+    "rightFrame_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) div",
+
+    "chatLog_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container",
+    "chatLog_chat": "div.v-window-item:nth-of-type(1) > div > div.chat",
     "chatLog_chatList": "div.v-list",
     "chatLog_textField": "div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]",
-    "chatLog_sendButton": "div > button"
+    "chatLog_sendButton": "div > button",
+
+    "settings_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-child(4)",
+    "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
+    "settings_switchDiv": "div > div:nth-child(2) > div > div.v-input--switch",
+    "settings_hrSeparator": "div > hr:last-of-type"
 };
 
 function getUiElement(name, parent=document) {
@@ -83,19 +85,21 @@ function checkJoinBoxReady(changes, observer) {
             }
         });
 
-        let ui_settings_container = getUiElement("settings_container"),
-            ui_settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui_settings_container),
-            ui_settings_switchDiv = getUiElement("settings_switchDiv", ui_settings_container).parentNode.parentNode,
-            ui_settings_separator = getUiElement("settings_hrSeparator", ui_settings_container);
-
         let ui_mainFrame_container = getUiElement("mainFrame_container"),
             ui_mainFrame_textarea = getUiElement("mainFrame_textarea", ui_mainFrame_container),
             ui_mainFrame_sendButton = getUiElement("mainFrame_sendButton", ui_mainFrame_container).parentNode.parentNode;
 
-        let ui_chatLog_container = getUiElement("chatLog_container"),
+        let ui_rightFrame_container = getUiElement("rightFrame_container");
+
+        let ui_chatLog_container = getUiElement("chatLog_container", ui_rightFrame_container),
             ui_chatLog_chat = getUiElement("chatLog_chat", ui_chatLog_container),
             ui_chatLog_chatList = getUiElement("chatLog_chatList", ui_chatLog_chat),
             ui_chatLog_textField = getUiElement("chatLog_textField", ui_chatLog_container);
+
+        let ui_settings_container = getUiElement("settings_container", ui_rightFrame_container),
+            ui_settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui_settings_container),
+            ui_settings_switchDiv = getUiElement("settings_switchDiv", ui_settings_container).parentNode.parentNode,
+            ui_settings_separator = getUiElement("settings_hrSeparator", ui_settings_container);
 
         // Handle username changes and update the stored username
         let onUsernameChange = function(name) {
@@ -121,6 +125,47 @@ function checkJoinBoxReady(changes, observer) {
         // Create roulette buttons
         createRouletteButtons();
 
+        // Create additional buttons container below the right panels
+        createCustomButtonsContainer();
+
+        function createButton(id, label, icon=null, callback) {
+            let elem_div = document.createElement("div");
+            elem_div.setAttributes({
+                className: "px-1",
+                id: id + "_button"
+            });
+
+            let elem_button = document.createElement("button");
+            elem_button.setAttributes({
+                className: "v-btn v-btn--has-bg v-size--small theme--dark",
+                type: "button",
+                style: {
+                    background: "rgb(184 39 146)"
+                }
+            });
+            elem_button.addEventListener("click", callback)
+
+            let elem_span = document.createElement("span");
+            elem_span.setAttributes({
+                className: "v-btn__content"
+            });
+
+            elem_span.textContent = label;
+
+            if (icon) {
+                let elem_icon = document.createElement("i");
+                elem_icon.setAttributes({
+                    className: "v-icon v-icon--left mdi mdi-"+icon+" theme--dark"
+                });
+                elem_span.firstChild.before(elem_icon);
+            }
+
+            elem_button.appendChild(elem_span);
+            elem_div.appendChild(elem_button);
+
+            return elem_div;
+        }
+
         function createExtraSettingsElements() {
 
             function createExtraSettingElemCheckbox(id, text, callback) {
@@ -143,25 +188,31 @@ function checkJoinBoxReady(changes, observer) {
 
                 let div_input_selection = document.createElement("div");
                 div_input_selection.setAttributes({
-                    className: "v-input--selection-controls__input"
+                    className: "v-input--selection-controls__input mr-0"
                 });
                 div_input_slot.appendChild(div_input_selection);
 
                 let input = document.createElement("input");
                 div_input_selection.appendChild(input);
                 input.setAttributes({
-                    className: "v-input--selection-controls__input pointer-item mr-4",
+                    className: "v-input--selection-controls__input pointer-item",
+                    style: {
+                        accentColor: "#007aff"
+                    },
                     checked: scriptSetting[id],
                     id: id,
                     type: "checkbox"
                 });
-                input.addEventListener("change",callback);
+                input.addEventListener("change", callback);
 
                 let label = document.createElement("label");
                 div_input_slot.appendChild(label);
                 label.setAttributes({
                     htmlFor: id,
-                    className: "v-label pointer-item"
+                    className: "v-label pointer-item",
+                    style: {
+                        paddingLeft: "6px"
+                    }
                 });
                 label.textContent = text;
 
@@ -349,7 +400,7 @@ function checkJoinBoxReady(changes, observer) {
                 min: "0",
                 max: "9999999",
                 style: {
-                    width:"65px"
+                    width:"55px"
                 }
             });
 
@@ -396,56 +447,14 @@ function checkJoinBoxReady(changes, observer) {
                 ui_extraSettings_rouletteMusicMax);
             extraSettings_rows.push(ui_extraSettings_rowRoulettes);
 
-            // Append each row to the <hr> separator
-            for (let row in extraSettings_rows) {
-                // If this is the first row, append it to the separator, if not append it to the last row
-                if (row == 0) {
-                    settings_separator.after(extraSettings_rows[row]);
-                } else {
-                    extraSettings_rows[row-1].after(extraSettings_rows[row]);
-                }
-            }
+            // Find the element after the last <hr> and attach the extra settings before it
+            let ui_settings_afterSeparator = settings_separator.nextElementSibling;
+            extraSettings_rows.forEach(row => {
+                ui_settings_afterSeparator.insertAdjacentElement("beforebegin", row);
+            });
 
             // Add the <hr> separator after the last row
-            extraSettings_rows[extraSettings_rows.length - 1].after(settings_separator.cloneNode());
-        }
-
-        function createButton(id, label, icon=null, callback) {
-            let elem_div = document.createElement("div");
-            elem_div.setAttributes({
-                className: "px-1",
-                id: id + "_button"
-            });
-
-            let elem_button = document.createElement("button");
-            elem_button.setAttributes({
-                className: "v-btn v-btn--has-bg v-size--small theme--dark",
-                type: "button",
-                style: {
-                    background: "rgb(184 39 146)"
-                }
-            });
-            elem_button.addEventListener("click", callback)
-
-            let elem_span = document.createElement("span");
-            elem_span.setAttributes({
-                className: "v-btn__content"
-            });
-
-            elem_span.textContent = label;
-
-            if (icon) {
-                let elem_icon = document.createElement("i");
-                elem_icon.setAttributes({
-                    className: "v-icon v-icon--left mdi mdi-"+icon+" theme--dark"
-                });
-                elem_span.firstChild.before(elem_icon);
-            }
-
-            elem_button.appendChild(elem_span);
-            elem_div.appendChild(elem_button);
-
-            return elem_div;
+            ui_settings_afterSeparator.insertAdjacentElement("beforebegin",settings_separator.cloneNode());
         }
 
         function createRouletteButtons() {
@@ -516,6 +525,60 @@ function checkJoinBoxReady(changes, observer) {
                 evidRouletteButton,
                 soundRouletteButton,
                 musicRouletteButton);
+        }
+
+        function createCustomButtonsContainer() {
+            let ui_customButtonsContainer = ui_rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
+            ui_customButtonsContainer.className = "mx-0 mx-md-2 mt-4 rounded-0";
+
+            let ui_customButtons_rows = []
+
+
+            let ui_customButton_stopAllSounds = createButton("stop_all_sounds", "Stop all sounds", "music-off", function(){
+                if (typeof unsafeWindow !== "undefined") {
+                    unsafeWindow.Howler.stop();
+                }
+            });
+            ui_customButton_stopAllSounds.firstChild.setAttributes({
+                style: {
+                    backgroundColor: "teal"
+                }
+            });
+
+            let ui_customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get current BGM URL", "link-variant", function(){
+                if (typeof unsafeWindow !== "undefined") {
+                    for (let howl of unsafeWindow.Howler._howls) {
+                        if (howl._loop) {
+                            alert(howl._src);
+                            break;
+                        }
+                    };
+                };
+            });
+            ui_customButton_getCurMusicUrl.firstChild.setAttributes({
+                style: {
+                    backgroundColor: "teal"
+                }
+            });
+
+            if (typeof unsafeWindow !== "undefined") {
+                let ui_customButtons_rowMusic = document.createElement("div");
+                ui_customButtons_rowMusic.setAttributes({
+                    className: "row no-gutters"
+                });
+
+                ui_customButtons_rowMusic.append(ui_customButton_stopAllSounds,
+                                                 ui_customButton_getCurMusicUrl);
+
+                ui_customButtons_rows.push(ui_customButtons_rowMusic);
+            }
+
+            // Attach each rows to the custom buttons container
+            ui_customButtons_rows.forEach(row => {
+                ui_customButtonsContainer.append(row);
+            });
+
+            return true;
         }
 
     }
