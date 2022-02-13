@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.563
+// @version      0.564
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -608,6 +608,10 @@ function checkJoinBoxReady(changes, observer) {
             let Logger = {
                 lines: [],
                 log: function(str,icon=null) {
+                    // Return if the new entry is already in the log
+                    if (this.lines.some(line=> line.str == str)) {
+                        return;
+                    }
                     if (this.lines.length >= 5) {
                         this.lines.shift();
                     }
