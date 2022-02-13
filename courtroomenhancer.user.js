@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.564
+// @version      0.565
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -607,10 +607,11 @@ function checkJoinBoxReady(changes, observer) {
             // Log row
             let Logger = {
                 lines: [],
-                log: function(str,icon=null) {
-                    // Return if the new entry is already in the log
-                    if (this.lines.some(line=> line.str == str)) {
-                        return;
+                log: function(str, icon=null) {
+                    // If a duplicate is find, delete it before adding a new one
+                    let duplicate;
+                    if (duplicate = this.lines.find(line=> line.str == str)) {
+                        this.lines.splice(this.lines.indexOf(duplicate), 1);
                     }
                     if (this.lines.length >= 5) {
                         this.lines.shift();
@@ -635,7 +636,7 @@ function checkJoinBoxReady(changes, observer) {
                             style: {
                                 display: "inline-block",
                                 padding: "2px 4px",
-                                border: "1px line rgbrgb(126 85 143)",
+                                border: "1px solid rgb(126 85 143)",
                                 borderRadius: "4px",
                                 backgroundColor: "rgb(126 85 143)",
                                 userSelect: "all",
@@ -645,11 +646,22 @@ function checkJoinBoxReady(changes, observer) {
                         });
                         item.append(document.createTextNode(entry.str));
 
+                        item.addEventListener("mouseenter", e=>{
+                            e.target.style.overflow="visible";
+                        });
+
+                        item.addEventListener("mouseleave", e=>{
+                            e.target.parentNode.childNodes.forEach(c=>{
+                                c.style.overflow="hidden";
+                            })
+                        });
+
                         if (scriptSetting.show_console && ui.customButtons_rowLog.style.display == "none") {
                             ui.customButtons_rowLog.style.display = "flex";
                         }
-                        ui.customButtons_logArea.append(item);
+                        ui.customButtons_logArea.prepend(item);
                     });
+                    ui.customButtons_logArea.firstChild.style.borderColor = "#b82792";
                 }
             }
 
@@ -679,16 +691,17 @@ function checkJoinBoxReady(changes, observer) {
                 className: "d-flex ml-2",
                 style: {
                     width: "100%",
-                    gap: "4px",
-                    overflow: "auto",
+                    gap: "3px",
+                    overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     flexWrap: "nowrap",
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontFamily: "monospace",
                     textColor: "white",
-                    lineHeight: "15px",
-                    alignItems: "center"
+                    lineHeight: "14px",
+                    alignItems: "center",
+                    textAlign: "center"
                 }
             });
 
