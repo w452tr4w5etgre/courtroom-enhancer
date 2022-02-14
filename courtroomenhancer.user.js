@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.573
+// @version      0.574
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -59,7 +59,7 @@ const uiElementSelector = {
     "evidence_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)",
     "evidence_form": "div form",
     "evidence_addButton": "div > div > button.mr-2.v-btn.success",
-    "evidence_list": "div div",
+    "evidence_list": "div > div.row",
 
     "settings_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)",
     "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
@@ -114,7 +114,7 @@ function checkJoinBoxReady(changes, observer) {
         ui.evidence_form = getUiElement("evidence_form", ui.evidence_form);
         ui.evidence_formFields = ui.evidence_form.querySelectorAll("input");
         ui.evidence_addButton = getUiElement("evidence_addButton", ui.evidence_form);
-        ui.evidence_list = getUiElement("evidence_list", ui.evidence_list);
+        ui.evidence_list = getUiElement("evidence_list", ui.evidence_container);
 
         ui.settings_container = getUiElement("settings_container", ui.rightFrame_container);
         ui.settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui.settings_container);
@@ -152,7 +152,7 @@ function checkJoinBoxReady(changes, observer) {
             }
         });*/
 
-        ui.evidence_container.style.maxHeight = "44vw";
+        ui.evidence_list.style.maxHeight = "70vh";
 
         // Enhance evidence inputs functionality
         ui.evidence_formFields.forEach(a => {
