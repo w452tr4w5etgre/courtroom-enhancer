@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.571
+// @version      0.572
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -180,7 +180,6 @@ function checkJoinBoxReady(changes, observer) {
         function createButton(id, label, icon=null, callback) {
             let elem_div = document.createElement("div");
             elem_div.setAttributes({
-                className: "pr-4",
                 id: id + "_button"
             });
 
@@ -529,9 +528,12 @@ function checkJoinBoxReady(changes, observer) {
             ui.customButtons_rows = []
 
             // Roulette buttons row
-            ui.customButtons_rowRoulette = document.createElement("div");
-            ui.customButtons_rowRoulette.setAttributes({
-                className: "row no-gutters"
+            ui.customButtons_rowButtons = document.createElement("div");
+            ui.customButtons_rowButtons.setAttributes({
+                className: "row no-gutters",
+                style: {
+                    gap: "10px"
+                }
             });
 
             ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", e => {
@@ -603,19 +605,12 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui.customButtons_rowRoulette.append(ui.customButtons_evidRouletteButton,
+            ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
                                                 ui.customButtons_soundRouletteButton,
                                                 ui.customButtons_musicRouletteButton);
 
-            ui.customButtons_rows.push(ui.customButtons_rowRoulette);
-
-            // Music buttons row
+            // Music buttons
             if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
-                ui.customButtons_rowMusic = document.createElement("div");
-                ui.customButtons_rowMusic.setAttributes({
-                    className: "row mt-4 no-gutters"
-                });
-
                 ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", e => {
                     if (typeof unsafeWindow !== "undefined") {
                         unsafeWindow.Howler.stop();
@@ -650,10 +645,10 @@ function checkJoinBoxReady(changes, observer) {
                     }
                 });
 
-                ui.customButtons_rowMusic.append(ui.customButton_stopAllSounds,
+                ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
                                                  ui.customButton_getCurMusicUrl);
 
-                ui.customButtons_rows.push(ui.customButtons_rowMusic);
+                ui.customButtons_rows.push(ui.customButtons_rowButtons);
             }
 
             // Log row
@@ -719,7 +714,7 @@ function checkJoinBoxReady(changes, observer) {
 
             ui.customButtons_rowLog = document.createElement("div");
             ui.customButtons_rowLog.setAttributes({
-                className: "row mt-8 no-gutters",
+                className: "row mt-4 no-gutters",
                 style: {
                     display: "none"
                 }
@@ -740,7 +735,7 @@ function checkJoinBoxReady(changes, observer) {
 
             ui.customButtons_logArea = document.createElement("div");
             ui.customButtons_logArea.setAttributes({
-                className: "d-flex ml-2",
+                className: "d-flex ml-1",
                 style: {
                     width: "100%",
                     gap: "3px",
