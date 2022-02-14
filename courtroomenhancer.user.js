@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.572
+// @version      0.573
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -606,8 +606,8 @@ function checkJoinBoxReady(changes, observer) {
             });
 
             ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
-                                                ui.customButtons_soundRouletteButton,
-                                                ui.customButtons_musicRouletteButton);
+                                               ui.customButtons_soundRouletteButton,
+                                               ui.customButtons_musicRouletteButton);
 
             // Music buttons
             if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
@@ -646,7 +646,7 @@ function checkJoinBoxReady(changes, observer) {
                 });
 
                 ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                                                 ui.customButton_getCurMusicUrl);
+                                                   ui.customButton_getCurMusicUrl);
 
                 ui.customButtons_rows.push(ui.customButtons_rowButtons);
             }
@@ -660,7 +660,7 @@ function checkJoinBoxReady(changes, observer) {
                     if (duplicate = this.lines.find(line=> line.str == str)) {
                         this.lines.splice(this.lines.indexOf(duplicate), 1);
                     }
-                    if (this.lines.length >= 5) {
+                    if (this.lines.length >= 8) {
                         this.lines.shift();
                     }
                     this.lines.push({
@@ -709,6 +709,13 @@ function checkJoinBoxReady(changes, observer) {
                         ui.customButtons_logArea.prepend(item);
                     });
                     ui.customButtons_logArea.firstChild.style.borderColor = "#b82792";
+                },
+                clear: function() {
+                    lines: [];
+                    while (ui.customButtons_logArea.firstChild) {
+                        ui.customButtons_logArea.firstChild.remove()
+                    }
+                    ui.customButtons_rowLog.style.display = "none";
                 }
             }
 
@@ -729,8 +736,28 @@ function checkJoinBoxReady(changes, observer) {
             });
             ui.customButtons_rowLog.append(ui.customButtons_rowLogContainer);
 
-            ui.customButtons_showLogButton = document.createElement("i");
-            ui.customButtons_showLogButton.classList.add("mdi", "mdi-console", "v-icon", "theme--dark");
+            ui.customButtons_showLogButton = document.createElement("button");
+            ui.customButtons_showLogButton.setAttributes({
+                className: "mdi mdi-console theme--dark",
+                style: {
+                    fontSize: "24px"
+                }
+            });
+
+            ui.customButtons_showLogButton.addEventListener("mouseover", e=>{
+                e.target.classList.remove("mdi-console");
+                e.target.classList.add("mdi-close-circle");
+            });
+
+            ui.customButtons_showLogButton.addEventListener("mouseout", e=>{
+                e.target.classList.remove("mdi-close-circle");
+                e.target.classList.add("mdi-console");
+            });
+
+            ui.customButtons_showLogButton.addEventListener("click", e=>{
+                Logger.clear();
+            });
+
             ui.customButtons_rowLogContainer.append(ui.customButtons_showLogButton);
 
             ui.customButtons_logArea = document.createElement("div");
