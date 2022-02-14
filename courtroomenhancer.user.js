@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.57
+// @version      0.571
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -140,6 +140,7 @@ function checkJoinBoxReady(changes, observer) {
         });
 
         // Listen for clicks on right-side tabs
+        /*
         ui.rightFrame_toolbarTabs.addEventListener("click", e => {
             switch (e.target.textContent.toLowerCase().trim()) {
                 case "evidence":
@@ -149,7 +150,9 @@ function checkJoinBoxReady(changes, observer) {
                     ui.customButtonsContainer.style.display = "block";
                     break;
             }
-        });
+        });*/
+
+        ui.evidence_container.style.maxHeight = "44vw";
 
         // Enhance evidence inputs functionality
         ui.evidence_formFields.forEach(a => {
