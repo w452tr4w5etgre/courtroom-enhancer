@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.566
+// @version      0.57
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -41,19 +41,27 @@ const uiElementSelector = {
     "joinBox_joinButton": "form > div.v-card__actions > button:nth-child(3)",
     "joinBox_usernameInput": "form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
 
-    "mainFrame_container": "#app > div > div.container > main > div > div > div > div:nth-child(1)",
+    "mainFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child",
     "mainFrame_textarea": "div textarea.frameTextarea",
-    "mainFrame_sendButton": "#app > div > div.container > main > div > div > div.row.no-gutters > div:nth-child(1) > div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div > button > span > i.mdi-send",
+    "mainFrame_sendButton": "div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send",
 
-    "rightFrame_container": "#app > div > div.container > main > div > div > div > div:nth-child(2) div",
+    "rightFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:nth-child(2) div",
 
-    "chatLog_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container",
-    "chatLog_chat": "div.v-window-item:nth-of-type(1) > div > div.chat",
+    "rightFrame_toolbarContainer": "div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content",
+    "rightFrame_toolbarTabs": "div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content",
+
+    "chatLog_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type",
+    "chatLog_chat": "div > div.chat",
     "chatLog_chatList": "div.v-list",
     "chatLog_textField": "div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]",
     "chatLog_sendButton": "div > button",
 
-    "settings_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-child(4)",
+    "evidence_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)",
+    "evidence_form": "div form",
+    "evidence_addButton": "div > div > button.mr-2.v-btn.success",
+    "evidence_list": "div div",
+
+    "settings_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)",
     "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
     "settings_switchDiv": "div > div:nth-child(2) > div > div.v-input--switch",
     "settings_hrSeparator": "div > hr:last-of-type"
@@ -77,12 +85,12 @@ function checkJoinBoxReady(changes, observer) {
         ui.joinBox_usernameInput.dispatchEvent(new Event("input"));
 
         // When the "Join" button is clicked
-        getUiElement("joinBox_joinButton", ui.joinBox_container).addEventListener('click', function(){
+        getUiElement("joinBox_joinButton", ui.joinBox_container).addEventListener('click', e => {
             setStoredUsername(ui.joinBox_usernameInput.value);
         });
 
         // When "Enter" is pressed in the username input box
-        ui.joinBox_usernameInput.addEventListener("keydown", function(e) {
+        ui.joinBox_usernameInput.addEventListener("keydown", e => {
             if (ui.joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
                 setStoredUsername(ui.joinBox_usernameInput.value);
             }
@@ -94,10 +102,19 @@ function checkJoinBoxReady(changes, observer) {
 
         ui.rightFrame_container = getUiElement("rightFrame_container");
 
+        ui.rightFrame_toolbarContainer = getUiElement("rightFrame_toolbarContainer", ui.rightFrame_container);
+        ui.rightFrame_toolbarTabs = getUiElement("rightFrame_toolbarTabs", ui.rightFrame_toolbarContainer);
+
         ui.chatLog_container = getUiElement("chatLog_container", ui.rightFrame_container);
         ui.chatLog_chat = getUiElement("chatLog_chat", ui.chatLog_container);
         ui.chatLog_chatList = getUiElement("chatLog_chatList", ui.chatLog_chat);
         ui.chatLog_textField = getUiElement("chatLog_textField", ui.chatLog_container);
+
+        ui.evidence_container = getUiElement("evidence_container");
+        ui.evidence_form = getUiElement("evidence_form", ui.evidence_form);
+        ui.evidence_formFields = ui.evidence_form.querySelectorAll("input");
+        ui.evidence_addButton = getUiElement("evidence_addButton", ui.evidence_form);
+        ui.evidence_list = getUiElement("evidence_list", ui.evidence_list);
 
         ui.settings_container = getUiElement("settings_container", ui.rightFrame_container);
         ui.settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui.settings_container);
@@ -107,18 +124,47 @@ function checkJoinBoxReady(changes, observer) {
         // Handle username changes and update the stored username
         let onUsernameChange = function(name) {
             // Set a timeout because for some reason the name box reverts for a split second on change
-            setTimeout(function() {
+            setTimeout(f => {
                 setStoredUsername(name);
             }, 100);
         };
 
-        ui.settings_usernameChangeInput.addEventListener("focusout", function(e) {
+        ui.settings_usernameChangeInput.addEventListener("focusout", e => {
             onUsernameChange(e.target.value);
         });
 
-        ui.settings_usernameChangeInput.addEventListener("keydown", function (e) {
+        ui.settings_usernameChangeInput.addEventListener("keydown", e => {
             if (e.keyCode == 13 || e.key == "Enter") {
                 onUsernameChange(e.target.value);
+            }
+        });
+
+        // Listen for clicks on right-side tabs
+        ui.rightFrame_toolbarTabs.addEventListener("click", e => {
+            switch (e.target.textContent.toLowerCase().trim()) {
+                case "evidence":
+                    ui.customButtonsContainer.style.display = "none";
+                    break;
+                default:
+                    ui.customButtonsContainer.style.display = "block";
+                    break;
+            }
+        });
+
+        // Enhance evidence inputs functionality
+        ui.evidence_formFields.forEach(a => {
+            a.addEventListener("keydown", e =>{
+                if (e.keyCode == 13 || e.key == "Enter") {
+                    ui.evidence_addButton.click();
+                }
+            });
+        });
+
+        ui.evidence_addButton.addEventListener("click", e=> {
+            if (ui.evidence_formFields[0].value === "") {
+                ui.evidence_formFields[0].value = " ";
+                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                setTimeout(f=>{e.target.click()}, 25);
             }
         });
 
@@ -369,7 +415,10 @@ function checkJoinBoxReady(changes, observer) {
             ui.extraSettings_rowHeader = document.createElement("h3");
             ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-            ui.extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", function() {
+            ui.extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", e => {
+                if (!confirm("Reset all extension settings and refresh the page?")) {
+                    return;
+                }
                 let storedSettings = GM_listValues();
                 for (let val in storedSettings) {
                     GM_deleteValue(storedSettings[val]);
@@ -482,7 +531,7 @@ function checkJoinBoxReady(changes, observer) {
                 className: "row no-gutters"
             });
 
-            ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", function() {
+            ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", e => {
                 // Check if the send button is not on cooldown
                 if (ui.mainFrame_sendButton.disabled) {
                     return;
@@ -505,7 +554,7 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", function() {
+            ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", e => {
                 // Check if the send button is not on cooldown
                 if (ui.mainFrame_sendButton.disabled) {
                     return;
@@ -528,7 +577,7 @@ function checkJoinBoxReady(changes, observer) {
                 }
             });
 
-            ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", function() {
+            ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", e => {
                 // Check if the send button is not on cooldown
                 if (ui.mainFrame_sendButton.disabled) {
                     return;
@@ -564,7 +613,7 @@ function checkJoinBoxReady(changes, observer) {
                     className: "row mt-4 no-gutters"
                 });
 
-                ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", function(){
+                ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", e => {
                     if (typeof unsafeWindow !== "undefined") {
                         unsafeWindow.Howler.stop();
                     }
@@ -577,7 +626,7 @@ function checkJoinBoxReady(changes, observer) {
                     }
                 });
 
-                ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get URL to BGM", "link-variant", function(){
+                ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get URL to BGM", "link-variant", e => {
                     if (typeof unsafeWindow !== "undefined") {
                         for (let howl of unsafeWindow.Howler._howls) {
                             if (howl._state == "loaded" && howl._loop) {
