@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.58
+// @version      0.59
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -21,7 +21,6 @@ function initSettings() {
     scriptSetting = {
         "warn_on_exit": getSetting("warn_on_exit", true),
         "remember_username": getSetting("remember_username", true),
-        "remember_character": getSetting("remember_character", false),
         "show_console": getSetting("show_console", false),
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
@@ -42,12 +41,6 @@ const uiElementSelector = {
     "joinBox_spectateButton": "form > div.v-card__actions > button:first-of-type",
     "joinBox_joinButton": "form > div.v-card__actions > button:last-of-type",
     "joinBox_usernameInput": "form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
-
-    "charSelect_defaultCharsContainer": "#app > div.v-dialog__content > div.v-dialog > div.v-card > header.v-sheet.v-toolbar",
-    "charSelect_customCharsContainer": "#app > div.v-menu__content.menuable__content__active",
-    "charSelect_defaultCharsList":  "#app > div.v-dialog__content > div.v-dialog > div.v-card.v-sheet > div.v-card__text > div:last-of-type",
-    "charSelect_customCharsInput": "#app > div.v-dialog__content > div.v-dialog > div.v-card.v-sheet > div.v-card__text > div > div > div.v-input > div.v-input__control > div.v-input__slot",
-    "charSelect_customCharsList": "#app > div.v-menu__content > div.v-list",
 
     "mainFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child",
     "mainFrame_textarea": "div textarea.frameTextarea",
@@ -162,104 +155,6 @@ function checkJoinBoxReady(changes, observer) {
                     onUsernameChange(e.target.value);
                 }
             });
-
-            let defaultCharsCount = 0, customCharsCount = 0;
-
-            // Set up remember last character
-            if (scriptSetting.remember_character) {
-                ui.mainFrame_currentChar.addEventListener("click", e => {
-                    (new MutationObserver(checkCharSelectReady)).observe(document.querySelector("#app"), {childList: true, subtree: true});
-
-                    function checkCharSelectReady(changes, observer) {
-                        if ((ui.charSelect_defaultCharsList = getUiElement("charSelect_defaultCharsList")) &&
-                            typeof ui.charSelect_defaultCharsList.childElementCount !== "undefined") {
-                            observer.disconnect();
-                            defaultCharsCount = ui.charSelect_defaultCharsList.childElementCount;
-
-                            ui.charSelect_defaultCharsContainer = getUiElement("charSelect_defaultCharsContainer").parentNode.parentNode;
-                            ui.charSelect_defaultCharsContainer.style.visibility = "hidden";
-
-                            if (storedCharacter <= defaultCharsCount) {
-                                ui.charSelect_defaultCharsList.childNodes[storedCharacter].click();
-                                ui.charSelect_defaultCharsContainer.style.visibility = "visible";
-                            }
-
-                            ui.charSelect_defaultCharsList.addEventListener("click", e => {
-                                if (!e.target.parentNode) {return;}
-                                if (e.target.parentNode.classList.contains("icon-character")) {
-                                    setStoredCharacter(parseInt(Array.from(e.target.parentNode.parentNode.children).indexOf(e.target.parentNode)));
-                                }
-                            });
-
-                            // Custom chars broken
-                            /*
-                            ui.charSelect_customCharsInput = getUiElement("charSelect_customCharsInput");
-                            ui.charSelect_customCharsInput.addEventListener("click", e=> {
-                                (new MutationObserver(checkCustomCharsListReady)).observe(document.querySelector("#app"), {childList: true});
-
-                                function checkCustomCharsListReady(changes, observer) {
-                                    ui.charSelect_customCharsContainer = getUiElement("charSelect_customCharsContainer");
-                                    ui.charSelect_customCharsContainer.style.visibility="hidden";
-
-                                    if (ui.charSelect_customCharsList = getUiElement("charSelect_customCharsList", ui.charSelect_customCharsContainer)) {
-                                        observer.disconnect();
-                                        (new MutationObserver(checkCustomCharsListPopulated)).observe(ui.charSelect_customCharsList, {childList: true});
-                                        function checkCustomCharsListPopulated (changes, observer) {
-                                            console.log("checkCustomCharsListPopulated");
-                                            for (let change in changes) {
-                                                customCharsCount = ui.charSelect_customCharsList.childElementCount;
-
-                                                if (customCharsCount < storedCharacter - defaultCharsCount) {
-                                                    console.log("scroll");
-                                                    ui.charSelect_customCharsList.parentNode.scrollTop = ui.charSelect_customCharsList.parentNode.scrollHeight;
-                                                    return;
-                                                }
-                                                observer.disconnect();
-
-                                                if (storedCharacter >= defaultCharsCount && storedCharacter < defaultCharsCount + customCharsCount) {
-                                                    let index = storedCharacter-defaultCharsCount-1;
-                                                    ui.charSelect_customCharsList.childNodes[index].click();
-                                                    ui.charSelect_customCharsContainer.style.visibility = "visible";
-                                                    break;
-                                                }
-                                            };
-                                        }
-
-                                        ui.charSelect_customCharsList.addEventListener("click", e => {
-                                            let closest;
-                                            if (closest = e.target.closest("div.v-list-item")) {
-                                                setStoredCharacter(defaultCharsCount + parseInt(closest.id.split('-').pop()) + 1);
-                                            };
-                                        });
-                                    }
-                                }
-                            }, {once: true});
-
-                            ui.charSelect_customCharsInput.click();
-
-                            ui.charSelect_customCharsInput.addEventListener("click", e => {
-                                if (ui.charSelect_customCharsContainer.style.visibility == "hidden") {
-                                    ui.charSelect_customCharsContainer.style.visibility = "visible";
-                                }
-                            });
-                            */
-
-                            // Temp
-                            ui.charSelect_customCharsInput = getUiElement("charSelect_customCharsInput");
-                            ui.charSelect_customCharsInput.addEventListener("click", e => {
-                                setStoredCharacter(defaultCharsCount+1);
-                            });
-                            if (storedCharacter >= defaultCharsCount) {
-                                ui.charSelect_defaultCharsList.childNodes[0].click();
-                                ui.charSelect_defaultCharsContainer.style.visibility = "visible";
-                            }
-
-                        }
-                    }
-                }, {once: true});
-
-                ui.mainFrame_currentChar.click();
-            }
 
             // Listen for clicks on right-side tabs
             /*
@@ -476,11 +371,6 @@ function checkJoinBoxReady(changes, observer) {
                     setSetting("remember_username", value);
                 });
 
-                ui.extraSettings_rememberCharacter = createExtraSettingElemCheckbox("remember_character", "Remember default character", function(e) {
-                    let value = e.target.checked;
-                    setSetting("remember_character", value);
-                });
-
                 ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", function(e) {
                     let value = e.target.checked;
                     setSetting("show_console", value);
@@ -576,7 +466,6 @@ function checkJoinBoxReady(changes, observer) {
                 ui.extraSettings_rowButtons.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
                 ui.extraSettings_rowButtons.lastChild.append(ui.extraSettings_warnOnExit,
                                                              ui.extraSettings_rememberUsername,
-                                                             ui.extraSettings_rememberCharacter,
                                                              ui.extraSettings_showConsole);
                 extraSettings_rows.push(ui.extraSettings_rowButtons);
 
