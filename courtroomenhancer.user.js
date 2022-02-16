@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.59
+// @version      0.592
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -34,7 +34,6 @@ function initSettings() {
 initSettings();
 
 let storedUsername = getStoredUsername();
-let storedCharacter = getStoredCharacter();
 
 const uiElementSelector = {
     "joinBox_container": "#app > div.v-dialog__content.v-dialog__content--active > div > div",
@@ -49,7 +48,6 @@ const uiElementSelector = {
     "mainFrame_joinRoomButton": "div > div:last-of-type > div.text-right > button",
 
     "rightFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:nth-child(2) div",
-
     "rightFrame_toolbarContainer": "div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content",
     "rightFrame_toolbarTabs": "div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content",
 
@@ -440,7 +438,7 @@ function checkJoinBoxReady(changes, observer) {
                 ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
                 ui.extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", e => {
-                    if (!confirm("Reset all extension settings and refresh the page?")) {
+                    if (!confirm("Reset Courtroom Enhancer settings and refresh the page?")) {
                         return;
                     }
                     let storedSettings = GM_listValues();
@@ -850,16 +848,6 @@ function getStoredUsername() {
 function setStoredUsername(username) {
     storedUsername = username;
     return GM_setValue("courtroom_username", String(username));
-}
-
-function getStoredCharacter() {
-    return String(GM_getValue("courtroom_lastchar",""));
-}
-
-function setStoredCharacter(char) {
-    storedCharacter = char;
-    console.log("storedCharacter = "+char);
-    return GM_setValue("courtroom_lastchar", String(char));
 }
 
 // Helper function to set multiple element attributes at once
