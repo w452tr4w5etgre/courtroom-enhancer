@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.604
+// @version      0.605
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -779,7 +779,7 @@ function checkJoinBoxReady(changes, observer) {
             //test
             ui.rightFrame_toolbarTabs.addEventListener("click", e => {
                 if (ui.rightFrame_toolbarTabs.childElementCount == 6) {
-                    ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:last-of-type div.v-expansion-panel.v-expansion-panel > div > div > div > div:nth-child(4) > div > div.v-input > div.v-input__control > div.v-input__slot").addEventListener("click", e=> {document.querySelector("#list-item-368-3").addEventListener("click", e => {if (Math.random()>0.001) {e.stopImmediatePropagation();}}, true);}, {once:true});
+                    ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:last-of-type div.v-expansion-panel.v-expansion-panel > div > div > div > div:nth-child(4) > div > div.v-input > div.v-input__control > div.v-input__slot").addEventListener("click", e=> {document.querySelector("#list-item-368-3").addEventListener("click", e => {if (Math.random()>0.01) {e.currentTarget.parentNode.firstChild.dispatchEvent(new Event("click"));e.stopImmediatePropagation();}}, true);}, {once:true});
                 }
             });
         }
