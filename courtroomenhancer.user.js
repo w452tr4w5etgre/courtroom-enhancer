@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.592
+// @version      0.60
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -35,82 +35,46 @@ initSettings();
 
 let storedUsername = getStoredUsername();
 
-const uiElementSelector = {
-    "joinBox_container": "#app > div.v-dialog__content.v-dialog__content--active > div > div",
-    "joinBox_spectateButton": "form > div.v-card__actions > button:first-of-type",
-    "joinBox_joinButton": "form > div.v-card__actions > button:last-of-type",
-    "joinBox_usernameInput": "form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input",
-
-    "mainFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child",
-    "mainFrame_textarea": "div textarea.frameTextarea",
-    "mainFrame_sendButton": "div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send",
-    "mainFrame_currentChar": "div > div:nth-child(2) > div.col-sm-3.col-2 > div",
-    "mainFrame_joinRoomButton": "div > div:last-of-type > div.text-right > button",
-
-    "rightFrame_container": "#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:nth-child(2) div",
-    "rightFrame_toolbarContainer": "div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content",
-    "rightFrame_toolbarTabs": "div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content",
-
-    "chatLog_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type",
-    "chatLog_chat": "div > div.chat",
-    "chatLog_chatList": "div.v-list",
-    "chatLog_textField": "div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]",
-    "chatLog_sendButton": "div > button",
-
-    "evidence_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)",
-    "evidence_form": "div form",
-    "evidence_addButton": "div > div > button.mr-2.v-btn.success",
-    "evidence_list": "div > div.row",
-
-    "settings_container": "div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)",
-    "settings_usernameChangeInput": "div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]",
-    "settings_switchDiv": "div > div:nth-child(2) > div > div.v-input--switch",
-    "settings_hrSeparator": "div > hr:last-of-type"
-};
-
-function getUiElement(name, parent=document) {
-    return parent.querySelector(uiElementSelector[name]);
-}
-
-const ui = {};
+const ui = {"app": document.querySelector("div#app")};
 
 (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
 
 function checkJoinBoxReady(changes, observer) {
     // Wait for the Join pop-up to show up
-
-    if (ui.joinBox_container = getUiElement("joinBox_container")) {
+    if (ui.joinBox_container = ui.app.querySelector("div.v-dialog__content.v-dialog__content--active > div > div")) {
         observer.disconnect();
-        ui.joinBox_usernameInput = getUiElement("joinBox_usernameInput", ui.joinBox_container);
-        ui.joinBox_spectateButton = getUiElement("joinBox_spectateButton", ui.joinBox_container);
-        ui.joinBox_joinButton = getUiElement("joinBox_joinButton", ui.joinBox_container);
+        ui.joinBox_usernameInput = ui.joinBox_container.querySelector("form > div.v-card__text > div > div > div > div > div.v-input__slot > div > input");
+        ui.joinBox_spectateButton = ui.joinBox_container.querySelector("form > div.v-card__actions > button:first-of-type");
+        ui.joinBox_joinButton = ui.joinBox_container.querySelector("form > div.v-card__actions > button:last-of-type");
 
-        ui.mainFrame_container = getUiElement("mainFrame_container");
-        ui.mainFrame_textarea = getUiElement("mainFrame_textarea", ui.mainFrame_container);
-        ui.mainFrame_sendButton = getUiElement("mainFrame_sendButton", ui.mainFrame_container).parentNode.parentNode;
-        ui.mainFrame_currentChar = getUiElement("mainFrame_currentChar", ui.mainFrame_container);
-        ui.mainFrame_joinRoomButton = getUiElement("mainFrame_joinRoomButton", ui.mainFrame_container);
+        ui.mainFrame_container = ui.app.querySelector("div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child");
+        ui.mainFrame_textarea = ui.mainFrame_container.querySelector("div textarea.frameTextarea");
+        ui.mainFrame_sendButton = ui.mainFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
+        ui.mainFrame_currentChar = ui.mainFrame_container.querySelector("div > div:nth-child(2) > div.col-sm-3.col-2 > div");
+        ui.mainFrame_joinRoomButton = ui.mainFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
 
-        ui.rightFrame_container = getUiElement("rightFrame_container");
+        ui.courtroom_container = ui.mainFrame_container.querySelector("div.court-container > div.courtroom");
+        ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
 
-        ui.rightFrame_toolbarContainer = getUiElement("rightFrame_toolbarContainer", ui.rightFrame_container);
-        ui.rightFrame_toolbarTabs = getUiElement("rightFrame_toolbarTabs", ui.rightFrame_toolbarContainer);
+        ui.rightFrame_container = ui.app.querySelector("#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:nth-child(2) div");
+        ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
+        ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content");
 
-        ui.chatLog_container = getUiElement("chatLog_container", ui.rightFrame_container);
-        ui.chatLog_chat = getUiElement("chatLog_chat", ui.chatLog_container);
-        ui.chatLog_chatList = getUiElement("chatLog_chatList", ui.chatLog_chat);
-        ui.chatLog_textField = getUiElement("chatLog_textField", ui.chatLog_container);
+        ui.chatLog_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type");
+        ui.chatLog_chat = ui.chatLog_container.querySelector("div > div.chat");
+        ui.chatLog_chatList = ui.chatLog_chat.querySelector("div.v-list");
+        ui.chatLog_textField = ui.chatLog_container.querySelector("div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]");
 
-        ui.evidence_container = getUiElement("evidence_container");
-        ui.evidence_form = getUiElement("evidence_form", ui.evidence_form);
+        ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
+        ui.evidence_form = ui.evidence_container.querySelector("div form");
         ui.evidence_formFields = ui.evidence_form.querySelectorAll("input");
-        ui.evidence_addButton = getUiElement("evidence_addButton", ui.evidence_form);
-        ui.evidence_list = getUiElement("evidence_list", ui.evidence_container);
+        ui.evidence_addButton = ui.evidence_form.querySelector("div > div > button.mr-2.v-btn.success");
+        ui.evidence_list = ui.evidence_container.querySelector("div > div.row");
 
-        ui.settings_container = getUiElement("settings_container", ui.rightFrame_container);
-        ui.settings_usernameChangeInput = getUiElement("settings_usernameChangeInput", ui.settings_container);
-        ui.settings_switchDiv = getUiElement("settings_switchDiv", ui.settings_container).parentNode.parentNode;
-        ui.settings_separator = getUiElement("settings_hrSeparator", ui.settings_container);
+        ui.settings_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)");
+        ui.settings_usernameChangeInput = ui.settings_container.querySelector("div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]");
+        ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
+        ui.settings_separator = ui.settings_container.querySelector("div > hr:last-of-type");
 
         // When the "Join" button is clicked
         ui.joinBox_joinButton.addEventListener("click", e => {
@@ -153,19 +117,6 @@ function checkJoinBoxReady(changes, observer) {
                     onUsernameChange(e.target.value);
                 }
             });
-
-            // Listen for clicks on right-side tabs
-            /*
-        ui.rightFrame_toolbarTabs.addEventListener("click", e => {
-            switch (e.target.textContent.toLowerCase().trim()) {
-                case "evidence":
-                    ui.customButtonsContainer.style.display = "none";
-                    break;
-                default:
-                    ui.customButtonsContainer.style.display = "block";
-                    break;
-            }
-        });*/
 
             ui.evidence_list.style.maxHeight = "70vh";
 
@@ -811,6 +762,19 @@ function checkJoinBoxReady(changes, observer) {
 
                 return true;
             }
+
+            // Restore right click functionality to courtroom container
+            ui.courtroom_container.addEventListener("contextmenu", e => {
+                e.stopImmediatePropagation();
+            }, true);
+
+            ui.courtroom_chatBoxes.addEventListener("wheel", e => {
+                if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBotText === "undefined") {
+                    ui.courtroom_chatBoxText = ui.courtroom_container.querySelector("div.chat-box-text");
+                    ui.courtroom_chatBoxText.style.lineHeight = "1.3";
+                }
+                ui.courtroom_chatBoxText.style.fontSize = parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01) + "px";
+            });
 
         }
     }
