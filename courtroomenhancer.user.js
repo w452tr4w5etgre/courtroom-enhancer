@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.605
+// @version      0.606
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -26,7 +26,7 @@ function initSettings() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_max": getSetting("evid_roulette_max", 465000),
-        "sound_roulette_max": getSetting("sound_roulette_max", 40000),
+        "sound_roulette_max": getSetting("sound_roulette_max", 39800),
         "music_roulette_max": getSetting("music_roulette_max", 130000)
     };
 };
