@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.60
+// @version      0.601
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -774,6 +774,12 @@ function checkJoinBoxReady(changes, observer) {
                     ui.courtroom_chatBoxText.style.lineHeight = "1.3";
                 }
                 ui.courtroom_chatBoxText.style.fontSize = parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01) + "px";
+            });
+
+            //test
+            document.querySelector("#list-item-368-3").addEventListener("click", e => {
+                scriptSetting.warn_on_exit = false;
+                window.location.reload();
             });
 
         }
