@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.61
+// @version      0.611
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -126,6 +126,7 @@ function checkJoinBoxReady(changes, observer) {
                 a.addEventListener("keydown", e =>{
                     if (e.keyCode == 13 || e.key == "Enter") {
                         ui.evidence_addButton.click();
+                        e.currentTarget.blur();
                     }
                 });
             });
