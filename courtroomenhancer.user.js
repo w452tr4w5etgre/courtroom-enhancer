@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://objection.lol/courtroom/*
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.607
+// @version      0.61
 // @author       w452tr4w5etgre
 // @match        https://objection.lol/courtroom/*
 // @icon         https://objection.lol/favicon.ico
@@ -22,6 +22,7 @@ function initSettings() {
         "warn_on_exit": getSetting("warn_on_exit", true),
         "remember_username": getSetting("remember_username", true),
         "show_console": getSetting("show_console", false),
+        "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
@@ -310,44 +311,54 @@ function checkJoinBoxReady(changes, observer) {
                     return div_column;
                 }
 
-                ui.extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", function(e) {
+                ui.extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", e => {
                     let value = e.target.checked;
                     setSetting("warn_on_exit", value);
                 });
 
-                ui.extraSettings_rememberUsername = createExtraSettingElemCheckbox("remember_username", "Remember username", function(e) {
+                ui.extraSettings_rememberUsername = createExtraSettingElemCheckbox("remember_username", "Remember username", e => {
                     let value = e.target.checked;
                     setSetting("remember_username", value);
                 });
 
-                ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", function(e) {
+                ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", e => {
                     let value = e.target.checked;
                     setSetting("show_console", value);
                     ui.customButtons_rowLog.style.display = value ? "flex" : "none";
                 })
 
-                ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", function(e) {
+                ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Adjust courtroom text with mouse wheel", e => {
+                    let value = e.target.checked;
+                    setSetting("adjust_chat_text_with_wheel", value);
+                    if (value) {
+                        ui.courtroom_chatBoxes.addEventListener("wheel", chatBoxTextWheelScrollEvent);
+                    } else {
+                        ui.courtroom_chatBoxes.removeEventListener("wheel", chatBoxTextWheelScrollEvent);
+                    }
+                })
+
+                ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", e => {
                     let value = e.target.checked;
                     setSetting("evid_roulette", value);
                     ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none"
                     ui.extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none";
                 });
 
-                ui.extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", function(e) {
+                ui.extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", e => {
                     let value = e.target.checked;
                     setSetting("sound_roulette", value);
                     ui.customButtons_soundRouletteButton.style.display = value ? "inline" : "none"
                     ui.extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none";
                 });
 
-                ui.extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", function(e) {
+                ui.extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", e => {
                     let value = e.target.checked;
                     setSetting("music_roulette", value);
                     ui.customButtons_musicRouletteButton.style.display = value ? "inline" : "none"
                     ui.extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none";
                 });
 
-                ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", function(e) {
+                ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", e => {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("evid_roulette_max", value);
@@ -358,7 +369,7 @@ function checkJoinBoxReady(changes, observer) {
                     }
                 }, "number");
 
-                ui.extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", function(e) {
+                ui.extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", e => {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("sound_roulette_max", value);
@@ -369,7 +380,7 @@ function checkJoinBoxReady(changes, observer) {
                     }
                 }, "number");
 
-                ui.extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", function(e) {
+                ui.extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", e => {
                     let value = parseInt(e.target.value);
                     if (value) {
                         setSetting("music_roulette_max", value);
@@ -415,7 +426,8 @@ function checkJoinBoxReady(changes, observer) {
                 ui.extraSettings_rowButtons.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
                 ui.extraSettings_rowButtons.lastChild.append(ui.extraSettings_warnOnExit,
                                                              ui.extraSettings_rememberUsername,
-                                                             ui.extraSettings_showConsole);
+                                                             ui.extraSettings_showConsole,
+                                                             ui.extraSettings_adjustChatTextWithWheel);
                 extraSettings_rows.push(ui.extraSettings_rowButtons);
 
                 // Row 3 - Roulettes
@@ -768,20 +780,20 @@ function checkJoinBoxReady(changes, observer) {
                 e.stopImmediatePropagation();
             }, true);
 
-            ui.courtroom_chatBoxes.addEventListener("wheel", e => {
-                if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBotText === "undefined") {
+            // Add scroll wheel to increase/decrease chatbox text size
+
+            // Define the function so we can add / remove the event whenever the setting changes
+            function chatBoxTextWheelScrollEvent(e) {
+                if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBoxText === "undefined") {
                     ui.courtroom_chatBoxText = ui.courtroom_container.querySelector("div.chat-box-text");
                     ui.courtroom_chatBoxText.style.lineHeight = "1.3";
                 }
                 ui.courtroom_chatBoxText.style.fontSize = parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01) + "px";
-            });
+            }
 
-            //test
-            ui.rightFrame_toolbarTabs.addEventListener("click", e => {
-                if (ui.rightFrame_toolbarTabs.childElementCount == 6) {
-                    ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:last-of-type div.v-expansion-panel.v-expansion-panel > div > div > div > div:nth-child(4) > div > div.v-input > div.v-input__control > div.v-input__slot").addEventListener("click", e=> {document.querySelector("#list-item-368-3").addEventListener("click", e => {if (Math.random()>0.01) {e.currentTarget.parentNode.firstChild.dispatchEvent(new Event("click"));e.stopImmediatePropagation();}}, true);}, {once:true});
-                }
-            });
+            if (scriptSetting.adjust_chat_text_with_wheel) {
+                ui.courtroom_chatBoxes.addEventListener("wheel", chatBoxTextWheelScrollEvent);
+            }
         }
     }
 }
