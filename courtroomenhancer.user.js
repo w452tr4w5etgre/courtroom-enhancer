@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Objection.lol Courtroom Enhancer
-// @namespace    https://objection.lol/courtroom/*
+// @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.611
+// @version      0.62
 // @author       w452tr4w5etgre
-// @match        https://objection.lol/courtroom/*
-// @icon         https://objection.lol/favicon.ico
+// @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
+// @match        *://*.objection.lol/courtroom/*
+// @icon         https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/logo.png
 // @downloadURL  https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/courtroomenhancer.user.js
 // @updateURL    https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/courtroomenhancer.user.js
 // @grant        GM_getValue
@@ -41,6 +42,9 @@ const ui = {"app": document.querySelector("div#app")};
 (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
 
 function checkJoinBoxReady(changes, observer) {
+    if (typeof ui.app === "undefined" || !ui.app) {
+        ui.app = document.querySelector("div#app");
+    }
     // Wait for the Join pop-up to show up
     if (ui.joinBox_container = ui.app.querySelector("div.v-dialog__content.v-dialog__content--active > div > div")) {
         observer.disconnect();
