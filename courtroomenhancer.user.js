@@ -2,10 +2,10 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.62
+// @version      0.621
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
-// @match        *://*.objection.lol/courtroom/*
+// @match        https://objection.lol/courtroom/*
 // @icon         https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/logo.png
 // @downloadURL  https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/courtroomenhancer.user.js
 // @updateURL    https://github.com/w452tr4w5etgre/courtroom-enhancer/raw/main/courtroomenhancer.user.js
