@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.63
+// @version      0.631
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -601,7 +601,7 @@ function checkJoinBoxReady(changes, observer) {
                 // Music buttons
                 if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
                     ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", e => {
-                        if (typeof W !== "undefined") {
+                        if (typeof unsafeWindow !== "undefined") {
                             unsafeWindow.Howler.stop();
                         }
                     });
