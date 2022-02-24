@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.621
+// @version      0.63
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -81,14 +81,19 @@ function checkJoinBoxReady(changes, observer) {
         ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
         ui.settings_separator = ui.settings_container.querySelector("div > hr:last-of-type");
 
-        // When the "Join" button is clicked
+        // When the "Join" button is clicked, wait 100ms to check we didn't get an error
         ui.joinBox_joinButton.addEventListener("click", e => {
-            if (scriptSetting.remember_username) {
-                setStoredUsername(ui.joinBox_usernameInput.value);
-            }
-            ui.joinBox_joinButton.disabled = "true";
-            ui.joinBox_usernameInput.disabled = "true";
-            onCourtroomJoin();
+            ui.joinBox_joinButton.disabled = true;
+            setTimeout(f=>{
+                ui.joinBox_joinButton.disabled = false;
+                if (document.body.contains(ui.joinBox_container.parentNode)) {
+                    return;
+                }
+                if (scriptSetting.remember_username) {
+                    setStoredUsername(ui.joinBox_usernameInput.value);
+                }
+                onCourtroomJoin();
+            }, 100);
         });
 
         // When "Enter" is pressed in the username input box
@@ -408,12 +413,7 @@ function checkJoinBoxReady(changes, observer) {
                     if (!confirm("Reset Courtroom Enhancer settings and refresh the page?")) {
                         return;
                     }
-                    let storedSettings = GM_listValues();
-                    for (let val in storedSettings) {
-                        GM_deleteValue(storedSettings[val]);
-                        scriptSetting.warn_on_exit = false;
-                        window.location.reload();
-                    }
+                    storeClear();
                 });
 
                 ui.extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
@@ -601,7 +601,7 @@ function checkJoinBoxReady(changes, observer) {
                 // Music buttons
                 if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
                     ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", e => {
-                        if (typeof unsafeWindow !== "undefined") {
+                        if (typeof W !== "undefined") {
                             unsafeWindow.Howler.stop();
                         }
                     });
@@ -806,12 +806,13 @@ function checkJoinBoxReady(changes, observer) {
 function confirmClose (zEvent) {
     if (scriptSetting.warn_on_exit) {
         zEvent.preventDefault();
-        zEvent.returnValue = "Are you sure?";
+        zEvent.returnValue = "Are you sure you want to leave?";
     }
+    return "Are you sure you want to leave?";
 }
 
 function getSetting(setting_name, default_value) {
-    let value = GM_getValue("setting_" + setting_name, default_value);
+    let value = storeGet("setting_" + setting_name, default_value);
     switch (typeof default_value) {
         case "number":
             value = parseInt(value) || default_value;
@@ -825,17 +826,69 @@ function getSetting(setting_name, default_value) {
 
 function setSetting(setting_name, value) {
     scriptSetting[setting_name] = value;
-    return GM_setValue("setting_" + setting_name, value);
+    return storeSet("setting_" + setting_name, value);
 }
 
 function getStoredUsername() {
-    return String(GM_getValue("courtroom_username",""));
+    return storeGet("courtroom_username");
 }
 
 function setStoredUsername(username) {
     storedUsername = username;
-    return GM_setValue("courtroom_username", String(username));
+    return storeSet("courtroom_username", String(username));
 }
+
+function storeGet(key, def="") {
+    var res;
+    if (typeof GM_getValue === "undefined") {
+        res = localStorage.getItem(key);
+    } else {
+        res = GM_getValue(key);
+    }
+    try {
+        if (typeof res === "undefined" || res === null) {
+            return def;
+        } else {
+            return JSON.parse(res);
+        }
+    } catch(e) {
+        if (typeof res === "undefined" || res === null) {
+            return def;
+        } else {
+            return res;
+        }
+    }
+};
+
+function storeSet(key, value) {
+    //value = JSON.stringify(value);
+    if (typeof GM_setValue === "undefined") {
+        return localStorage.setItem(key, value);
+    } else {
+        return GM_setValue(key, value);
+    }
+};
+
+function storeDel(key) {
+    if (typeof GM_deleteValue === "undefined") {
+        return localStorage.removeItem(key);
+    } else {
+        return GM_deleteValue(key);
+    }
+};
+
+function storeClear() {
+    if (typeof GM_listValues === "undefined") {
+        localStorage.clear();
+    } else {
+        let storedSettings = GM_listValues();
+        for (let val in storedSettings) {
+            GM_deleteValue(storedSettings[val]);
+        }
+    }
+    scriptSetting.warn_on_exit = false;
+    window.location.reload();
+};
 
 // Helper function to set multiple element attributes at once
 Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
