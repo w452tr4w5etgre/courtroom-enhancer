@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.631
+// @version      0.632
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -81,10 +81,11 @@ function checkJoinBoxReady(changes, observer) {
         ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
         ui.settings_separator = ui.settings_container.querySelector("div > hr:last-of-type");
 
-        // When the "Join" button is clicked, wait 100ms to check we didn't get an error
+        // When the "Join" button is clicked, check every 100ms that the join box is gone
+        let checkInterval;
         ui.joinBox_joinButton.addEventListener("click", e => {
             ui.joinBox_joinButton.disabled = true;
-            setTimeout(f=>{
+            checkInterval = setInterval(f=>{
                 ui.joinBox_joinButton.disabled = false;
                 if (document.body.contains(ui.joinBox_container.parentNode)) {
                     return;
@@ -92,6 +93,7 @@ function checkJoinBoxReady(changes, observer) {
                 if (scriptSetting.remember_username) {
                     setStoredUsername(ui.joinBox_usernameInput.value);
                 }
+                clearInterval(checkInterval);
                 onCourtroomJoin();
             }, 100);
         });
