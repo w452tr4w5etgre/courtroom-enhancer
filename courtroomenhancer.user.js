@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.641
+// @version      0.642
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -561,7 +561,7 @@ function onCourtroomJoin() {
 
         ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled) {
+            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
                 return;
             }
 
@@ -571,9 +571,8 @@ function onCourtroomJoin() {
             ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            if (ui.mainFrame_sendButton.click()) {
-                Logger.log("[#evd" + random + "]", "image");
-            }
+            ui.mainFrame_sendButton.click()
+            Logger.log("[#evd" + random + "]", "image");
         });
         ui.customButtons_evidRouletteButton.setAttributes({
             title: "Show a random piece of evidence",
@@ -584,7 +583,7 @@ function onCourtroomJoin() {
 
         ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled) {
+            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
                 return;
             }
 
@@ -594,9 +593,8 @@ function onCourtroomJoin() {
             ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            if (ui.mainFrame_sendButton.click()) {
+            ui.mainFrame_sendButton.click();
                 Logger.log("[#bgs" + random + "]", "volume-medium");
-            }
         });
         ui.customButtons_soundRouletteButton.setAttributes({
             title: "Play a random sound effect",
@@ -607,7 +605,7 @@ function onCourtroomJoin() {
 
         ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled) {
+            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
                 return;
             }
 
@@ -617,9 +615,8 @@ function onCourtroomJoin() {
             ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            if (ui.mainFrame_sendButton.click()) {
+           ui.mainFrame_sendButton.click();
                 Logger.log("[#bgm" + random + "]", "music-note");
-            }
         });
         ui.customButtons_musicRouletteButton.setAttributes({
             title: "Play a random Music",
@@ -634,7 +631,7 @@ function onCourtroomJoin() {
 
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
-            ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Stop sounds and music", "volume-variant-off", e => {
+            ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Shut up SFX and BGM", "volume-variant-off", e => {
                 unsafeWindow.Howler.stop();
             });
 
@@ -645,7 +642,7 @@ function onCourtroomJoin() {
                 }
             });
 
-            ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "Get URL to BGM", "link-variant", e => {
+            ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "BGM URL", "link-variant", e => {
                 for (let howl of unsafeWindow.Howler._howls) {
                     if (howl._state == "loaded" && howl._loop) {
                         if (!scriptSetting.show_console) {
