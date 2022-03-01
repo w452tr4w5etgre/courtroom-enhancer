@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.64
+// @version      0.641
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -119,7 +119,6 @@ function onCourtroomJoin() {
     ui.mainFrame_textarea = ui.mainFrame_container.querySelector("div textarea.frameTextarea");
     ui.mainFrame_sendButton = ui.mainFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
     ui.mainFrame_currentChar = ui.mainFrame_container.querySelector("div > div:nth-child(2) > div.col-sm-3.col-2 > div");
-
 
     ui.courtroom_container = ui.mainFrame_container.querySelector("div.court-container > div.courtroom");
     ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
@@ -817,7 +816,6 @@ function onCourtroomJoin() {
     }, true);
 
     // Add scroll wheel to increase/decrease chatbox text size
-
     // Define the function so we can add / remove the event whenever the setting changes
     function chatBoxTextWheelScrollEvent(e) {
         if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBoxText === "undefined") {
@@ -826,10 +824,15 @@ function onCourtroomJoin() {
         }
         ui.courtroom_chatBoxText.style.fontSize = parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01) + "px";
     }
-
     if (scriptSetting.adjust_chat_text_with_wheel) {
         ui.courtroom_chatBoxes.addEventListener("wheel", chatBoxTextWheelScrollEvent);
     }
+
+    // Make the "fade" courtroom elements click-through to right-click images underneath directly
+    ui.courtroom_container.querySelectorAll("div.fade_everything, div.fade_scene, div.fade_background").forEach(f => {
+        f.style.pointerEvents = "none";
+    });
+    ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 }
 
 function confirmClose (zEvent) {
