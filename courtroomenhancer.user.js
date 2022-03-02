@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.651
+// @version      0.652
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -853,8 +853,8 @@ function onCourtroomJoin() {
             top: "0px",
             right: "20px",
             padding: "4px",
-            maxWidth: "320px",
-            maxHeight: "200px",
+            maxWidth: "360px",
+            maxHeight: "320px",
             overflow: "auto",
             background: "rgba(24, 24, 24, 0.9)",
             border: "1px solid rgb(62, 67, 70)",
@@ -926,7 +926,7 @@ function onCourtroomJoin() {
                 img.setAttributes({
                     src: f,
                     alt: f,
-                    style: {maxHeight: "250px", maxWidth: "200px"}
+                    style: {maxHeight: "250px", maxWidth: "200px", marginTop: "2px"}
                 });
 
                 // Move the custom tooltip to fit the loaded image
