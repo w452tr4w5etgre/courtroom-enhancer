@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.652
+// @version      0.653
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -853,27 +853,40 @@ function onCourtroomJoin() {
             top: "0px",
             right: "20px",
             padding: "4px",
-            maxWidth: "360px",
-            maxHeight: "320px",
+            maxWidth: "300px",
+            maxHeight: "340px",
             overflow: "auto",
             background: "rgba(24, 24, 24, 0.9)",
             border: "1px solid rgb(62, 67, 70)",
             borderRadius: "3px",
             opacity: "0",
             wordBreak: "break-all",
-            fontSize: "12px",
-            lineHeight: "13px",
+            textAlign: "center",
+            fontSize: "13px",
+            lineHeight: "14px",
             color: "rgb(211, 207, 201)",
-            transition: "all 0.2s ease-in-out 0s"
+            transition: "opacity 0.15s ease-in-out 0.25s, top 0.05s linear 0s"
         }
     });
 
     ui.chatLog_chat.append(ui.chatLog_customTooltip);
 
-    let chatLog_lastItem, chatLog_timer;
+    ui.chatLog_customTooltip.reposition = function(node) {
+        let top = 0;
+        top = node.parentNode.offsetTop;
+        if (top + this.offsetHeight > Math.min(ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight, Math.max(ui.chatLog_chat.offsetHeight, ui.chatLog_chat.scrollHeight))) {
+            top = Math.min(ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight, Math.max(ui.chatLog_chat.offsetHeight, ui.chatLog_chat.scrollHeight)) - this.offsetHeight;
+        }
+        if (top < 0) {
+            top = Math.max(0, ui.chatLog_chatList.firstChild.offsetTop);
+        }
+        this.style.top = top + "px"
+    }
+
+    let chatLog_lastItem;
 
     ui.chatLog_customTooltip.addEventListener("mouseover", e => {
-        clearTimeout(chatLog_timer);
+
     });
 
     if (scriptSetting.chat_hover_tooltip) {
@@ -887,7 +900,6 @@ function onCourtroomJoin() {
             return;
         }
         chatLog_lastItem = chatItem;
-        clearTimeout(chatLog_timer);
 
         // Make sure the chat element is not a system message
         let chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
@@ -900,7 +912,7 @@ function onCourtroomJoin() {
         chatName = chatItem.querySelector("div.v-list-item__title").textContent;
         chatText = chatItem.querySelector("div.v-list-item__subtitle.chat-text").textContent;
 
-        ui.chatLog_customTooltip.innerHTML = "";
+        ui.chatLog_customTooltip.innerHTML = chatName + ": ";
 
         var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         let urlMatches = chatText.match(urlRegex);
@@ -912,13 +924,19 @@ function onCourtroomJoin() {
                     textContent: f,
                     target: "_blank",
                     rel: "noreferrer",
-                    style: {display: "inline-block"}
+                    style: {display: "inline-block", fontSize: "14px"}
                 });
+                let i = document.createElement("i");
+                i.setAttributes({
+                    classList: "mdi mdi-open-in-new",
+                    style: {marginLeft: "2px", fontSize: "12px"}
+                });
+                a.append(i);
                 ui.chatLog_customTooltip.append(a);
             });
         }
 
-        let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif)\S*)/ig;
+        let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif|webp)\S*)/ig;
         let imgMatches = chatText.match(imgRegex);
         if (imgMatches) {
             imgMatches.forEach(f => {
@@ -926,35 +944,18 @@ function onCourtroomJoin() {
                 img.setAttributes({
                     src: f,
                     alt: f,
-                    style: {maxHeight: "250px", maxWidth: "200px", marginTop: "2px"}
+                    style: {maxWidth: "280px", maxHeight: "300px", marginTop: "2px"}
                 });
 
                 // Move the custom tooltip to fit the loaded image
                 img.addEventListener("load", e => {
-                    let top = 0;
-                    top = chatItem.parentNode.offsetTop;
-                    if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
-                        top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
-                    }
-                    if (top < 0) {
-                        top = 0;
-                    }
-                    ui.chatLog_customTooltip.style.top = top + "px"
+                    ui.chatLog_customTooltip.reposition(chatItem);
                 });
 
                 img.addEventListener("error", e => {
                     img.style.display = "none";
-                    let top = 0;
-                    top = chatItem.parentNode.offsetTop;
-                    if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
-                        top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
-                    }
-                    if (top < 0) {
-                        top = 0;
-                    }
-                    ui.chatLog_customTooltip.style.top = top + "px"
+                    ui.chatLog_customTooltip.reposition(chatItem);
                 });
-
 
                 let a = document.createElement("a");
                 a.setAttributes({
@@ -968,46 +969,39 @@ function onCourtroomJoin() {
             });
         }
 
+
         if (!urlMatches && !imgMatches) {
-            ui.chatLog_customTooltip.innerHTML = chatName + ": " + chatText;
-        }
+            ui.chatLog_customTooltip.setAttributes({
+                style: {
+                    visibility: "hidden",
+                    opacity: "0"
+                }
+            });
+        } else {
+            ui.chatLog_customTooltip.reposition(chatItem);
+            ui.chatLog_customTooltip.setAttributes({
+                style: {
+                    visibility: "visible",
+                    opacity: "1"
+                }
+            });
 
-        let top = 0;
-        top = chatItem.parentNode.offsetTop;
-        if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
-            top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
+            ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+            chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
         }
-        if (top < 0) {
-            top = 0;
-        }
-
-        ui.chatLog_customTooltip.setAttributes({
-            style: {
-                visibility: "visible",
-                opacity: "1",
-                top: top + "px"
-            }
-        });
-
-        ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
-        chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
     }
 
     function onChatItemMouseLeave(e) {
-        if (e.toElement == ui.chatLog_customTooltip) {
+        if (ui.chatLog_customTooltip.contains(e.toElement)) {
             return;
         }
         chatLog_lastItem = null;
 
-        chatLog_timer = setTimeout(f=>{
-            ui.chatLog_customTooltip.style.opacity = "0";
-            ui.chatLog_customTooltip.style.visibility = "hidden";
-        }, 500)
+        ui.chatLog_customTooltip.style.visibility = "hidden";
+        ui.chatLog_customTooltip.style.opacity = "0";
 
         e.target.removeEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
     }
-
-
 
 }
 
@@ -1097,13 +1091,6 @@ function storeClear() {
     scriptSetting.warn_on_exit = false;
     window.location.reload();
 };
-
-function linkify(text) {
-    var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-    return text.replace(urlRegex, function(url) {
-        return '<a href="' + url + '" target="_blank" rel="noreferrer">' + url + '</a>';
-    });
-}
 
 // Helper function to set multiple element attributes at once
 Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
