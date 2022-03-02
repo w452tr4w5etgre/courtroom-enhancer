@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.653
+// @version      0.654
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -944,6 +944,7 @@ function onCourtroomJoin() {
                 img.setAttributes({
                     src: f,
                     alt: f,
+                    referrerPolicy: "no-referrer",
                     style: {maxWidth: "280px", maxHeight: "300px", marginTop: "2px"}
                 });
 
