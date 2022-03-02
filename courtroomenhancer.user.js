@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.654
+// @version      0.655
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -372,7 +372,7 @@ function onCourtroomJoin() {
             ui.customButtons_rowLog.style.display = value ? "flex" : "none";
         });
 
-        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Mouse wheel adjusts text", e => {
+        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Courtroom: scroll to change text size", e => {
             let value = e.target.checked;
             setSetting("adjust_chat_text_with_wheel", value);
             if (value) {
@@ -382,7 +382,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Custom tooltip in chatlog", e => {
+        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Chatlog: Show urls on hover", e => {
             let value = e.target.checked;
             setSetting("chat_hover_tooltip", value);
             if (value) {
