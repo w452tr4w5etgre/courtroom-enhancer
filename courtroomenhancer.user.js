@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.642
+// @version      0.65
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -24,12 +24,13 @@ function initSettings() {
         "remember_username": getSetting("remember_username", true),
         "show_console": getSetting("show_console", false),
         "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
+        "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
-        "evid_roulette_max": getSetting("evid_roulette_max", 470000),
-        "sound_roulette_max": getSetting("sound_roulette_max", 39800),
-        "music_roulette_max": getSetting("music_roulette_max", 130000)
+        "evid_roulette_max": getSetting("evid_roulette_max", 476000),
+        "sound_roulette_max": getSetting("sound_roulette_max", 40000),
+        "music_roulette_max": getSetting("music_roulette_max", 131000)
     };
 };
 
@@ -369,7 +370,7 @@ function onCourtroomJoin() {
             let value = e.target.checked;
             setSetting("show_console", value);
             ui.customButtons_rowLog.style.display = value ? "flex" : "none";
-        })
+        });
 
         ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Adjust courtroom text with mouse wheel", e => {
             let value = e.target.checked;
@@ -379,7 +380,17 @@ function onCourtroomJoin() {
             } else {
                 ui.courtroom_chatBoxes.removeEventListener("wheel", chatBoxTextWheelScrollEvent);
             }
-        })
+        });
+
+        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Enhance chat with custom tooltips", e => {
+            let value = e.target.checked;
+            setSetting("chat_hover_tooltip", value);
+            if (value) {
+                ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
+            } else {
+                ui.chatLog_chat.removeEventListener("mouseover", onChatListMouseOver, false);
+            }
+        });
 
         ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", e => {
             let value = e.target.checked;
@@ -466,7 +477,8 @@ function onCourtroomJoin() {
         ui.extraSettings_rowButtons.lastChild.append(ui.extraSettings_warnOnExit,
                                                      ui.extraSettings_rememberUsername,
                                                      ui.extraSettings_showConsole,
-                                                     ui.extraSettings_adjustChatTextWithWheel);
+                                                     ui.extraSettings_adjustChatTextWithWheel,
+                                                     ui.extraSettings_chatHoverTooltip);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
@@ -594,7 +606,7 @@ function onCourtroomJoin() {
 
             // Click Send button
             ui.mainFrame_sendButton.click();
-                Logger.log("[#bgs" + random + "]", "volume-medium");
+            Logger.log("[#bgs" + random + "]", "volume-medium");
         });
         ui.customButtons_soundRouletteButton.setAttributes({
             title: "Play a random sound effect",
@@ -615,8 +627,8 @@ function onCourtroomJoin() {
             ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-           ui.mainFrame_sendButton.click();
-                Logger.log("[#bgm" + random + "]", "music-note");
+            ui.mainFrame_sendButton.click();
+            Logger.log("[#bgm" + random + "]", "music-note");
         });
         ui.customButtons_musicRouletteButton.setAttributes({
             title: "Play a random Music",
@@ -830,6 +842,173 @@ function onCourtroomJoin() {
         f.style.pointerEvents = "none";
     });
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
+
+    // Chat hover tooltips
+    ui.chatLog_customTooltip = document.createElement("div");
+    ui.chatLog_customTooltip.setAttributes({
+        id: "customTooltip",
+        style: {
+            visibility: "hidden",
+            position: "absolute",
+            top: "0px",
+            right: "20px",
+            padding: "4px",
+            maxWidth: "320px",
+            maxHeight: "200px",
+            overflow: "auto",
+            background: "rgba(24, 24, 24, 0.9)",
+            border: "1px solid rgb(62, 67, 70)",
+            borderRadius: "3px",
+            opacity: "0",
+            wordBreak: "break-all",
+            fontSize: "12px",
+            lineHeight: "13px",
+            color: "rgb(211, 207, 201)",
+            transition: "all 0.2s ease-in-out 0s"
+        }
+    });
+
+    ui.chatLog_chat.append(ui.chatLog_customTooltip);
+
+    let chatLog_lastItem, chatLog_timer;
+
+    ui.chatLog_customTooltip.addEventListener("mouseover", e => {
+        clearTimeout(chatLog_timer);
+    });
+
+    if (scriptSetting.chat_hover_tooltip) {
+        ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
+    }
+
+    function onChatListMouseOver(e) {
+        // Find the item element
+        let chatItem = e.target.closest("div.v-list-item__content"), chatName, chatText;
+        if (chatItem === null || chatLog_lastItem == chatItem) {
+            return;
+        }
+        chatLog_lastItem = chatItem;
+        clearTimeout(chatLog_timer);
+
+        // Make sure the chat element is not a system message
+        let chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
+        if (!chatItemIcon.classList.contains("mdi-account-tie") &&
+            !chatItemIcon.classList.contains("mdi-crown") &&
+            !chatItemIcon.classList.contains("mdi-account")) {
+            return;
+        }
+
+        chatName = chatItem.querySelector("div.v-list-item__title").textContent;
+        chatText = chatItem.querySelector("div.v-list-item__subtitle.chat-text").textContent;
+
+        ui.chatLog_customTooltip.innerHTML = "";
+
+        var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+        let urlMatches = chatText.match(urlRegex);
+        if (urlMatches) {
+            urlMatches.forEach(f => {
+                let a = document.createElement("a");
+                a.setAttributes({
+                    href: f,
+                    textContent: f,
+                    target: "_blank",
+                    rel: "noreferrer",
+                    style: {display: "inline-block"}
+                });
+                ui.chatLog_customTooltip.append(a);
+            });
+        }
+
+        let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif)\S*)/ig;
+        let imgMatches = chatText.match(imgRegex);
+        if (imgMatches) {
+            imgMatches.forEach(f => {
+                let img = document.createElement("img");
+                img.setAttributes({
+                    src: f,
+                    alt: f,
+                    style: {maxHeight: "250px", maxWidth: "200px"}
+                });
+
+                // Move the custom tooltip to fit the loaded image
+                img.addEventListener("load", e => {
+                    let top = 0;
+                    top = chatItem.parentNode.offsetTop;
+                    if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
+                        top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
+                    }
+                    if (top < 0) {
+                        top = 0;
+                    }
+                    ui.chatLog_customTooltip.style.top = top + "px"
+                });
+
+                img.addEventListener("error", e => {
+                    img.style.display = "none";
+                    let top = 0;
+                    top = chatItem.parentNode.offsetTop;
+                    if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
+                        top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
+                    }
+                    if (top < 0) {
+                        top = 0;
+                    }
+                    ui.chatLog_customTooltip.style.top = top + "px"
+                });
+
+
+                let a = document.createElement("a");
+                a.setAttributes({
+                    href: f,
+                    target: "_blank",
+                    rel: "noreferrer",
+                    style: {display: "inline-block"}
+                });
+                a.append(img);
+                ui.chatLog_customTooltip.append(a);
+            });
+        }
+
+        if (!urlMatches && !imgMatches) {
+            ui.chatLog_customTooltip.innerHTML = chatName + ": " + chatText;
+        }
+
+        let top = 0;
+        top = chatItem.parentNode.offsetTop;
+        if (top + ui.chatLog_customTooltip.offsetHeight > ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight) {
+            top = ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight - ui.chatLog_customTooltip.offsetHeight;
+        }
+        if (top < 0) {
+            top = 0;
+        }
+
+        ui.chatLog_customTooltip.setAttributes({
+            style: {
+                visibility: "visible",
+                opacity: "1",
+                top: top + "px"
+            }
+        });
+
+        ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+        chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+    }
+
+    function onChatItemMouseLeave(e) {
+        if (e.toElement == ui.chatLog_customTooltip) {
+            return;
+        }
+        chatLog_lastItem = null;
+
+        chatLog_timer = setTimeout(f=>{
+            ui.chatLog_customTooltip.style.opacity = "0";
+            ui.chatLog_customTooltip.style.visibility = "hidden";
+        }, 500)
+
+        e.target.removeEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+    }
+
+
+
 }
 
 function confirmClose (zEvent) {
@@ -918,6 +1097,13 @@ function storeClear() {
     scriptSetting.warn_on_exit = false;
     window.location.reload();
 };
+
+function linkify(text) {
+    var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.replace(urlRegex, function(url) {
+        return '<a href="' + url + '" target="_blank" rel="noreferrer">' + url + '</a>';
+    });
+}
 
 // Helper function to set multiple element attributes at once
 Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
