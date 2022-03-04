@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.670
+// @version      0.671
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -282,7 +282,7 @@ function onCourtroomJoin() {
 
             divActions.setAttributes({
                 style: {
-                    backgroundColor: "rgb(57, 57, 57)",
+                    backgroundColor: "rgb(40, 40, 40)",
                     boxShadow: "black 0px 3px 10px 0px",
                     opacity: "0",
                     visibility: "hidden",
