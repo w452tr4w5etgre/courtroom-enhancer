@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.667
+// @version      0.668
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -943,170 +943,6 @@ function onCourtroomJoin() {
     var onChatListMouseOver, onChatItemMouseLeave;
     var chatLogHoverTooltips = function() {
         let chatLog_lastItem;
-        onChatListMouseOver = function(e) {
-            // Find the item element
-            let chatItem = e.target.closest("div.v-list-item__content"), chatName, chatText;
-            if (chatItem === null || chatLog_lastItem == chatItem) {
-                return;
-            }
-            chatLog_lastItem = chatItem;
-
-            // Make sure the chat element is not a system message
-            let chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
-            if (!chatItemIcon.classList.contains("mdi-account-tie") &&
-                !chatItemIcon.classList.contains("mdi-crown") &&
-                !chatItemIcon.classList.contains("mdi-account")) {
-                return;
-            }
-
-            chatName = chatItem.querySelector("div.v-list-item__title").textContent;
-            chatText = chatItem.querySelector("div.v-list-item__subtitle.chat-text").textContent;
-
-            ui.chatLog_customTooltip.innerHTML = chatName + ": ";
-
-            let matchedElements = [];
-
-            let urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-            let urlMatches = chatText.match(urlRegex);
-            if (urlMatches) {
-                urlMatches.forEach(f => {
-                    let a = document.createElement("a");
-                    a.setAttributes({
-                        href: f,
-                        textContent: f,
-                        target: "_blank",
-                        rel: "noreferrer",
-                        style: {display: "inline-block", fontSize: "14px"}
-                    });
-                    let i = document.createElement("i");
-                    i.setAttributes({
-                        classList: "mdi mdi-open-in-new",
-                        style: {marginLeft: "2px", fontSize: "12px"}
-                    });
-                    a.append(i);
-                    matchedElements.push(a);
-                });
-            }
-
-            let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif|webp)\S*)/ig;
-            let imgMatches = chatText.match(imgRegex);
-            if (imgMatches) {
-                imgMatches.forEach(f => {
-                    let img = document.createElement("img");
-                    img.setAttributes({
-                        src: f,
-                        alt: f,
-                        referrerPolicy: "no-referrer",
-                        style: {maxWidth: "280px", maxHeight: "300px", marginTop: "2px"}
-                    });
-
-                    // Move the custom tooltip to fit the loaded image
-                    img.addEventListener("load", e => {
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    img.addEventListener("error", e => {
-                        img.style.display = "none";
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    let a = document.createElement("a");
-                    a.setAttributes({
-                        href: f,
-                        target: "_blank",
-                        rel: "noreferrer",
-                        style: {display: "inline-block"}
-                    });
-                    a.append(img);
-                    matchedElements.push(a);
-                });
-            }
-
-            let videoRegex = /(https?:\/\/\S+(?:webm|mp4)\S*)/ig;
-            let videoMatches = chatText.match(videoRegex);
-            if (videoMatches) {
-                videoMatches.forEach(f => {
-                    let video = document.createElement("video");
-                    video.setAttributes({
-                        src: f,
-                        loop: "true",
-                        controls: "true",
-                        style: {maxWidth: "280px", maxHeight: "300px", marginTop: "2px"}
-                    });
-
-                    // Move the custom tooltip to fit the loaded video
-                    video.addEventListener("loadeddata", e => {
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    video.addEventListener("error", e => {
-                        video.style.display = "none";
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    matchedElements.push(video);
-                });
-            }
-
-            let audioRegex = /(https?:\/\/\S+(?:mp3|ogg|m4a)\S*)/ig;
-            let audioMatches = chatText.match(audioRegex);
-            if (audioMatches) {
-                audioMatches.forEach(f => {
-                    let audio = document.createElement("audio");
-                    audio.setAttributes({
-                        src: f,
-                        controls: "true",
-                        style: {maxWidth: "280px", maxHeight: "300px", height: "30px", marginTop: "2px"}
-                    });
-
-                    // Move the custom tooltip to fit the loaded video
-                    audio.addEventListener("loadedmetadata", e => {
-                        audio.style.width = "100%";
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    audio.addEventListener("error", e => {
-                        audio.style.display = "none";
-                        ui.chatLog_customTooltip.reposition(chatItem);
-                    });
-
-                    matchedElements.push(audio);
-                });
-            }
-
-            if (matchedElements.length == 0) {
-                ui.chatLog_customTooltip.setAttributes({
-                    style: {
-                        visibility: "hidden",
-                        opacity: "0"
-                    }
-                });
-            } else {
-                matchedElements.forEach(f => {ui.chatLog_customTooltip.append(f)});
-                ui.chatLog_customTooltip.reposition(chatItem);
-                ui.chatLog_customTooltip.setAttributes({
-                    style: {
-                        visibility: "visible",
-                        opacity: "1"
-                    }
-                });
-
-                ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
-                chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
-            }
-        }
-        onChatItemMouseLeave = function(e) {
-            if (ui.chatLog_customTooltip.contains(e.toElement)) {
-                return;
-            }
-            chatLog_lastItem = null;
-
-            ui.chatLog_customTooltip.style.visibility = "hidden";
-            ui.chatLog_customTooltip.style.opacity = "0";
-            ui.chatLog_customTooltip.querySelectorAll("audio, video").forEach(f => {f.pause();});
-
-            e.target.removeEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
-        }
         ui.chatLog_customTooltip = document.createElement("div");
         ui.chatLog_customTooltip.setAttributes({
             id: "customTooltip",
@@ -1114,18 +950,21 @@ function onCourtroomJoin() {
                 visibility: "hidden",
                 opacity: "0",
                 position: "absolute",
+                display: "flex",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                gap: "5px",
                 top: "0px",
                 right: "20px",
                 padding: "4px",
-                maxWidth: "300px",
+                maxWidth: "360px",
                 maxHeight: "360px",
                 overflow: "auto",
-                background: "rgba(24, 24, 24, 0.9)",
+                background: "rgba(24, 24, 24, 0.95)",
                 boxShadow: "2px 2px 6px #121212",
                 border: "1px solid rgb(62, 67, 70)",
                 borderRadius: "3px",
                 wordBreak: "break-all",
-                textAlign: "center",
                 fontSize: "13px",
                 lineHeight: "14px",
                 color: "rgb(211, 207, 201)",
@@ -1145,6 +984,203 @@ function onCourtroomJoin() {
                 top = Math.max(0, ui.chatLog_chatList.firstChild.offsetTop);
             }
             this.style.top = top + "px"
+        }
+
+        onChatListMouseOver = function(e) {
+            // Find the item element
+            let chatItem = e.target.closest("div.v-list-item__content"), chatName, chatText;
+            if (chatItem === null || chatLog_lastItem == chatItem) {
+                return;
+            }
+            chatLog_lastItem = chatItem;
+
+            let chatItemPopulate = function() {
+                // Make sure the chat element is not a system message
+                let chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
+                if (!chatItemIcon.classList.contains("mdi-account-tie") &&
+                    !chatItemIcon.classList.contains("mdi-crown") &&
+                    !chatItemIcon.classList.contains("mdi-account")) {
+                    return;
+                }
+
+                chatName = chatItem.querySelector("div.v-list-item__title").textContent;
+                chatText = chatItem.querySelector("div.v-list-item__subtitle.chat-text").textContent;
+
+                ui.chatLog_customTooltip.innerHTML = chatName + ":&nbsp;";
+
+                let matchedElements = [];
+
+                let urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+                let urlMatches = chatText.match(urlRegex);
+                if (urlMatches) {
+                    urlMatches.forEach(f => {
+                        let a = document.createElement("a");
+                        a.setAttributes({
+                            href: f,
+                            textContent: f,
+                            target: "_blank",
+                            rel: "noreferrer",
+                            style: {display: "inline-block", fontSize: "14px"}
+                        });
+                        let i = document.createElement("i");
+                        i.setAttributes({
+                            classList: "mdi mdi-open-in-new",
+                            style: {marginLeft: "2px", fontSize: "12px"}
+                        });
+                        a.append(i);
+                        matchedElements.push(a);
+                    });
+                }
+
+                let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif|webp)\S*)/ig;
+                let imgMatches = chatText.match(imgRegex);
+                if (imgMatches) {
+                    imgMatches.forEach(f => {
+                        let img = document.createElement("img");
+                        img.setAttributes({
+                            src: f,
+                            alt: f,
+                            referrerPolicy: "no-referrer",
+                            style: {maxWidth: "280px", maxHeight: "300px"}
+                        });
+
+                        // Move the custom tooltip to fit the loaded image
+                        img.addEventListener("load", e => {
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        img.addEventListener("error", e => {
+                            img.style.display = "none";
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        let a = document.createElement("a");
+                        a.setAttributes({
+                            href: f,
+                            target: "_blank",
+                            rel: "noreferrer",
+                            style: {display: "inline-block"}
+                        });
+                        a.append(img);
+                        matchedElements.push(a);
+                    });
+                }
+
+                let videoRegex = /(https?:\/\/\S+(?:webm|mp4)\S*)/ig;
+                let videoMatches = chatText.match(videoRegex);
+                if (videoMatches) {
+                    videoMatches.forEach(f => {
+                        let video = document.createElement("video");
+                        video.setAttributes({
+                            src: f,
+                            loop: "true",
+                            controls: "true",
+                            style: {maxWidth: "280px", maxHeight: "300px"}
+                        });
+
+                        // Move the custom tooltip to fit the loaded video
+                        video.addEventListener("loadeddata", e => {
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        video.addEventListener("error", e => {
+                            video.style.display = "none";
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        matchedElements.push(video);
+                    });
+                }
+
+                let youtubeRegex = /https?:\/\/(?:www\.)?youtu(?:\.be\/|be\.com\/watch\?v=)([\w_-]+)\S*/g;
+                let youtubeMatches = chatText.matchAll(youtubeRegex);
+                if (youtubeMatches) {
+                    for (let match of youtubeMatches) {
+                        let youtubeEmbed = document.createElement("iframe");
+                        youtubeEmbed.setAttributes({
+                            src: "https://www.youtube.com/embed/" + match[1],
+                            loop: "true",
+                            width: "320",
+                            height: "180",
+                            frameborder: "0",
+                            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+                            allowfullscreen: "true",
+                            style: {maxWidth: "320px", maxHeight: "180px"}
+                        });
+
+                        // Move the custom tooltip to fit the loaded video
+                        youtubeEmbed.addEventListener("loadeddata", e => {
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        youtubeEmbed.addEventListener("error", e => {
+                            youtubeEmbed.style.display = "none";
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        matchedElements.push(youtubeEmbed);
+                    }
+                }
+
+                let audioRegex = /(https?:\/\/\S+(?:mp3|ogg|m4a)\S*)/ig;
+                let audioMatches = chatText.match(audioRegex);
+                if (audioMatches) {
+                    audioMatches.forEach(f => {
+                        let audio = document.createElement("audio");
+                        audio.setAttributes({
+                            src: f,
+                            controls: "true",
+                            style: {maxWidth: "280px", maxHeight: "300px", height: "30px"}
+                        });
+
+                        // Move the custom tooltip to fit the loaded video
+                        audio.addEventListener("loadedmetadata", e => {
+                            audio.style.width = "100%";
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        audio.addEventListener("error", e => {
+                            audio.style.display = "none";
+                            ui.chatLog_customTooltip.reposition(chatItem);
+                        });
+
+                        matchedElements.push(audio);
+                    });
+                }
+
+                if (matchedElements.length == 0) {
+                    ui.chatLog_customTooltip.setAttributes({
+                        style: {
+                            visibility: "hidden",
+                            opacity: "0"
+                        }
+                    });
+                } else {
+                    matchedElements.forEach(f => {ui.chatLog_customTooltip.append(f)});
+                    ui.chatLog_customTooltip.reposition(chatItem);
+                    ui.chatLog_customTooltip.setAttributes({
+                        style: {
+                            visibility: "visible",
+                            opacity: "1"
+                        }
+                    });
+
+                    ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+                    chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
+                }
+            }();
+        }
+        onChatItemMouseLeave = function(e) {
+            if (ui.chatLog_customTooltip.contains(e.toElement)) {
+                return;
+            }
+            chatLog_lastItem = null;
+
+            ui.chatLog_customTooltip.style.visibility = "hidden";
+            ui.chatLog_customTooltip.style.opacity = "0";
+            ui.chatLog_customTooltip.querySelectorAll("audio, video").forEach(f => {f.pause();});
+
+            e.target.removeEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
         }
 
         if (scriptSetting.chat_hover_tooltip) {
