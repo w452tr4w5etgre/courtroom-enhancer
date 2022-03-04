@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.664
+// @version      0.665
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1036,7 +1036,7 @@ function onCourtroomJoin() {
                     });
 
                     // Move the custom tooltip to fit the loaded video
-                    video.addEventListener("loadedmetadata", e => {
+                    video.addEventListener("loadeddata", e => {
                         ui.chatLog_customTooltip.reposition(chatItem);
                     });
 
