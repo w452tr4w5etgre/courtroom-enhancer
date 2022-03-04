@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.669
+// @version      0.670
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1098,7 +1098,7 @@ function onCourtroomJoin() {
                     for (let match of youtubeMatches) {
                         let youtubeEmbed = document.createElement("iframe");
                         youtubeEmbed.setAttributes({
-                            src: "https://www.youtube.com/embed/" + match[1],
+                            src: "https://www.youtube.com/embed/" + match[1] + "?enablejsapi=1",
                             loop: "true",
                             width: "320",
                             height: "180",
@@ -1171,6 +1171,7 @@ function onCourtroomJoin() {
                 }
             }();
         }
+
         onChatItemMouseLeave = function(e) {
             if (ui.chatLog_customTooltip.contains(e.toElement)) {
                 return;
@@ -1184,6 +1185,7 @@ function onCourtroomJoin() {
             });
             ui.chatLog_customTooltip.style.opacity = "0";
             ui.chatLog_customTooltip.querySelectorAll("audio, video").forEach(f => {f.pause();});
+            ui.chatLog_customTooltip.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => {f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');});
 
             e.target.removeEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
         }
