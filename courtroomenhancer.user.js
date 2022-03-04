@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.658
+// @version      0.66
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -154,10 +154,10 @@ function onCourtroomJoin() {
     ui.chatLog_textField = ui.chatLog_container.querySelector("div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]");
 
     ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
-    ui.evidence_form = ui.evidence_container.querySelector("div form");
-    ui.evidence_formFields = ui.evidence_form.querySelectorAll("input");
-    ui.evidence_addButton = ui.evidence_form.querySelector("div > div > button.mr-2.v-btn.success");
-    ui.evidence_list = ui.evidence_container.querySelector("div > div.row");
+    ui.evidence_form = ui.evidence_container.querySelector("div > form");
+    ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
+    ui.evidence_addButton = ui.evidence_form.querySelector("div:last-of-type > div.col:first-of-type > button.mr-2.v-btn.success");
+    ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
 
     ui.settings_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)");
     ui.settings_usernameChangeInput = ui.settings_container.querySelector("div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]");
@@ -251,6 +251,26 @@ function onCourtroomJoin() {
                 setTimeout(f=>{e.target.click()}, 25);
             }
         });
+
+        // Show evidence count
+        ui.evidence_evidenceTotal = document.createElement("div");
+        ui.evidence_evidenceTotal.className = "col";
+        ui.evidence_evidenceTotal.updateCount = function() {
+            let evidMax = 75, evidCount = ui.evidence_list.childElementCount;
+            if (evidCount / evidMax > 0.9) {
+                this.className = "col error--text";
+            } else {
+                this.className = "col success--text";
+            }
+            this.textContent = evidCount + " / " + evidMax;
+        };
+        ui.evidence_form.lastChild.append(ui.evidence_evidenceTotal);
+        ui.evidence_evidenceTotal.updateCount();
+
+        (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
+        function on_evidenceListChange(changes, observer) {
+            ui.evidence_evidenceTotal.updateCount();
+        }
     }();
 
     // Add setting options under the Settings tab
