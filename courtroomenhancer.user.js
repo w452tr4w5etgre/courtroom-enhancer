@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.66
+// @version      0.661
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -257,8 +257,10 @@ function onCourtroomJoin() {
         ui.evidence_evidenceTotal.className = "col";
         ui.evidence_evidenceTotal.updateCount = function() {
             let evidMax = 75, evidCount = ui.evidence_list.childElementCount;
-            if (evidCount / evidMax > 0.9) {
-                this.className = "col error--text";
+            if (evidCount == evidMax) {
+                this.className = "col mdi mdi-alert error--text";
+            } else if (evidCount / evidMax > 0.9) {
+                this.className = "col warning--text";
             } else {
                 this.className = "col success--text";
             }
