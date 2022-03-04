@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.657
+// @version      0.658
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -28,9 +28,9 @@ var initSettings = function() {
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
-        "evid_roulette_max": getSetting("evid_roulette_max", 476000),
-        "sound_roulette_max": getSetting("sound_roulette_max", 40000),
-        "music_roulette_max": getSetting("music_roulette_max", 131000)
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 477000),
+        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 40800),
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 133000)
     };
 }();
 
@@ -104,11 +104,9 @@ function onCourtroomJoin() {
     ui.mainFrame_container = ui.app.querySelector("div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child");
 
     if (ui.spectating) {
-        console.log("spectating");
         if (!ui.mainFrame_joinRoomButton) {
             ui.mainFrame_joinRoomButton = ui.mainFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
             ui.mainFrame_joinRoomButton.addEventListener("click", f => {
-                console.log("clicked");
                 (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
             }, true);
         }
@@ -133,7 +131,6 @@ function onCourtroomJoin() {
                     ui.rightFrame_toolbarTabChatLog = toolbarTab;
                     break;
                 case "Evidence":
-                    console.log(toolbarTab);
                     ui.rightFrame_toolbarTabEvidence = toolbarTab;
                     break;
                 case "Backgrounds":
@@ -403,7 +400,7 @@ function onCourtroomJoin() {
             ui.customButtons_rowLog.style.display = value ? "flex" : "none";
         });
 
-        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Courtroom: scroll to change text size", e => {
+        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Courtroom: Adjust text with mouse wheel", e => {
             let value = e.target.checked;
             setSetting("adjust_chat_text_with_wheel", value);
             if (value) {
@@ -413,7 +410,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Chatlog: Show urls on hover", e => {
+        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Chatlog: Hover images and links", e => {
             let value = e.target.checked;
             setSetting("chat_hover_tooltip", value);
             if (value) {
@@ -870,9 +867,10 @@ function onCourtroomJoin() {
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
     // Chat hover tooltips
+    var onChatListMouseOver, onChatItemMouseLeave;
     var chatLogHoverTooltips = function() {
         let chatLog_lastItem;
-        var onChatListMouseOver = function(e) {
+        onChatListMouseOver = function(e) {
             // Find the item element
             let chatItem = e.target.closest("div.v-list-item__content"), chatName, chatText;
             if (chatItem === null || chatLog_lastItem == chatItem) {
@@ -969,7 +967,7 @@ function onCourtroomJoin() {
                 chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
             }
         }
-        var onChatItemMouseLeave = function(e) {
+        onChatItemMouseLeave = function(e) {
             if (ui.chatLog_customTooltip.contains(e.toElement)) {
                 return;
             }
