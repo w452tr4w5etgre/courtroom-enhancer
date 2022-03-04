@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.668
+// @version      0.669
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1165,6 +1165,7 @@ function onCourtroomJoin() {
                         }
                     });
 
+                    ui.chatLog_customTooltip.addEventListener("mouseenter", e => {e.target.style.opacity = "1";});
                     ui.chatLog_customTooltip.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
                     chatItem.addEventListener("mouseleave", onChatItemMouseLeave, {capture:false});
                 }
@@ -1176,7 +1177,11 @@ function onCourtroomJoin() {
             }
             chatLog_lastItem = null;
 
-            ui.chatLog_customTooltip.style.visibility = "hidden";
+            ui.chatLog_customTooltip.addEventListener("transitionend", e => {
+                if (e.target.style.opacity == 0) {
+                    e.target.style.visibility = "hidden";
+                }
+            });
             ui.chatLog_customTooltip.style.opacity = "0";
             ui.chatLog_customTooltip.querySelectorAll("audio, video").forEach(f => {f.pause();});
 
