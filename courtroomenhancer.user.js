@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.661
+// @version      0.663
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -168,7 +168,7 @@ function onCourtroomJoin() {
 
     // Handle username changes and update the stored username
     let on_usernameChange = function(name) {
-        // Set a timeout because for some reason the name box reverts for a split second on change
+        // Delay check
         setTimeout(f => {
             setStoredUsername(name);
         }, 100);
@@ -267,17 +267,68 @@ function onCourtroomJoin() {
             this.textContent = evidCount + " / " + evidMax;
         };
         ui.evidence_form.lastChild.append(ui.evidence_evidenceTotal);
-        ui.evidence_evidenceTotal.updateCount();
+
+        ui.evidence_list.fixEvidenceItem = function(node) {
+            let divCard = node.firstChild;
+            let divImage = divCard.querySelector("div.v-image");
+            let divTitle = divCard.querySelector("div.v-card__title");
+            let divSubtitle = divCard.querySelector("div.v-card__subtitle");
+            let divActions = divCard.querySelector("div.v-card__actions");
+            let buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
+
+            //divCard.style.overflow = "hidden";
+            divSubtitle.style.padding = "8px";
+            buttonEye.style.display = "none";
+
+            divActions.setAttributes({
+                style: {
+                    backgroundColor: "rgb(57, 57, 57)",
+                    boxShadow: "black 0px 3px 10px 0px",
+                    opacity: "0",
+                    visibility: "hidden",
+                    position: "absolute",
+                    width: "100%",
+                    height: "38px",
+                    transition: "opacity 0.1s ease-in-out 0s"
+                }
+            });
+
+            divSubtitle.insertAdjacentElement("beforebegin", divActions);
+
+            divImage.style.cursor = "pointer";
+            divImage.addEventListener("click", e => {
+                if (divActions.contains(e.target)) {
+                    return;
+                }
+                buttonEye.click();
+            }, true);
+
+            divCard.addEventListener("mouseenter", e => {
+                divActions.style.visibility = "visible";
+                divActions.style.opacity = "1";
+            });
+
+            divCard.addEventListener("mouseleave", e => {
+                divActions.style.visibility = "hidden";
+                divActions.style.opacity = "0";
+            });
+        };
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
         function on_evidenceListChange(changes, observer) {
             ui.evidence_evidenceTotal.updateCount();
+            for (let change of changes) {
+                for (let node of change.addedNodes) {
+                    ui.evidence_list.fixEvidenceItem(node);
+                }
+            }
         }
+
+
     }();
 
     // Add setting options under the Settings tab
     var enhanceSettingsTab = function() {
-
         var createExtraSettingElemCheckbox = function(id, text, callback) {
             let div = document.createElement("div");
             div.setAttributes({
@@ -913,7 +964,9 @@ function onCourtroomJoin() {
 
             ui.chatLog_customTooltip.innerHTML = chatName + ": ";
 
-            var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            let matchedElements = [];
+
+            let urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
             let urlMatches = chatText.match(urlRegex);
             if (urlMatches) {
                 urlMatches.forEach(f => {
@@ -931,7 +984,7 @@ function onCourtroomJoin() {
                         style: {marginLeft: "2px", fontSize: "12px"}
                     });
                     a.append(i);
-                    ui.chatLog_customTooltip.append(a);
+                    matchedElements.push(a);
                 });
             }
 
@@ -965,11 +1018,38 @@ function onCourtroomJoin() {
                         style: {display: "inline-block"}
                     });
                     a.append(img);
-                    ui.chatLog_customTooltip.append(a);
+                    matchedElements.push(a);
                 });
             }
 
-            if (!urlMatches && !imgMatches) {
+            let videoRegex = /(https?:\/\/\S+(?:webm|mp4)\S*)/ig;
+            let videoMatches = chatText.match(videoRegex);
+            if (videoMatches) {
+                videoMatches.forEach(f => {
+                    let video = document.createElement("video");
+                    video.setAttributes({
+                        src: f,
+                        loop: "true",
+                        controls: "true",
+                        autoplay: "true",
+                        style: {maxWidth: "280px", maxHeight: "300px", marginTop: "2px"}
+                    });
+
+                    // Move the custom tooltip to fit the loaded video
+                    video.addEventListener("load", e => {
+                        ui.chatLog_customTooltip.reposition(chatItem);
+                    });
+
+                    video.addEventListener("error", e => {
+                        video.style.display = "none";
+                        ui.chatLog_customTooltip.reposition(chatItem);
+                    });
+
+                    matchedElements.push(video);
+                });
+            }
+
+            if (matchedElements.length == 0) {
                 ui.chatLog_customTooltip.setAttributes({
                     style: {
                         visibility: "hidden",
@@ -977,6 +1057,7 @@ function onCourtroomJoin() {
                     }
                 });
             } else {
+                matchedElements.forEach(f => {ui.chatLog_customTooltip.append(f)});
                 ui.chatLog_customTooltip.reposition(chatItem);
                 ui.chatLog_customTooltip.setAttributes({
                     style: {
@@ -1005,6 +1086,7 @@ function onCourtroomJoin() {
             id: "customTooltip",
             style: {
                 visibility: "hidden",
+                opacity: "0",
                 position: "absolute",
                 top: "0px",
                 right: "20px",
@@ -1013,9 +1095,9 @@ function onCourtroomJoin() {
                 maxHeight: "360px",
                 overflow: "auto",
                 background: "rgba(24, 24, 24, 0.9)",
+                boxShadow: "2px 2px 6px #121212",
                 border: "1px solid rgb(62, 67, 70)",
                 borderRadius: "3px",
-                opacity: "0",
                 wordBreak: "break-all",
                 textAlign: "center",
                 fontSize: "13px",
