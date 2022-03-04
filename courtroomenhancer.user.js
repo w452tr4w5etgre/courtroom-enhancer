@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.663
+// @version      0.664
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1036,7 +1036,7 @@ function onCourtroomJoin() {
                     });
 
                     // Move the custom tooltip to fit the loaded video
-                    video.addEventListener("load", e => {
+                    video.addEventListener("loadedmetadata", e => {
                         ui.chatLog_customTooltip.reposition(chatItem);
                     });
 
@@ -1046,6 +1046,33 @@ function onCourtroomJoin() {
                     });
 
                     matchedElements.push(video);
+                });
+            }
+
+            let audioRegex = /(https?:\/\/\S+(?:mp3|ogg|m4a)\S*)/ig;
+            let audioMatches = chatText.match(audioRegex);
+            if (audioMatches) {
+                audioMatches.forEach(f => {
+                    let audio = document.createElement("audio");
+                    audio.setAttributes({
+                        src: f,
+                        controls: "true",
+                        autoplay: "true",
+                        style: {maxWidth: "280px", maxHeight: "300px", height: "30px", marginTop: "2px"}
+                    });
+
+                    // Move the custom tooltip to fit the loaded video
+                    audio.addEventListener("loadedmetadata", e => {
+                        audio.style.width = "100%";
+                        ui.chatLog_customTooltip.reposition(chatItem);
+                    });
+
+                    audio.addEventListener("error", e => {
+                        audio.style.display = "none";
+                        ui.chatLog_customTooltip.reposition(chatItem);
+                    });
+
+                    matchedElements.push(audio);
                 });
             }
 
