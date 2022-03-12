@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.671
+// @version      0.672
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -185,6 +185,7 @@ function onCourtroomJoin() {
     });
 
     ui.evidence_list.style.maxHeight = "70vh";
+    ui.evidence_list.style.scrollBehavior = "smooth";
 
     // Function to create a button
     var createButton = function(id, label, icon=null, callback) {
@@ -234,29 +235,31 @@ function onCourtroomJoin() {
         });
 
         // Pressing the Enter key on the form fields clicks the "Add" button
-        ui.evidence_formFields.forEach(a => {
-            a.addEventListener("keydown", e =>{
+        ui.evidence_formFields.forEach(f => {
+            f.addEventListener("keydown", e => {
                 if (e.keyCode == 13 || e.key == "Enter") {
-                    ui.evidence_addButton.click();
-                    e.currentTarget.blur();
+                    ui.evidence_addButton.focus();
                 }
             });
         });
 
         // Clicking the "Add" button fills the "Name" tab with a space if it's empty
-        ui.evidence_addButton.addEventListener("click", e=> {
-            if (ui.evidence_formFields[0].value === "") {
-                ui.evidence_formFields[0].value = " ";
+        ui.evidence_addButton.addEventListener("click", e => {
+            if (!ui.evidence_formFields[0].value) {
+                ui.evidence_formFields[0].value = String.fromCharCode(32);
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                setTimeout(f=>{e.target.click()}, 25);
             }
-        });
+            e.target.blur();
+            if (ui.evidence_list.childElementCount) {
+                setTimeout(f=>{ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight;}, 250);
+            }
+        }, true);
 
         // Show evidence count
         ui.evidence_evidenceTotal = document.createElement("div");
         ui.evidence_evidenceTotal.className = "col";
         ui.evidence_evidenceTotal.updateCount = function() {
-            let evidMax = 75, evidCount = ui.evidence_list.childElementCount;
+            let evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
             if (evidCount == evidMax) {
                 this.className = "col mdi mdi-alert error--text";
             } else if (evidCount / evidMax > 0.9) {
