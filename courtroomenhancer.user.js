@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.673
+// @version      0.674
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -29,9 +29,9 @@ var initSettings = function() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 477000),
-        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 40800),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 133000)
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 482500),
+        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41500),
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 136200)
     };
 }();
 
