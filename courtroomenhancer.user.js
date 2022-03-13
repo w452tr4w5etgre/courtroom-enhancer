@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.672
+// @version      0.673
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -28,6 +28,7 @@ var initSettings = function() {
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
+        "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
         "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 477000),
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 40800),
         "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 133000)
@@ -499,7 +500,8 @@ function onCourtroomJoin() {
         ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", e => {
             let value = e.target.checked;
             setSetting("evid_roulette", value);
-            ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none"
+            ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none";
+            ui.extraSettings_rouletteEvidAsIcon.style.display = value ? "inline-block" : "none";
             ui.extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none";
         });
 
@@ -515,6 +517,11 @@ function onCourtroomJoin() {
             setSetting("music_roulette", value);
             ui.customButtons_musicRouletteButton.style.display = value ? "inline" : "none"
             ui.extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none";
+        });
+
+        ui.extraSettings_rouletteEvidAsIcon = createExtraSettingElemCheckbox("evid_roulette_as_icon", "icon", e => {
+            let value = e.target.checked;
+            setSetting("evid_roulette_as_icon", value);
         });
 
         ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", e => {
@@ -643,6 +650,7 @@ function onCourtroomJoin() {
 
         ui.extraSettings_rowRoulettes.lastChild.append(
             ui.extraSettings_rouletteEvid,
+            ui.extraSettings_rouletteEvidAsIcon,
             ui.extraSettings_rouletteEvidMax,
             ui.extraSettings_rouletteSound,
             ui.extraSettings_rouletteSoundMax,
@@ -684,12 +692,12 @@ function onCourtroomJoin() {
 
             let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
-            ui.mainFrame_textarea.value = "[#evd" + random + "]";
+            ui.mainFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
             ui.mainFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
             ui.mainFrame_sendButton.click()
-            Logger.log("[#evd" + random + "]", "image");
+            Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
         });
         ui.customButtons_evidRouletteButton.setAttributes({
             title: "Show a random piece of evidence",
