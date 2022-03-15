@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.674
+// @version      0.675
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -938,7 +938,7 @@ function onCourtroomJoin() {
             ui.courtroom_chatBoxText = ui.courtroom_container.querySelector("div.chat-box-text");
             ui.courtroom_chatBoxText.style.lineHeight = "1.3";
         }
-        ui.courtroom_chatBoxText.style.fontSize = parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01) + "px";
+        ui.courtroom_chatBoxText.style.fontSize = Math.min(100, Math.max(10, parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01))) + "px";
     }
     if (scriptSetting.adjust_chat_text_with_wheel) {
         ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
