@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.675
+// @version      0.676
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -25,6 +25,7 @@ var initSettings = function() {
         "show_console": getSetting("show_console", false),
         "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
         "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
+        "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
@@ -102,26 +103,27 @@ function checkJoinBoxReady(changes, observer) {
 }
 
 function onCourtroomJoin() {
-    ui.mainFrame_container = ui.app.querySelector("div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:first-child");
+    ui.main = ui.app.querySelector("div > div.container > main > div.v-main__wrap > div");
+    ui.leftFrame_container = ui.main.firstChild.firstChild;
 
     if (ui.spectating) {
-        if (!ui.mainFrame_joinRoomButton) {
-            ui.mainFrame_joinRoomButton = ui.mainFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
-            ui.mainFrame_joinRoomButton.addEventListener("click", f => {
+        if (!ui.leftFrame_joinRoomButton) {
+            ui.leftFrame_joinRoomButton = ui.leftFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
+            ui.leftFrame_joinRoomButton.addEventListener("click", f => {
                 (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
             }, true);
         }
         return;
     }
 
-    ui.mainFrame_textarea = ui.mainFrame_container.querySelector("div textarea.frameTextarea");
-    ui.mainFrame_sendButton = ui.mainFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
-    ui.mainFrame_currentChar = ui.mainFrame_container.querySelector("div > div:nth-child(2) > div.col-sm-3.col-2 > div");
+    ui.leftFrame_textarea = ui.leftFrame_container.querySelector("div textarea.frameTextarea");
+    ui.leftFrame_sendButton = ui.leftFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div > div:last-of-type > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
+    ui.leftFrame_currentChar = ui.leftFrame_container.querySelector("div > div:nth-child(2) > div.col-sm-3.col-2 > div");
 
-    ui.courtroom_container = ui.mainFrame_container.querySelector("div.court-container > div.courtroom");
+    ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
     ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
 
-    ui.rightFrame_container = ui.app.querySelector("#app > div > div.container > main > div.v-main__wrap > div > div:first-of-type > div:nth-child(2) div");
+    ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
     ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
     ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content");
 
@@ -164,6 +166,9 @@ function onCourtroomJoin() {
     ui.settings_usernameChangeInput = ui.settings_container.querySelector("div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]");
     ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
     ui.settings_separator = ui.settings_container.querySelector("div > hr:last-of-type");
+    ui.settings_keyboardShortcutsHeader = ui.settings_container.querySelector("div > h3:first-of-type");
+    ui.settings_keyboardShortcutsWS = ui.settings_keyboardShortcutsHeader.nextSibling.nextSibling.nextSibling;
+    ui.settings_keyboardShortcutsAD = ui.settings_keyboardShortcutsWS.nextSibling;
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
@@ -280,7 +285,6 @@ function onCourtroomJoin() {
             let divActions = divCard.querySelector("div.v-card__actions");
             let buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
 
-            //divCard.style.overflow = "hidden";
             divSubtitle.style.padding = "8px";
             buttonEye.style.display = "none";
 
@@ -477,7 +481,7 @@ function onCourtroomJoin() {
             ui.customButtons_rowLog.style.display = value ? "flex" : "none";
         });
 
-        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Courtroom: Adjust text with mouse wheel", e => {
+        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Scroll to adjust text", e => {
             let value = e.target.checked;
             setSetting("adjust_chat_text_with_wheel", value);
             if (value) {
@@ -487,13 +491,27 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Chatlog: Hover images and links", e => {
+        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Link tooltips", e => {
             let value = e.target.checked;
             setSetting("chat_hover_tooltip", value);
             if (value) {
                 ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
             } else {
                 ui.chatLog_chat.removeEventListener("mouseover", onChatListMouseOver, false);
+            }
+        });
+
+        ui.extraSettings_disableKeyboardShortcuts = createExtraSettingElemCheckbox("disable_keyboard_shortcuts", "Disable WASD shortcuts", e => {
+            let value = e.target.checked;
+            setSetting("disable_keyboard_shortcuts", value);
+            if (value) {
+                ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
+                ui.settings_keyboardShortcutsWS.style.display = "none";
+                ui.settings_keyboardShortcutsAD.style.display = "none";
+            } else {
+                ui.main.removeEventListener("shortkey", disableKeyboardShortcuts, true);
+                ui.settings_keyboardShortcutsWS.style.display = "flex";
+                ui.settings_keyboardShortcutsAD.style.display = "flex";
             }
         });
 
@@ -589,7 +607,8 @@ function onCourtroomJoin() {
                                                      ui.extraSettings_rememberUsername,
                                                      ui.extraSettings_showConsole,
                                                      ui.extraSettings_adjustChatTextWithWheel,
-                                                     ui.extraSettings_chatHoverTooltip);
+                                                     ui.extraSettings_chatHoverTooltip,
+                                                     ui.extraSettings_disableKeyboardShortcuts);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
@@ -686,17 +705,17 @@ function onCourtroomJoin() {
 
         ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
+            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
 
             let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
-            ui.mainFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
-            ui.mainFrame_textarea.dispatchEvent(new Event("input"));
+            ui.leftFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
+            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            ui.mainFrame_sendButton.click()
+            ui.leftFrame_sendButton.click()
             Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
         });
         ui.customButtons_evidRouletteButton.setAttributes({
@@ -708,17 +727,17 @@ function onCourtroomJoin() {
 
         ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
+            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
 
             let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
-            ui.mainFrame_textarea.value = "[#bgs" + random + "]";
-            ui.mainFrame_textarea.dispatchEvent(new Event("input"));
+            ui.leftFrame_textarea.value = "[#bgs" + random + "]";
+            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            ui.mainFrame_sendButton.click();
+            ui.leftFrame_sendButton.click();
             Logger.log("[#bgs" + random + "]", "volume-medium");
         });
         ui.customButtons_soundRouletteButton.setAttributes({
@@ -730,17 +749,17 @@ function onCourtroomJoin() {
 
         ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", e => {
             // Check if the send button is not on cooldown
-            if (ui.mainFrame_sendButton.disabled || !ui.mainFrame_container.contains(ui.mainFrame_sendButton)) {
+            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
 
             let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
-            ui.mainFrame_textarea.value = "[#bgm" + random + "]";
-            ui.mainFrame_textarea.dispatchEvent(new Event("input"));
+            ui.leftFrame_textarea.value = "[#bgm" + random + "]";
+            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
 
             // Click Send button
-            ui.mainFrame_sendButton.click();
+            ui.leftFrame_sendButton.click();
             Logger.log("[#bgm" + random + "]", "music-note");
         });
         ui.customButtons_musicRouletteButton.setAttributes({
@@ -1210,6 +1229,18 @@ function onCourtroomJoin() {
     ui.courtroom_container.addEventListener("contextmenu", e => {
         e.stopImmediatePropagation();
     }, true);
+
+    // Disable WASD shortcuts
+    var disableKeyboardShortcuts = function(e) {
+        if ("wasd".includes(e.srcKey)) {
+            e.stopImmediatePropagation()
+        }
+    };
+    if (scriptSetting.disable_keyboard_shortcuts) {
+        ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
+        ui.settings_keyboardShortcutsWS.style.display = "none";
+        ui.settings_keyboardShortcutsAD.style.display = "none";
+    }
 
 }
 
