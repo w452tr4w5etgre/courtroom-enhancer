@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.676
+// @version      0.677
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -998,7 +998,7 @@ function onCourtroomJoin() {
                 fontSize: "13px",
                 lineHeight: "14px",
                 color: "rgb(211, 207, 201)",
-                transition: "opacity 0.15s ease-in-out 0.25s, top 0.05s linear 0s"
+                transition: "opacity 0.15s ease-in-out 0.25s"
             }
         });
 
@@ -1071,17 +1071,18 @@ function onCourtroomJoin() {
                             src: f,
                             alt: f,
                             referrerPolicy: "no-referrer",
-                            style: {maxWidth: "280px", maxHeight: "300px"}
+                            style: {maxWidth: "280px", maxHeight: "300px", display: "none"}
                         });
 
-                        // Move the custom tooltip to fit the loaded image
+                        
                         img.addEventListener("load", e => {
-                            ui.chatLog_customTooltip.reposition(chatItem);
+                            img.style.display = "inline";
+                            ui.chatLog_customTooltip.reposition(chatItem); // Move the custom tooltip to fit the loaded image
                         });
 
                         img.addEventListener("error", e => {
                             img.style.display = "none";
-                            ui.chatLog_customTooltip.reposition(chatItem);
+                            ui.chatLog_customTooltip.reposition(chatItem); // Move the custom tooltip to fit the loaded image
                         });
 
                         let a = document.createElement("a");
