@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.677
+// @version      0.680
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -13,6 +13,7 @@
 // @grant        GM_setValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
+// @grant        GM_xmlhttpRequest
 // @run-at       document-end
 // ==/UserScript==
 
@@ -159,6 +160,7 @@ function onCourtroomJoin() {
     ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
     ui.evidence_form = ui.evidence_container.querySelector("div > form");
     ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
+    ui.evidence_buttonsRow = ui.evidence_form.lastChild;
     ui.evidence_addButton = ui.evidence_form.querySelector("div:last-of-type > div.col:first-of-type > button.mr-2.v-btn.success");
     ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
 
@@ -175,14 +177,12 @@ function onCourtroomJoin() {
     // Handle username changes and update the stored username
     let on_usernameChange = function(name) {
         // Delay check
-        setTimeout(f => {
-            setStoredUsername(name);
-        }, 100);
+        setStoredUsername(name);
     };
 
-    ui.settings_usernameChangeInput.addEventListener("focusout", e => {
+    ui.settings_usernameChangeInput.addEventListener("blur", e => {
         on_usernameChange(e.target.value);
-    });
+    }, true);
 
     ui.settings_usernameChangeInput.addEventListener("keydown", e => {
         if (e.keyCode == 13 || e.key == "Enter") {
@@ -236,7 +236,7 @@ function onCourtroomJoin() {
         // Clicking "Evidence" focuses on the URL input
         ui.rightFrame_toolbarTabEvidence.addEventListener("click", e => {
             setTimeout(f => {
-                ui.evidence_formFields[1].focus();
+                ui.evidence_formFields[1].click();
             }, 200);
         });
 
@@ -251,7 +251,7 @@ function onCourtroomJoin() {
 
         // Clicking the "Add" button fills the "Name" tab with a space if it's empty
         ui.evidence_addButton.addEventListener("click", e => {
-            if (!ui.evidence_formFields[0].value) {
+            if (ui.evidence_formFields[0].value.length == 0) {
                 ui.evidence_formFields[0].value = String.fromCharCode(32);
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
             }
@@ -261,10 +261,198 @@ function onCourtroomJoin() {
             }
         }, true);
 
+        // Add evidence sources
+        var evidenceUploader = function() {
+            var parseForm = function(data) {
+                const form = new FormData();
+                Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
+                return form;
+            }
+
+            var uploadByFile = function(file, callback) {
+                GM_xmlhttpRequest({
+                    url: "https://catbox.moe/user/api.php",
+                    method: "POST",
+                    data: parseForm({
+                        reqtype: "fileupload",
+                        fileToUpload: file
+                    }),
+                    onload: function(res) {
+                        if (this.readyState == 4 && this.status == 200) {
+                            callback(this.responseText);
+                        } else {
+                            alert("Request returned code" + this.status + ":" + this.responseText.substr(0,200));
+                        }
+                    }
+                });
+            }
+
+            var uploadByURL = function(url, callback) {
+                GM_xmlhttpRequest({
+                    url: "https://catbox.moe/user/api.php",
+                    method: "POST",
+                    data: parseForm({
+                        reqtype: "urlupload",
+                        url: url
+                    }),
+                    onload: function(res) {
+                        if (this.readyState == 4 && this.status == 200) {
+                            callback(this.responseText);
+                        } else {
+                            alert("Request returned code" + this.status + ":" + this.responseText.substr(0,200));
+                        }
+                    }
+                });
+            }
+
+            var uploadCallback = function(url) {
+                ui.evidence_formFields[0].value = "upload";
+                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+
+                ui.evidence_formFields[1].value = url;
+                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+
+                dragdropDiv.setAttributes({
+                    firstChild: {classList: "v-icon v-icon--left mdi mdi-image-size-select-large"},
+                    lastChild: {textContent: "Drop file"},
+                    style: {
+                        borderColor: "teal",
+                        pointerEvents: "auto",
+                    }
+                });
+            }
+
+            ui.evidence_extraSourcesColumn = document.createElement("div");
+            ui.evidence_extraSourcesColumn.setAttributes({
+                className: "col",
+                style: {
+                    display: "flex",
+                    gap: "5px",
+                    flexWrap: "nowrap",
+                    justifyContent: "space-evenly",
+                    alignItems: "center"
+                }
+            });
+
+            const dragdropDiv = document.createElement("div");
+            dragdropDiv.setAttributes({
+                style: {
+                    display: "flex",
+                    alignItems: "center",
+                    minWidth: "140px",
+                    height: "80%",
+                    border: "2px dashed teal",
+                    padding: "0px 15px",
+                    userSelect: "none"
+                }
+            });
+
+            const dragdropIcon = document.createElement("i");
+            dragdropIcon.classList = "v-icon v-icon--left mdi mdi-image-size-select-large";
+            dragdropDiv.append(dragdropIcon);
+            dragdropIcon.after(document.createTextNode("Drop file"));
+
+            dragdropDiv.addEventListener("drop", e => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = "teal";
+                if (e.dataTransfer.items) {
+                    var data = e.dataTransfer.items;
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].kind === "file") {
+                            var file = data[i].getAsFile();
+                            if (file.type.match("^image/")) {
+                                dragdropDiv.setAttributes({
+                                    firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                    lastChild: {textContent: "Uploading"},
+                                    style: {
+                                        borderColor: "yellow",
+                                        pointerEvents: "none",
+                                    }
+                                });
+                                uploadByFile(file, uploadCallback);
+                            }
+                            break;
+                        } else if (data[i].kind === "string" && data[i].type.match("^text/uri")) {
+                            data[i].getAsString(f => {
+                                dragdropDiv.setAttributes({
+                                    firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                    lastChild: {textContent: "Uploading"},
+                                    style: {
+                                        borderColor: "yellow",
+                                        pointerEvents: "none",
+                                    }
+                                });
+                                uploadByURL(f, uploadCallback);
+                            });
+                            break;
+                        }
+                    }
+                }
+            })
+
+            dragdropDiv.addEventListener("dragover", e => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = "red";
+            });
+
+            dragdropDiv.addEventListener("dragleave", e => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = "teal";
+            });
+
+            // Upload by gelbooru tags
+            const gelbooruDiv = document.createElement("div");
+            gelbooruDiv.setAttributes({
+                style: {
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center"
+                }
+            });
+            const gelbooruIcon = document.createElement("img");
+            gelbooruIcon.src = "https://gelbooru.com/favicon.png";
+            gelbooruDiv.append(gelbooruIcon);
+
+            gelbooruDiv.addEventListener("click", f => {
+                var tags = prompt("tags");
+                if (!tags) { return; }
+                GM_xmlhttpRequest({
+                    url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags),
+                    method: "GET",
+                    onload: function(res) {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var responseJSON = JSON.parse(this.responseText);
+                            if (!responseJSON.post) {
+                                return alert("No results");
+                            }
+                            uploadByURL(responseJSON.post[0].file_url, f => {
+                                ui.evidence_formFields[0].value = responseJSON.post[0].id;
+                                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+
+                                ui.evidence_formFields[1].value = f;
+                                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+
+                                setTimeout(f=>{ui.evidence_addButton.click()}, 500);
+                            });
+                        }
+                    }
+                });
+            });
+
+            ui.evidence_form.addEventListener("submit", f=> {
+                console.log("submit");
+            }, true);
+
+            ui.evidence_extraSourcesColumn.append(dragdropDiv, gelbooruDiv);
+
+            ui.evidence_form.lastChild.append(ui.evidence_extraSourcesColumn);
+        }();
+
         // Show evidence count
-        ui.evidence_evidenceTotal = document.createElement("div");
-        ui.evidence_evidenceTotal.className = "col";
-        ui.evidence_evidenceTotal.updateCount = function() {
+        ui.evidence_evidenceTotalColumn = document.createElement("div");
+        ui.evidence_evidenceTotalColumn.className = "col";
+        ui.evidence_evidenceTotalColumn.style.textAlign = "center";
+        ui.evidence_evidenceTotalColumn.updateCount = function() {
             let evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
             if (evidCount == evidMax) {
                 this.className = "col mdi mdi-alert error--text";
@@ -275,7 +463,7 @@ function onCourtroomJoin() {
             }
             this.textContent = evidCount + " / " + evidMax;
         };
-        ui.evidence_form.lastChild.append(ui.evidence_evidenceTotal);
+        ui.evidence_form.lastChild.append(ui.evidence_evidenceTotalColumn);
 
         ui.evidence_list.fixEvidenceItem = function(node) {
             let divCard = node.firstChild;
@@ -324,15 +512,13 @@ function onCourtroomJoin() {
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
         function on_evidenceListChange(changes, observer) {
-            ui.evidence_evidenceTotal.updateCount();
+            ui.evidence_evidenceTotalColumn.updateCount();
             for (let change of changes) {
                 for (let node of change.addedNodes) {
                     ui.evidence_list.fixEvidenceItem(node);
                 }
             }
         }
-
-
     }();
 
     // Add setting options under the Settings tab
@@ -1074,7 +1260,7 @@ function onCourtroomJoin() {
                             style: {maxWidth: "280px", maxHeight: "300px", display: "none"}
                         });
 
-                        
+
                         img.addEventListener("load", e => {
                             img.style.display = "inline";
                             ui.chatLog_customTooltip.reposition(chatItem); // Move the custom tooltip to fit the loaded image
