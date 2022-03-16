@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.680
+// @version      0.681
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -14,6 +14,7 @@
 // @grant        GM_listValues
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
 // @run-at       document-end
 // ==/UserScript==
 
@@ -270,36 +271,36 @@ function onCourtroomJoin() {
             }
 
             var uploadByFile = function(file, callback) {
-                GM_xmlhttpRequest({
+                CrossOrigin({
                     url: "https://catbox.moe/user/api.php",
                     method: "POST",
                     data: parseForm({
                         reqtype: "fileupload",
                         fileToUpload: file
                     }),
-                    onload: function(res) {
-                        if (this.readyState == 4 && this.status == 200) {
-                            callback(this.responseText);
+                    onload: res => {
+                        if (res.readyState == 4 && res.status == 200) {
+                            callback(res.responseText);
                         } else {
-                            alert("Request returned code" + this.status + ":" + this.responseText.substr(0,200));
+                            alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
                         }
                     }
                 });
             }
 
             var uploadByURL = function(url, callback) {
-                GM_xmlhttpRequest({
+                CrossOrigin({
                     url: "https://catbox.moe/user/api.php",
                     method: "POST",
                     data: parseForm({
                         reqtype: "urlupload",
                         url: url
                     }),
-                    onload: function(res) {
-                        if (this.readyState == 4 && this.status == 200) {
-                            callback(this.responseText);
+                    onload: res => {
+                        if (res.readyState == 4 && res.status == 200) {
+                            callback(res.responseText);
                         } else {
-                            alert("Request returned code" + this.status + ":" + this.responseText.substr(0,200));
+                            alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
                         }
                     }
                 });
@@ -416,12 +417,12 @@ function onCourtroomJoin() {
             gelbooruDiv.addEventListener("click", f => {
                 var tags = prompt("tags");
                 if (!tags) { return; }
-                GM_xmlhttpRequest({
+                CrossOrigin({
                     url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags),
                     method: "GET",
-                    onload: function(res) {
-                        if (this.readyState == 4 && this.status == 200) {
-                            var responseJSON = JSON.parse(this.responseText);
+                    onload: res => {
+                        if (res.readyState == 4 && res.status == 200) {
+                            var responseJSON = JSON.parse(res.responseText);
                             if (!responseJSON.post) {
                                 return alert("No results");
                             }
@@ -438,10 +439,6 @@ function onCourtroomJoin() {
                     }
                 });
             });
-
-            ui.evidence_form.addEventListener("submit", f=> {
-                console.log("submit");
-            }, true);
 
             ui.evidence_extraSourcesColumn.append(dragdropDiv, gelbooruDiv);
 
@@ -1517,6 +1514,14 @@ function storeClear() {
     scriptSetting.warn_on_exit = false;
     window.location.reload();
 };
+
+const CrossOrigin = (function() {
+    try {
+        return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
+    } catch (error) {
+        return false;
+    }
+})();
 
 // Helper function to set multiple element attributes at once
 Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
