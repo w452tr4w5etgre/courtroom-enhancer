@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.681
+// @version      0.682
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -355,7 +355,7 @@ function onCourtroomJoin() {
 
             dragdropDiv.addEventListener("drop", e => {
                 e.preventDefault();
-                e.currentTarget.style.borderColor = "teal";
+                dragdropDiv.style.borderColor = "teal";
                 if (e.dataTransfer.items) {
                     var data = e.dataTransfer.items;
                     for (var i = 0; i < data.length; i++) {
@@ -374,7 +374,7 @@ function onCourtroomJoin() {
                             }
                             break;
                         } else if (data[i].kind === "string" && data[i].type.match("^text/uri")) {
-                            data[i].getAsString(f => {
+                            data[i].getAsString(str => {
                                 dragdropDiv.setAttributes({
                                     firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
                                     lastChild: {textContent: "Uploading"},
@@ -383,7 +383,7 @@ function onCourtroomJoin() {
                                         pointerEvents: "none",
                                     }
                                 });
-                                uploadByURL(f, uploadCallback);
+                                uploadByURL(str, uploadCallback);
                             });
                             break;
                         }
@@ -405,18 +405,71 @@ function onCourtroomJoin() {
             const gelbooruDiv = document.createElement("div");
             gelbooruDiv.setAttributes({
                 style: {
-                    cursor: "pointer",
                     display: "flex",
                     alignItems: "center"
                 }
             });
-            const gelbooruIcon = document.createElement("img");
-            gelbooruIcon.src = "https://gelbooru.com/favicon.png";
-            gelbooruDiv.append(gelbooruIcon);
 
-            gelbooruDiv.addEventListener("click", f => {
-                var tags = prompt("tags");
-                if (!tags) { return; }
+            const gelbooruIcon = document.createElement("img");
+            gelbooruIcon.setAttributes({
+                src: "https://gelbooru.com/favicon.png",
+                classList: "v-icon v-icon--left",
+                style: {
+                    cursor: "pointer"
+                }
+            });
+
+            const gelbooruTagsContainer = document.createElement("div"), gelbooruInputTags = document.createElement("input"), gelbooruBtnSend = document.createElement("div");
+            gelbooruTagsContainer.setAttributes({
+                style: {
+                    display: "none",
+                    gap: "5px"
+                }
+            });
+
+            gelbooruInputTags.setAttributes({
+                maxLength: "255",
+                placeholder: "Ex: blue_sky cloud 1girl",
+                style: {
+                    borderBottom: "1px solid white",
+                    color: "white"
+                }
+            });
+
+            gelbooruBtnSend.setAttributes({
+                classList: "mdi mdi-send",
+                style: {cursor: "pointer"}
+            });
+
+            gelbooruTagsContainer.append(gelbooruInputTags, gelbooruBtnSend);
+
+            gelbooruDiv.append(gelbooruIcon, gelbooruTagsContainer);
+
+            gelbooruIcon.addEventListener("click", e => {
+                var display = gelbooruTagsContainer.style.display
+                if (display == "none") {
+                    gelbooruTagsContainer.style.display = "flex";
+                    dragdropDiv.style.display = "none";
+                    gelbooruInputTags.focus();
+                } else {
+                    gelbooruTagsContainer.style.display = "none";
+                    dragdropDiv.style.display = "flex";
+                }
+            });
+
+            gelbooruInputTags.addEventListener("keydown", e => {
+                if (e.target.value && (e.keyCode == 13 || e.key == "Enter")) {
+                    gelbooruBtnSend.click();
+                }
+            });
+
+            gelbooruBtnSend.addEventListener("click", e => {
+                var tags = gelbooruInputTags.value;
+                if (!tags || tags.length === 0) { gelbooruInputTags.focus(); return; }
+                gelbooruInputTags.value = "Uploading...";
+                gelbooruInputTags.style.color = "grey";
+                gelbooruInputTags.disabled = true;
+
                 CrossOrigin({
                     url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags),
                     method: "GET",
@@ -424,7 +477,11 @@ function onCourtroomJoin() {
                         if (res.readyState == 4 && res.status == 200) {
                             var responseJSON = JSON.parse(res.responseText);
                             if (!responseJSON.post) {
-                                return alert("No results");
+                                gelbooruInputTags.value = "No results";
+                                gelbooruInputTags.style.color = "white";
+                                gelbooruInputTags.disabled = false;
+                                gelbooruInputTags.focus();
+                                return;
                             }
                             uploadByURL(responseJSON.post[0].file_url, f => {
                                 ui.evidence_formFields[0].value = responseJSON.post[0].id;
@@ -434,6 +491,11 @@ function onCourtroomJoin() {
                                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
 
                                 setTimeout(f=>{ui.evidence_addButton.click()}, 500);
+
+                                gelbooruInputTags.value = "";
+                                gelbooruInputTags.style.color = "white";
+                                gelbooruInputTags.disabled = false;
+                                gelbooruIcon.click();
                             });
                         }
                     }
