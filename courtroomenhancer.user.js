@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.689
+// @version      0.690
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -302,12 +302,19 @@ function onCourtroomJoin() {
             }
 
             var uploadByURL = function(url, callback) {
+                url = new URL(url);
+                switch (url.host) {
+                    case "pbs.twimg.com":
+                        url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
+                        break;
+                }
+
                 CrossOrigin({
                     url: "https://catbox.moe/user/api.php",
                     method: "POST",
                     data: parseForm({
                         reqtype: "urlupload",
-                        url: url
+                        url: url.href
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
