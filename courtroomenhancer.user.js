@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.691
+// @version      0.692
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -293,9 +293,13 @@ function onCourtroomJoin() {
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
-                            callback(res.responseText, (file.name.substring(0, file.name.lastIndexOf('.')) || file.name).substr(0,20));
+                            callback(res.responseText, (file.name.substring(0, file.name.lastIndexOf('.')) || file.name).substr(0, 20));
                         } else {
-                            alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
+                            const error = "Err " + res.status + ":" + res.responseText.substr(0, 100);
+                            if (!scriptSetting.show_console) {
+                                alert(error);
+                            }
+                            ui.Logger.log(error);
                         }
                     }
                 });
@@ -318,9 +322,13 @@ function onCourtroomJoin() {
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
-                            callback(res.responseText, (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '').substr(0,20));
+                            callback(res.responseText, (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '').substr(0, 20));
                         } else {
-                            alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
+                            const error = "Err " + res.status + ":" + res.responseText.substr(0, 100);
+                            if (!scriptSetting.show_console) {
+                                alert(error);
+                            }
+                            ui.Logger.log(error);
                         }
                     }
                 });
@@ -1014,7 +1022,7 @@ function onCourtroomJoin() {
 
             // Click Send button
             ui.leftFrame_sendButton.click()
-            Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
+            ui.Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
         });
         ui.customButtons_evidRouletteButton.setAttributes({
             title: "Show a random piece of evidence",
@@ -1036,7 +1044,7 @@ function onCourtroomJoin() {
 
             // Click Send button
             ui.leftFrame_sendButton.click();
-            Logger.log("[#bgs" + random + "]", "volume-medium");
+            ui.Logger.log("[#bgs" + random + "]", "volume-medium");
         });
         ui.customButtons_soundRouletteButton.setAttributes({
             title: "Play a random sound effect",
@@ -1058,7 +1066,7 @@ function onCourtroomJoin() {
 
             // Click Send button
             ui.leftFrame_sendButton.click();
-            Logger.log("[#bgm" + random + "]", "music-note");
+            ui.Logger.log("[#bgm" + random + "]", "music-note");
         });
         ui.customButtons_musicRouletteButton.setAttributes({
             title: "Play a random Music",
@@ -1090,7 +1098,7 @@ function onCourtroomJoin() {
                         if (!scriptSetting.show_console) {
                             alert(howl._src);
                         }
-                        Logger.log(howl._src, "link-variant");
+                        ui.Logger.log(howl._src, "link-variant");
                         break;
                     }
                 };
@@ -1110,7 +1118,7 @@ function onCourtroomJoin() {
         }
 
         // Log row
-        const Logger = {
+        ui.Logger = {
             lines: [],
             log: function(str, icon=null) {
                 // If a duplicate is find, delete it before adding a new one
@@ -1151,13 +1159,13 @@ function onCourtroomJoin() {
                     });
                     item.append(document.createTextNode(entry.str));
 
-                    item.addEventListener("mouseenter", e=>{
-                        e.target.style.overflow="visible";
+                    item.addEventListener("mouseenter", e => {
+                        e.target.style.overflow = "visible";
                     });
 
-                    item.addEventListener("mouseleave", e=>{
-                        e.target.parentNode.childNodes.forEach(c=>{
-                            c.style.overflow="hidden";
+                    item.addEventListener("mouseleave", e => {
+                        e.target.parentNode.childNodes.forEach(c => {
+                            c.style.overflow = "hidden";
                         })
                     });
 
