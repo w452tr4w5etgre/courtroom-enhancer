@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.683
+// @version      0.684
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -161,8 +161,9 @@ function onCourtroomJoin() {
     ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
     ui.evidence_form = ui.evidence_container.querySelector("div > form");
     ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
-    ui.evidence_buttonsRow = ui.evidence_form.lastChild;
-    ui.evidence_addButton = ui.evidence_form.querySelector("div:last-of-type > div.col:first-of-type > button.mr-2.v-btn.success");
+    ui.evidence_formBottomRow = ui.evidence_form.lastChild;
+    ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
+    ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.mr-2.v-btn.success");
     ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
 
     ui.settings_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)");
@@ -262,8 +263,16 @@ function onCourtroomJoin() {
             }
         }, true);
 
+        ui.evidence_formBottomRow_container = document.createElement("div");
+        ui.evidence_formBottomRow_container.className = "d-flex justify-space-between";
+        ui.evidence_formBottomRow_container.style.width = "100%";
+        ui.evidence_formBottomRow_container.style.alignItems = "center";
+        ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
+        ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_buttonsColumn);
+        ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_container);
+
         // Add evidence sources
-        var evidenceUploader = function() {
+        const evidenceUploader = function() {
             var parseForm = function(data) {
                 const form = new FormData();
                 Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
@@ -314,7 +323,7 @@ function onCourtroomJoin() {
                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
 
                 dragdropDiv.setAttributes({
-                    firstChild: {classList: "v-icon v-icon--left mdi mdi-image-size-select-large"},
+                    firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
                     lastChild: {textContent: "Drop file"},
                     style: {
                         borderColor: "teal",
@@ -323,35 +332,31 @@ function onCourtroomJoin() {
                 });
             }
 
-            ui.evidence_extraSourcesColumn = document.createElement("div");
-            ui.evidence_extraSourcesColumn.setAttributes({
-                className: "col",
+            ui.evidence_formBottomRow_uploaderColumn = document.createElement("div");
+            ui.evidence_formBottomRow_uploaderColumn.setAttributes({
+                className: "d-flex justify-center",
                 style: {
-                    display: "flex",
-                    gap: "5px",
-                    flexWrap: "nowrap",
-                    justifyContent: "space-evenly",
-                    alignItems: "center"
+                    gap: "8px",
+                    flex: "2 1 auto",
                 }
             });
 
             const dragdropDiv = document.createElement("div");
             dragdropDiv.setAttributes({
+                className: "d-flex justify-center",
                 style: {
-                    display: "flex",
                     alignItems: "center",
                     alignSelf: "flex-end",
                     minWidth: "140px",
-                    height: "80%",
+                    height: "36px",
                     border: "2px dashed teal",
-                    padding: "0px 15px",
                     userSelect: "none",
                     cursor: "pointer"
                 }
             });
 
             const dragdropIcon = document.createElement("i");
-            dragdropIcon.classList = "v-icon v-icon--left mdi mdi-image-size-select-large";
+            dragdropIcon.className = "v-icon v-icon--left mdi mdi-image-size-select-large";
             dragdropDiv.append(dragdropIcon);
             dragdropIcon.after(document.createTextNode("Upload image"));
 
@@ -363,13 +368,12 @@ function onCourtroomJoin() {
             });
 
             dragdropFile.addEventListener("change", e => {
-                console.log(e.target.files);
                 if (e.target.files) {
                     var files = e.target.files;
                     for (const file of files) {
                         if (file.type.match("^image/")) {
                             dragdropDiv.setAttributes({
-                                firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
                                 lastChild: {textContent: "Uploading"},
                                 style: {
                                     borderColor: "yellow",
@@ -396,7 +400,7 @@ function onCourtroomJoin() {
                             var file = item.getAsFile();
                             if (file.type.match("^image/")) {
                                 dragdropDiv.setAttributes({
-                                    firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                    firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
                                     lastChild: {textContent: "Uploading"},
                                     style: {
                                         borderColor: "yellow",
@@ -409,7 +413,7 @@ function onCourtroomJoin() {
                         } else if (item.kind === "string" && item.type.match("^text/uri")) {
                             item.getAsString(str => {
                                 dragdropDiv.setAttributes({
-                                    firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                    firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
                                     lastChild: {textContent: "Uploading"},
                                     style: {
                                         borderColor: "yellow",
@@ -437,8 +441,8 @@ function onCourtroomJoin() {
             // Upload by gelbooru tags
             const gelbooruDiv = document.createElement("div");
             gelbooruDiv.setAttributes({
+                className: "d-flex",
                 style: {
-                    display: "flex",
                     alignItems: "center"
                 }
             });
@@ -446,7 +450,7 @@ function onCourtroomJoin() {
             const gelbooruIcon = document.createElement("img");
             gelbooruIcon.setAttributes({
                 src: "https://gelbooru.com/favicon.png",
-                classList: "v-icon v-icon--left",
+                className: "v-icon v-icon--left",
                 style: {
                     cursor: "pointer"
                 }
@@ -470,7 +474,7 @@ function onCourtroomJoin() {
             });
 
             gelbooruBtnSend.setAttributes({
-                classList: "mdi mdi-send",
+                className: "mdi mdi-send",
                 style: {cursor: "pointer"}
             });
 
@@ -479,14 +483,12 @@ function onCourtroomJoin() {
             gelbooruDiv.append(gelbooruIcon, gelbooruTagsContainer);
 
             gelbooruIcon.addEventListener("click", e => {
-                var display = gelbooruTagsContainer.style.display
-                if (display == "none") {
-                    gelbooruTagsContainer.style.display = "flex";
-                    dragdropDiv.style.display = "none";
+                var state = gelbooruTagsContainer.classList.toggle("d-flex");
+                gelbooruTagsContainer.classList.toggle("d-none");
+                dragdropDiv.classList.toggle("d-flex");
+                dragdropDiv.classList.toggle("d-none");
+                if (state) {
                     gelbooruInputTags.focus();
-                } else {
-                    gelbooruTagsContainer.style.display = "none";
-                    dragdropDiv.style.display = "flex";
                 }
             });
 
@@ -535,28 +537,34 @@ function onCourtroomJoin() {
                 });
             });
 
-            ui.evidence_extraSourcesColumn.append(dragdropDiv, gelbooruDiv);
+            ui.evidence_formBottomRow_uploaderColumn.append(dragdropDiv, gelbooruDiv);
 
-            ui.evidence_form.lastChild.append(ui.evidence_extraSourcesColumn);
+            ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_uploaderColumn);
         }();
 
         // Show evidence count
-        ui.evidence_evidenceTotalColumn = document.createElement("div");
-        ui.evidence_evidenceTotalColumn.className = "col";
-        ui.evidence_evidenceTotalColumn.style.textAlign = "center";
-        ui.evidence_evidenceTotalColumn.updateCount = function() {
-            let evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
-            if (evidCount == evidMax) {
-                this.className = "col mdi mdi-alert error--text";
-            } else if (evidCount / evidMax > 0.9) {
-                this.className = "col warning--text";
-            } else {
-                this.className = "col success--text";
-            }
-            this.textContent = evidCount + " / " + evidMax;
-        };
-        ui.evidence_form.lastChild.append(ui.evidence_evidenceTotalColumn);
+        const evidenceCounter = function() {
+            ui.evidence_formBottomRow_counterColumn = document.createElement("div");
+            ui.evidence_formBottomRow_counterColumn.className = "d-flex";
+            ui.evidence_formBottomRow_counterText = document.createElement("div");
 
+            ui.evidence_formBottomRow_counterText.updateCount = function() {
+                let evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
+                if (evidCount == evidMax) {
+                    this.className = "mdi mdi-alert error--text";
+                } else if (evidCount / evidMax > 0.9) {
+                    this.className = "warning--text";
+                } else {
+                    this.className = "success--text";
+                }
+                this.textContent = evidCount + " / " + evidMax;
+            };
+
+            ui.evidence_formBottomRow_counterColumn.append(ui.evidence_formBottomRow_counterText);
+            ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_counterColumn);
+        }();
+
+        // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function(node) {
             let divCard = node.firstChild;
             let divImage = divCard.querySelector("div.v-image");
@@ -604,7 +612,7 @@ function onCourtroomJoin() {
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
         function on_evidenceListChange(changes, observer) {
-            ui.evidence_evidenceTotalColumn.updateCount();
+            ui.evidence_formBottomRow_counterText.updateCount();
             for (let change of changes) {
                 for (let node of change.addedNodes) {
                     ui.evidence_list.fixEvidenceItem(node);
@@ -1332,7 +1340,7 @@ function onCourtroomJoin() {
                         });
                         let i = document.createElement("i");
                         i.setAttributes({
-                            classList: "mdi mdi-open-in-new",
+                            className: "mdi mdi-open-in-new",
                             style: {marginLeft: "2px", fontSize: "12px"}
                         });
                         a.append(i);
