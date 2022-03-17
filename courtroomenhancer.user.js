@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.688
+// @version      0.689
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -127,28 +127,30 @@ function onCourtroomJoin() {
 
     ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
     ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
-    ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content");
 
     ui.rightFrame_toolbarGetTabs = function() {
-        for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
-            switch (toolbarTab.textContent.trim()) {
-                case "Chat Log":
-                    ui.rightFrame_toolbarTabChatLog = toolbarTab;
-                    break;
-                case "Evidence":
-                    ui.rightFrame_toolbarTabEvidence = toolbarTab;
-                    break;
-                case "Backgrounds":
-                    ui.rightFrame_toolbarTabBackgrounds = toolbarTab;
-                    break;
-                case "Settings":
-                    ui.rightFrame_toolbarTabSettings = toolbarTab;
-                    break;
-                case "Admin":
-                    ui.rightFrame_toolbarTabAdmin = toolbarTab;
-                    break;
-                default:
-                    console.error("Tab not found: "+toolbarTab.textContent);
+        ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content")
+        if (ui.rightFrame_toolbarTabs) {
+            for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
+                switch (toolbarTab.textContent.trim()) {
+                    case "Chat Log":
+                        ui.rightFrame_toolbarTabChatLog = toolbarTab;
+                        break;
+                    case "Evidence":
+                        ui.rightFrame_toolbarTabEvidence = toolbarTab;
+                        break;
+                    case "Backgrounds":
+                        ui.rightFrame_toolbarTabBackgrounds = toolbarTab;
+                        break;
+                    case "Settings":
+                        ui.rightFrame_toolbarTabSettings = toolbarTab;
+                        break;
+                    case "Admin":
+                        ui.rightFrame_toolbarTabAdmin = toolbarTab;
+                        break;
+                    default:
+                        console.error("Tab not found: " + toolbarTab.textContent);
+                }
             }
         }
     }();
@@ -236,11 +238,13 @@ function onCourtroomJoin() {
     // Evidence tab enhancements
     const enhanceEvidenceTab = function() {
         // Clicking "Evidence" focuses on the URL input
-        ui.rightFrame_toolbarTabEvidence.addEventListener("click", e => {
-            setTimeout(f => {
-                ui.evidence_formFields[1].click();
-            }, 200);
-        });
+        if (ui.rightFrame_toolbarTabs) {
+            ui.rightFrame_toolbarTabEvidence.addEventListener("click", e => {
+                setTimeout(f => {
+                    ui.evidence_formFields[1].click();
+                }, 200);
+            });
+        }
 
         // Pressing the Enter key on the form fields clicks the "Add" button
         ui.evidence_formFields.forEach(f => {
@@ -289,7 +293,7 @@ function onCourtroomJoin() {
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
-                            callback(res.responseText, (file.name.substring(0, file.name.lastIndexOf('.')) || file.name));
+                            callback(res.responseText, (file.name.substring(0, file.name.lastIndexOf('.')) || file.name).substr(0,20));
                         } else {
                             alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
                         }
