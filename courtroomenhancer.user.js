@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.687
+// @version      0.688
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -289,7 +289,7 @@ function onCourtroomJoin() {
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
-                            callback(res.responseText);
+                            callback(res.responseText, (file.name.substring(0, file.name.lastIndexOf('.')) || file.name));
                         } else {
                             alert("Request returned code" + res.status + ":" + res.responseText.substr(0,200));
                         }
@@ -315,8 +315,8 @@ function onCourtroomJoin() {
                 });
             }
 
-            var uploadCallback = function(url) {
-                ui.evidence_formFields[0].value = "upload";
+            var uploadCallback = function(url, filename = "upload") {
+                ui.evidence_formFields[0].value = filename;
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
 
                 ui.evidence_formFields[1].value = url;
