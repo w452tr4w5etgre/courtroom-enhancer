@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.685
+// @version      0.686
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,9 +32,9 @@ var initSettings = function() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 482500),
-        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41500),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 136200)
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 484300),
+        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41700),
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000)
     };
 }();
 
@@ -49,8 +49,8 @@ function checkJoinBoxReady(changes, observer) {
         ui.app = document.querySelector("div#app");
     }
 
-    for (let change of changes) {
-        for (let node of change.addedNodes) {
+    for (const change of changes) {
+        for (const node of change.addedNodes) {
             if (node === ui.app.querySelector("div.v-dialog__content.v-dialog__content--active")) {
                 if (ui.joinBox_container = node.querySelector("div.v-dialog > div.v-card")) {
                     ui.joinBox_usernameInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:first-of-type > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
@@ -92,7 +92,7 @@ function checkJoinBoxReady(changes, observer) {
             }
         }
 
-        for (let node of change.removedNodes) {
+        for (const node of change.removedNodes) {
             if (ui.joinBox_container && node === ui.joinBox_container.parentNode.parentNode) {
                 observer.disconnect();
                 if (scriptSetting.remember_username) {
@@ -130,7 +130,7 @@ function onCourtroomJoin() {
     ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content");
 
     ui.rightFrame_toolbarGetTabs = function() {
-        for (let toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
+        for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
             switch (toolbarTab.textContent.trim()) {
                 case "Chat Log":
                     ui.rightFrame_toolbarTabChatLog = toolbarTab;
@@ -177,7 +177,7 @@ function onCourtroomJoin() {
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
     // Handle username changes and update the stored username
-    let on_usernameChange = function(name) {
+    const on_usernameChange = function(name) {
         // Delay check
         setStoredUsername(name);
     };
@@ -196,7 +196,7 @@ function onCourtroomJoin() {
     ui.evidence_list.style.scrollBehavior = "smooth";
 
     // Function to create a button
-    var createButton = function(id, label, icon=null, callback) {
+    const createButton = function(id, label, icon=null, callback) {
         let elem_div = document.createElement("div");
         elem_div.setAttributes({
             id: id + "_button"
@@ -234,7 +234,7 @@ function onCourtroomJoin() {
     }
 
     // Evidence tab enhancements
-    var enhanceEvidenceTab = function() {
+    const enhanceEvidenceTab = function() {
         // Clicking "Evidence" focuses on the URL input
         ui.rightFrame_toolbarTabEvidence.addEventListener("click", e => {
             setTimeout(f => {
@@ -259,7 +259,7 @@ function onCourtroomJoin() {
             }
             e.target.blur();
             if (ui.evidence_list.childElementCount) {
-                setTimeout(f=>{ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight;}, 250);
+                setTimeout(f => {ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight;}, 250);
             }
         }, true);
 
@@ -549,7 +549,7 @@ function onCourtroomJoin() {
             ui.evidence_formBottomRow_counterText = document.createElement("div");
 
             ui.evidence_formBottomRow_counterText.updateCount = function() {
-                let evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
+                const evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
                 if (evidCount == evidMax) {
                     this.className = "mdi mdi-alert error--text";
                 } else if (evidCount / evidMax > 0.9) {
@@ -568,12 +568,12 @@ function onCourtroomJoin() {
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function(node) {
-            let divCard = node.firstChild;
-            let divImage = divCard.querySelector("div.v-image");
-            let divTitle = divCard.querySelector("div.v-card__title");
-            let divSubtitle = divCard.querySelector("div.v-card__subtitle");
-            let divActions = divCard.querySelector("div.v-card__actions");
-            let buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
+            const divCard = node.firstChild;
+            const divImage = divCard.querySelector("div.v-image");
+            const divTitle = divCard.querySelector("div.v-card__title");
+            const divSubtitle = divCard.querySelector("div.v-card__subtitle");
+            const divActions = divCard.querySelector("div.v-card__actions");
+            const buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
 
             divSubtitle.style.padding = "8px";
             buttonEye.style.display = "none";
@@ -615,8 +615,8 @@ function onCourtroomJoin() {
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
         function on_evidenceListChange(changes, observer) {
             ui.evidence_formBottomRow_counterText.updateCount();
-            for (let change of changes) {
-                for (let node of change.addedNodes) {
+            for (const change of changes) {
+                for (const node of change.addedNodes) {
                     ui.evidence_list.fixEvidenceItem(node);
                 }
             }
@@ -626,30 +626,30 @@ function onCourtroomJoin() {
     // Add setting options under the Settings tab
     var enhanceSettingsTab = function() {
         var createExtraSettingElemCheckbox = function(id, text, callback) {
-            let div = document.createElement("div");
+            const div = document.createElement("div");
             div.setAttributes({
                 className: "v-input d-inline-block mr-2"
             });
 
-            let div_input_control = document.createElement("div");
+            const div_input_control = document.createElement("div");
             div_input_control.setAttributes({
                 className: "v-input__control"
             });
             div.appendChild(div_input_control);
 
-            let div_input_slot = document.createElement("div");
+            const div_input_slot = document.createElement("div");
             div_input_slot.setAttributes({
                 className: "v-input__slot"
             });
             div_input_control.appendChild(div_input_slot);
 
-            let div_input_selection = document.createElement("div");
+            const div_input_selection = document.createElement("div");
             div_input_selection.setAttributes({
                 className: "v-input--selection-controls__input mr-0"
             });
             div_input_slot.appendChild(div_input_selection);
 
-            let input = document.createElement("input");
+            const input = document.createElement("input");
             div_input_selection.appendChild(input);
             input.setAttributes({
                 className: "v-input--selection-controls__input pointer-item",
@@ -662,7 +662,7 @@ function onCourtroomJoin() {
             });
             input.addEventListener("change", callback);
 
-            let label = document.createElement("label");
+            const label = document.createElement("label");
             div_input_slot.appendChild(label);
             label.setAttributes({
                 htmlFor: id,
@@ -677,12 +677,12 @@ function onCourtroomJoin() {
         }
 
         var createExtraSettingElemText = function(id, text, callback, input_type="text") {
-            let div_column = document.createElement("div");
+            const div_column = document.createElement("div");
             div_column.setAttributes({
                 className: "d-inline-block"
             });
 
-            let div = document.createElement("div");
+            const div = document.createElement("div");
             div.setAttributes({
                 className: "v-input v-text-field",
                 style: {
@@ -691,13 +691,13 @@ function onCourtroomJoin() {
             });
             div_column.appendChild(div);
 
-            let div_input_control = document.createElement("div");
+            const div_input_control = document.createElement("div");
             div_input_control.setAttributes({
                 className: "v-input__control"
             });
             div.appendChild(div_input_control);
 
-            let div_input_slot = document.createElement("div");
+            const div_input_slot = document.createElement("div");
             div_input_slot.setAttributes({
                 className: "v-input__slot",
                 style: {
@@ -706,13 +706,13 @@ function onCourtroomJoin() {
             });
             div_input_control.appendChild(div_input_slot);
 
-            let div_input_selection = document.createElement("div");
+            const div_input_selection = document.createElement("div");
             div_input_selection.setAttributes({
                 className: "v-text-field__slot"
             });
             div_input_slot.appendChild(div_input_selection);
 
-            let label = document.createElement("label");
+            const label = document.createElement("label");
             label.setAttributes({
                 htmlFor: id,
                 className: "v-label v-label--active",
@@ -726,7 +726,7 @@ function onCourtroomJoin() {
             label.textContent = text;
             div_input_slot.appendChild(label);
 
-            let input = document.createElement("input");
+            const input = document.createElement("input");
             input.type = input_type;
             input.id = id;
             input.value = scriptSetting[id];
@@ -754,23 +754,24 @@ function onCourtroomJoin() {
         }
 
         ui.extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("warn_on_exit", value);
         });
 
         ui.extraSettings_rememberUsername = createExtraSettingElemCheckbox("remember_username", "Remember username", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("remember_username", value);
         });
 
         ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("show_console", value);
-            ui.customButtons_rowLog.style.display = value ? "flex" : "none";
+            ui.customButtons_rowLog.classList.toggle("d-flex", value);
+            ui.customButtons_rowLog.classList.toggle("d-none", !value);
         });
 
         ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Scroll to adjust text", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("adjust_chat_text_with_wheel", value);
             if (value) {
                 ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
@@ -780,7 +781,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Link tooltips", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("chat_hover_tooltip", value);
             if (value) {
                 ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
@@ -790,21 +791,19 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_disableKeyboardShortcuts = createExtraSettingElemCheckbox("disable_keyboard_shortcuts", "Disable WASD shortcuts", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("disable_keyboard_shortcuts", value);
             if (value) {
                 ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
-                ui.settings_keyboardShortcutsWS.style.display = "none";
-                ui.settings_keyboardShortcutsAD.style.display = "none";
             } else {
                 ui.main.removeEventListener("shortkey", disableKeyboardShortcuts, true);
-                ui.settings_keyboardShortcutsWS.style.display = "flex";
-                ui.settings_keyboardShortcutsAD.style.display = "flex";
             }
+            ui.settings_keyboardShortcutsWS.style.display = value ? "none" : "flex";
+            ui.settings_keyboardShortcutsAD.style.display = value ? "none" : "flex";
         });
 
         ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("evid_roulette", value);
             ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none";
             ui.extraSettings_rouletteEvidAsIcon.style.display = value ? "inline-block" : "none";
@@ -812,26 +811,26 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("sound_roulette", value);
             ui.customButtons_soundRouletteButton.style.display = value ? "inline" : "none"
             ui.extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none";
         });
 
         ui.extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("music_roulette", value);
             ui.customButtons_musicRouletteButton.style.display = value ? "inline" : "none"
             ui.extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none";
         });
 
         ui.extraSettings_rouletteEvidAsIcon = createExtraSettingElemCheckbox("evid_roulette_as_icon", "icon", e => {
-            let value = e.target.checked;
+            const value = e.target.checked;
             setSetting("evid_roulette_as_icon", value);
         });
 
         ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", e => {
-            let value = parseInt(e.target.value);
+            const value = parseInt(e.target.value);
             if (value) {
                 setSetting("evid_roulette_max", value);
             } else {
@@ -842,7 +841,7 @@ function onCourtroomJoin() {
         }, "number");
 
         ui.extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", e => {
-            let value = parseInt(e.target.value);
+            const value = parseInt(e.target.value);
             if (value) {
                 setSetting("sound_roulette_max", value);
             } else {
@@ -853,7 +852,7 @@ function onCourtroomJoin() {
         }, "number");
 
         ui.extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", e => {
-            let value = parseInt(e.target.value);
+            const value = parseInt(e.target.value);
             if (value) {
                 setSetting("music_roulette_max", value);
             } else {
@@ -864,10 +863,10 @@ function onCourtroomJoin() {
         }, "number")
 
         // Get the <hr> separator on the Settings page
-        let settings_separator = ui.settings_separator;
+        const settings_separator = ui.settings_separator;
 
         // Row 1 - Header
-        let extraSettings_rows = [];
+        const extraSettings_rows = [];
         ui.extraSettings_rowHeader = document.createElement("h3");
         ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
@@ -997,7 +996,7 @@ function onCourtroomJoin() {
                 return;
             }
 
-            let random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
+            const random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
 
             ui.leftFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
@@ -1019,7 +1018,7 @@ function onCourtroomJoin() {
                 return;
             }
 
-            let random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
+            const random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
 
             ui.leftFrame_textarea.value = "[#bgs" + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
@@ -1041,7 +1040,7 @@ function onCourtroomJoin() {
                 return;
             }
 
-            let random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
+            const random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
 
             ui.leftFrame_textarea.value = "[#bgm" + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
@@ -1075,7 +1074,7 @@ function onCourtroomJoin() {
             });
 
             ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "BGM URL", "link-variant", e => {
-                for (let howl of unsafeWindow.Howler._howls) {
+                for (const howl of unsafeWindow.Howler._howls) {
                     if (howl._state == "loaded" && howl._loop) {
                         if (!scriptSetting.show_console) {
                             alert(howl._src);
@@ -1100,7 +1099,7 @@ function onCourtroomJoin() {
         }
 
         // Log row
-        let Logger = {
+        const Logger = {
             lines: [],
             log: function(str, icon=null) {
                 // If a duplicate is find, delete it before adding a new one
@@ -1121,7 +1120,7 @@ function onCourtroomJoin() {
                 }
 
                 this.lines.forEach(entry => {
-                    let item = document.createElement("span")
+                    const item = document.createElement("span")
                     if (entry.icon) {
                         icon = document.createElement("i");
                         icon.classList.add("mdi","mr-1", "mdi-" + entry.icon);
@@ -1306,15 +1305,17 @@ function onCourtroomJoin() {
 
         onChatListMouseOver = function(e) {
             // Find the item element
-            let chatItem = e.target.closest("div.v-list-item__content"), chatName, chatText;
+            const chatItem = e.target.closest("div.v-list-item__content");
+            let chatName, chatText;
+
             if (chatItem === null || chatLog_lastItem == chatItem) {
                 return;
             }
             chatLog_lastItem = chatItem;
 
-            let chatItemPopulate = function() {
+            const chatItemPopulate = function() {
                 // Make sure the chat element is not a system message
-                let chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
+                const chatItemIcon = chatItem.previousSibling.firstChild.firstChild;
                 if (!chatItemIcon.classList.contains("mdi-account-tie") &&
                     !chatItemIcon.classList.contains("mdi-crown") &&
                     !chatItemIcon.classList.contains("mdi-account")) {
@@ -1326,13 +1327,13 @@ function onCourtroomJoin() {
 
                 ui.chatLog_customTooltip.innerHTML = chatName + ":&nbsp;";
 
-                let matchedElements = [];
+                const matchedElements = [];
 
-                let urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-                let urlMatches = chatText.match(urlRegex);
+                const urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+                const urlMatches = chatText.match(urlRegex);
                 if (urlMatches) {
                     urlMatches.forEach(f => {
-                        let a = document.createElement("a");
+                        const a = document.createElement("a");
                         a.setAttributes({
                             href: f,
                             textContent: f,
@@ -1340,7 +1341,7 @@ function onCourtroomJoin() {
                             rel: "noreferrer",
                             style: {display: "inline-block", fontSize: "14px"}
                         });
-                        let i = document.createElement("i");
+                        const i = document.createElement("i");
                         i.setAttributes({
                             className: "mdi mdi-open-in-new",
                             style: {marginLeft: "2px", fontSize: "12px"}
@@ -1350,11 +1351,11 @@ function onCourtroomJoin() {
                     });
                 }
 
-                let imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif|webp)\S*)/ig;
-                let imgMatches = chatText.match(imgRegex);
+                const imgRegex = /(https?:\/\/\S+(?:png|jpe?g|gif|webp)\S*)/ig;
+                const imgMatches = chatText.match(imgRegex);
                 if (imgMatches) {
                     imgMatches.forEach(f => {
-                        let img = document.createElement("img");
+                        const img = document.createElement("img");
                         img.setAttributes({
                             src: f,
                             alt: f,
@@ -1373,7 +1374,7 @@ function onCourtroomJoin() {
                             ui.chatLog_customTooltip.reposition(chatItem); // Move the custom tooltip to fit the loaded image
                         });
 
-                        let a = document.createElement("a");
+                        const a = document.createElement("a");
                         a.setAttributes({
                             href: f,
                             target: "_blank",
@@ -1385,11 +1386,11 @@ function onCourtroomJoin() {
                     });
                 }
 
-                let videoRegex = /(https?:\/\/\S+(?:webm|mp4)\S*)/ig;
-                let videoMatches = chatText.match(videoRegex);
+                const videoRegex = /(https?:\/\/\S+(?:webm|mp4)\S*)/ig;
+                const videoMatches = chatText.match(videoRegex);
                 if (videoMatches) {
                     videoMatches.forEach(f => {
-                        let video = document.createElement("video");
+                        const video = document.createElement("video");
                         video.setAttributes({
                             src: f,
                             loop: "true",
@@ -1411,11 +1412,11 @@ function onCourtroomJoin() {
                     });
                 }
 
-                let youtubeRegex = /https?:\/\/(?:www\.)?youtu(?:\.be\/|be\.com\/watch\?v=)([\w_-]+)\S*/g;
-                let youtubeMatches = chatText.matchAll(youtubeRegex);
+                const youtubeRegex = /https?:\/\/(?:www\.)?youtu(?:\.be\/|be\.com\/watch\?v=)([\w_-]+)\S*/g;
+                const youtubeMatches = chatText.matchAll(youtubeRegex);
                 if (youtubeMatches) {
-                    for (let match of youtubeMatches) {
-                        let youtubeEmbed = document.createElement("iframe");
+                    for (const match of youtubeMatches) {
+                        const youtubeEmbed = document.createElement("iframe");
                         youtubeEmbed.setAttributes({
                             src: "https://www.youtube.com/embed/" + match[1] + "?enablejsapi=1",
                             loop: "true",
@@ -1441,11 +1442,11 @@ function onCourtroomJoin() {
                     }
                 }
 
-                let audioRegex = /(https?:\/\/\S+(?:mp3|ogg|m4a)\S*)/ig;
-                let audioMatches = chatText.match(audioRegex);
+                const audioRegex = /(https?:\/\/\S+(?:mp3|ogg|m4a)\S*)/ig;
+                const audioMatches = chatText.match(audioRegex);
                 if (audioMatches) {
                     audioMatches.forEach(f => {
-                        let audio = document.createElement("audio");
+                        const audio = document.createElement("audio");
                         audio.setAttributes({
                             src: f,
                             controls: "true",
@@ -1542,7 +1543,7 @@ function on_beforeUnload(e) {
 }
 
 function getSetting(setting_name, default_value) {
-    let value = storeGet("setting_" + setting_name, default_value);
+    var value = storeGet("setting_" + setting_name, default_value);
     switch (typeof default_value) {
         case "number":
             value = parseInt(value) || default_value;
@@ -1611,8 +1612,8 @@ function storeClear() {
     if (typeof GM_listValues === "undefined") {
         localStorage.clear();
     } else {
-        let storedSettings = GM_listValues();
-        for (let val in storedSettings) {
+        const storedSettings = GM_listValues();
+        for (const val in storedSettings) {
             GM_deleteValue(storedSettings[val]);
         }
     }
