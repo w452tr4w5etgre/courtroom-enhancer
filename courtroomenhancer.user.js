@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.684
+// @version      0.685
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -562,7 +562,9 @@ function onCourtroomJoin() {
 
             ui.evidence_formBottomRow_counterColumn.append(ui.evidence_formBottomRow_counterText);
             ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_counterColumn);
+            ui.evidence_formBottomRow_counterText.updateCount();
         }();
+
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function(node) {
