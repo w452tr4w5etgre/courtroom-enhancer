@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.682
+// @version      0.683
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -340,27 +340,60 @@ function onCourtroomJoin() {
                 style: {
                     display: "flex",
                     alignItems: "center",
+                    alignSelf: "flex-end",
                     minWidth: "140px",
                     height: "80%",
                     border: "2px dashed teal",
                     padding: "0px 15px",
-                    userSelect: "none"
+                    userSelect: "none",
+                    cursor: "pointer"
                 }
             });
 
             const dragdropIcon = document.createElement("i");
             dragdropIcon.classList = "v-icon v-icon--left mdi mdi-image-size-select-large";
             dragdropDiv.append(dragdropIcon);
-            dragdropIcon.after(document.createTextNode("Drop file"));
+            dragdropIcon.after(document.createTextNode("Upload image"));
+
+            const dragdropFile = document.createElement("input");
+            dragdropFile.setAttributes({
+                type: "file",
+                accept: "image/*",
+                style: {opacity: 0}
+            });
+
+            dragdropFile.addEventListener("change", e => {
+                console.log(e.target.files);
+                if (e.target.files) {
+                    var files = e.target.files;
+                    for (const file of files) {
+                        if (file.type.match("^image/")) {
+                            dragdropDiv.setAttributes({
+                                firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                lastChild: {textContent: "Uploading"},
+                                style: {
+                                    borderColor: "yellow",
+                                    pointerEvents: "none",
+                                }
+                            });
+                            uploadByFile(file, uploadCallback);
+                        }
+                    }
+                }
+            });
+
+            dragdropDiv.addEventListener("click", e => {
+                dragdropFile.click();
+            });
 
             dragdropDiv.addEventListener("drop", e => {
                 e.preventDefault();
                 dragdropDiv.style.borderColor = "teal";
                 if (e.dataTransfer.items) {
-                    var data = e.dataTransfer.items;
-                    for (var i = 0; i < data.length; i++) {
-                        if (data[i].kind === "file") {
-                            var file = data[i].getAsFile();
+                    var items = e.dataTransfer.items;
+                    for (const item of items) {
+                        if (item.kind === "file") {
+                            var file = item.getAsFile();
                             if (file.type.match("^image/")) {
                                 dragdropDiv.setAttributes({
                                     firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
@@ -373,8 +406,8 @@ function onCourtroomJoin() {
                                 uploadByFile(file, uploadCallback);
                             }
                             break;
-                        } else if (data[i].kind === "string" && data[i].type.match("^text/uri")) {
-                            data[i].getAsString(str => {
+                        } else if (item.kind === "string" && item.type.match("^text/uri")) {
+                            item.getAsString(str => {
                                 dragdropDiv.setAttributes({
                                     firstChild: {classList: "v-icon v-icon--left mdi mdi-progress-upload"},
                                     lastChild: {textContent: "Uploading"},
