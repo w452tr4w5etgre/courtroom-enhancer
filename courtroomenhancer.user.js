@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.695
+// @version      0.696
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -478,6 +478,7 @@ function onCourtroomJoin() {
             const gelbooruIcon = document.createElement("img");
             gelbooruIcon.setAttributes({
                 src: "https://gelbooru.com/favicon.png",
+                title: "Gelbooru",
                 className: "v-icon v-icon--left",
                 style: {
                     cursor: "pointer"
@@ -535,7 +536,7 @@ function onCourtroomJoin() {
                 gelbooruInputTags.disabled = true;
 
                 CrossOrigin({
-                    url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres"),
+                    url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
                     method: "GET",
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
@@ -556,7 +557,7 @@ function onCourtroomJoin() {
                                 gelbooruInputTags.style.color = "white";
                                 gelbooruInputTags.disabled = false;
                                 gelbooruIcon.click();
-                                setTimeout(f=>{ui.evidence_addButton.click()}, 500);
+                                setTimeout(f => {ui.evidence_addButton.click()}, 500);
                             });
                         }
                     }
@@ -1649,7 +1650,7 @@ const CrossOrigin = (function() {
     try {
         return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
     } catch (error) {
-        return false;
+        return console.error(error);
     }
 })();
 
