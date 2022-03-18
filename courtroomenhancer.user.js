@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.693
+// @version      0.694
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -436,66 +436,6 @@ function onCourtroomJoin() {
 
             dragdropFile.addEventListener("change", uploaderElementCallback);
             dragdropDiv.addEventListener("drop", uploaderElementCallback);
-
-            /*
-            dragdropFile.addEventListener("change", e => {
-                if (e.target.files) {
-                    var files = e.target.files;
-                    for (const file of files) {
-                        if (file.type.match("^image/")) {
-                            dragdropDiv.setAttributes({
-                                firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                                lastChild: {textContent: "Uploading"},
-                                style: {
-                                    borderColor: "yellow",
-                                    pointerEvents: "none",
-                                }
-                            });
-                            upload(file, uploadCallback);
-                            break;
-                        }
-                    }
-                }
-            });
-
-            dragdropDiv.addEventListener("drop", e => {
-                e.preventDefault();
-                dragdropDiv.style.borderColor = "teal";
-                if (e.dataTransfer.items) {
-                    var items = e.dataTransfer.items;
-                    for (const item of items) {
-                        if (item.kind === "file") {
-                            var file = item.getAsFile();
-                            if (file.type.match("^image/")) {
-                                dragdropDiv.setAttributes({
-                                    firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                                    lastChild: {textContent: "Uploading"},
-                                    style: {
-                                        borderColor: "yellow",
-                                        pointerEvents: "none",
-                                    }
-                                });
-                                upload(file, uploadCallback);
-                            }
-                            break;
-                        } else if (item.kind === "string" && item.type.match("^text/uri")) {
-                            item.getAsString(str => {
-                                dragdropDiv.setAttributes({
-                                    firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                                    lastChild: {textContent: "Uploading"},
-                                    style: {
-                                        borderColor: "yellow",
-                                        pointerEvents: "none",
-                                    }
-                                });
-                                upload(str, uploadCallback);
-                            });
-                            break;
-                        }
-                    }
-                }
-            })
-            */
 
             dragdropDiv.addEventListener("dragover", e => {
                 e.preventDefault();
