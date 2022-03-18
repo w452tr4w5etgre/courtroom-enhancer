@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.698
+// @version      0.699
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -237,15 +237,6 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     const enhanceEvidenceTab = function() {
-        // Clicking "Evidence" focuses on the URL input
-        if (ui.rightFrame_toolbarTabs) {
-            ui.rightFrame_toolbarTabEvidence.addEventListener("click", e => {
-                setTimeout(f => {
-                    ui.evidence_formFields[1].click();
-                }, 200);
-            });
-        }
-
         // Pressing the Enter key on the form fields clicks the "Add" button
         ui.evidence_formFields.forEach(f => {
             f.addEventListener("keydown", e => {
@@ -334,7 +325,8 @@ function onCourtroomJoin() {
             },
 
             filePicker: function(callback, filetype = "image") {
-                const uploadCallback = (function() {
+
+                const resetElem = function() {
                     elemContainer.setAttributes({
                         firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
                         lastChild: {textContent: "Upload " + filetype},
@@ -343,8 +335,13 @@ function onCourtroomJoin() {
                             pointerEvents: "auto",
                         }
                     });
+                };
+
+
+                const uploadCallback = function() {
+                    resetElem();
                     callback.apply(this, arguments);
-                });
+                };
 
                 const elemContainer = document.createElement("div");
                 elemContainer.setAttributes({
@@ -420,7 +417,8 @@ function onCourtroomJoin() {
                         });
                         this.upload(file, uploadCallback);
                     } else {
-                        ui.Logger.log("error");
+                        resetElem();
+                        ui.Logger.log("Error");
                         return;
                     }
                 }
@@ -457,7 +455,7 @@ function onCourtroomJoin() {
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                 ui.evidence_formFields[1].value = url;
                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-            });
+            }, "image");
 
             evidenceImageUploader.setAttributes({
                 style: {
