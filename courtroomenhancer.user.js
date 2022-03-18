@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.699
+// @version      0.700
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -794,8 +794,7 @@ function onCourtroomJoin() {
         ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", e => {
             const value = e.target.checked;
             setSetting("show_console", value);
-            ui.customButtons_rowLog.classList.toggle("d-flex", value);
-            ui.customButtons_rowLog.classList.toggle("d-none", !value);
+            ui.customButtons_rowLogLogger.style.display = value ? "flex" : "none";
         });
 
         ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Scroll to adjust text", e => {
@@ -1128,25 +1127,25 @@ function onCourtroomJoin() {
 
         // Log row
         ui.Logger = {
-            lines: [],
-            log: function(text, icon=null) {
+            entries: [],
+            log: function(text, icon = null) {
                 let duplicate;
-                if (duplicate = this.lines.find(line => line.text == text)) {
-                    this.lines.splice(this.lines.indexOf(duplicate), 1);
+                if (duplicate = this.entries.find(line => line.text == text)) {
+                    this.entries.splice(this.entries.indexOf(duplicate), 1);
                 }
-                if (this.lines.length > 7) {
-                    this.lines.shift();
+                if (this.entries.length > 7) {
+                    this.entries.shift();
                 }
-                this.lines.push({
+                this.entries.push({
                     text: text,
                     icon: icon
                 });
 
-                while (ui.customButtons_logArea.firstChild) {
-                    ui.customButtons_logArea.firstChild.remove()
+                while (this.elemItems.firstChild) {
+                    this.elemItems.firstChild.remove()
                 }
 
-                this.lines.forEach(entry => {
+                this.entries.forEach(entry => {
                     const item = document.createElement("span")
                     if (entry.icon) {
                         icon = document.createElement("i");
@@ -1177,19 +1176,77 @@ function onCourtroomJoin() {
                         })
                     });
 
-                    if (scriptSetting.show_console && ui.customButtons_rowLog.style.display == "none") {
-                        ui.customButtons_rowLog.style.display = "flex";
+                    if (scriptSetting.show_console && this.elemContainer.style.display == "none") {
+                        this.elemContainer.style.display = "flex";
                     }
-                    ui.customButtons_logArea.prepend(item);
+                    this.elemItems.prepend(item);
                 });
-                ui.customButtons_logArea.firstChild.style.borderColor = "#b82792";
+                this.elemItems.firstChild.style.borderColor = "#b82792";
             },
             clear: function() {
-                lines: [];
-                while (ui.customButtons_logArea.firstChild) {
-                    ui.customButtons_logArea.firstChild.remove()
+                this.entries = [];
+                while (this.elemItems.firstChild) {
+                    this.elemItems.firstChild.remove()
                 }
-                ui.customButtons_rowLog.style.display = "none";
+                this.elemContainer.style.display = "none";
+            },
+            init: function() {
+                const elemContainer = document.createElement("div");
+                elemContainer.setAttributes({
+                    style: {
+                        width: "100%",
+                        display: "none"
+                    }
+                });
+
+                const elemShowLogButton = document.createElement("button");
+                elemShowLogButton.setAttributes({
+                    className: "mdi mdi-console theme--dark",
+                    style: {
+                        fontSize: "24px"
+                    }
+                });
+
+                elemShowLogButton.addEventListener("mouseover", e=>{
+                    e.target.classList.remove("mdi-console");
+                    e.target.classList.add("mdi-close-circle");
+                });
+
+                elemShowLogButton.addEventListener("mouseout", e=>{
+                    e.target.classList.remove("mdi-close-circle");
+                    e.target.classList.add("mdi-console");
+                });
+
+                elemShowLogButton.addEventListener("click", e=>{
+                    ui.Logger.clear();
+                });
+
+                elemContainer.append(elemShowLogButton);
+
+                const elemItems = document.createElement("div");
+                elemItems.setAttributes({
+                    className: "d-flex ml-1",
+                    style: {
+                        width: "100%",
+                        gap: "3px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        flexWrap: "nowrap",
+                        fontSize: "11px",
+                        fontFamily: "monospace",
+                        textColor: "white",
+                        lineHeight: "14px",
+                        alignItems: "center",
+                        textAlign: "center"
+                    }
+                });
+
+                elemContainer.append(elemItems);
+
+                this.elemContainer = elemContainer;
+                this.elemItems = elemItems;
+                return elemContainer;
             }
         }
 
@@ -1197,63 +1254,11 @@ function onCourtroomJoin() {
         ui.customButtons_rowLog.setAttributes({
             className: "row mt-4 no-gutters",
             style: {
-                display: "none"
-            }
-        });
-
-        ui.customButtons_rowLogContainer = document.createElement("div");
-        ui.customButtons_rowLogContainer.setAttributes({
-            style: {
-                width: "100%",
                 display: "flex"
             }
         });
-        ui.customButtons_rowLog.append(ui.customButtons_rowLogContainer);
-
-        ui.customButtons_showLogButton = document.createElement("button");
-        ui.customButtons_showLogButton.setAttributes({
-            className: "mdi mdi-console theme--dark",
-            style: {
-                fontSize: "24px"
-            }
-        });
-
-        ui.customButtons_showLogButton.addEventListener("mouseover", e=>{
-            e.target.classList.remove("mdi-console");
-            e.target.classList.add("mdi-close-circle");
-        });
-
-        ui.customButtons_showLogButton.addEventListener("mouseout", e=>{
-            e.target.classList.remove("mdi-close-circle");
-            e.target.classList.add("mdi-console");
-        });
-
-        ui.customButtons_showLogButton.addEventListener("click", e=>{
-            ui.Logger.clear();
-        });
-
-        ui.customButtons_rowLogContainer.append(ui.customButtons_showLogButton);
-
-        ui.customButtons_logArea = document.createElement("div");
-        ui.customButtons_logArea.setAttributes({
-            className: "d-flex ml-1",
-            style: {
-                width: "100%",
-                gap: "3px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                flexWrap: "nowrap",
-                fontSize: "11px",
-                fontFamily: "monospace",
-                textColor: "white",
-                lineHeight: "14px",
-                alignItems: "center",
-                textAlign: "center"
-            }
-        });
-
-        ui.customButtons_rowLogContainer.append(ui.customButtons_logArea);
+        ui.customButtons_rowLogLogger = ui.Logger.init();
+        ui.customButtons_rowLog.append(ui.customButtons_rowLogLogger);
 
         ui.customButtons_rows.push(ui.customButtons_rowLog);
 
@@ -1261,8 +1266,6 @@ function onCourtroomJoin() {
         ui.customButtons_rows.forEach(row => {
             ui.customButtonsContainer.append(row);
         });
-
-        return true;
     }();
 
     // Adjust chatbox text size with mouse wheel
