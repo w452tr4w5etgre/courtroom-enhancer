@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.694
+// @version      0.695
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,7 +32,7 @@ var initSettings = function() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 484300),
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 485000),
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41700),
         "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000)
     };
@@ -276,14 +276,15 @@ function onCourtroomJoin() {
         ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_container);
 
         // Add evidence sources
-        const evidenceUploader = function() {
-            var parseForm = function(data) {
+
+        ui.Uploader = {
+            parseForm: function(data) {
                 const form = new FormData();
                 Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
                 return form;
-            }
+            },
 
-            var upload = function (data, callback) {
+            upload: function (data, callback) {
                 var reqtype, file, filename;
                 if (typeof data === "string") { // Argument passed is an URL
                     try {
@@ -313,9 +314,10 @@ function onCourtroomJoin() {
                 CrossOrigin({
                     url: "https://catbox.moe/user/api.php",
                     method: "POST",
-                    data: parseForm({
+                    data: this.parseForm({
                         reqtype: reqtype,
-                        fileToUpload: file
+                        fileToUpload: file,
+                        url: file
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
@@ -329,25 +331,118 @@ function onCourtroomJoin() {
                         }
                     }
                 });
-            }
+            },
 
-            var uploadCallback = function(url, filename = "upload") {
-                ui.evidence_formFields[0].value = filename;
-                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+            filePicker: function(callback, filetype = "image") {
+                const uploadCallback = (function() {
+                    elemContainer.setAttributes({
+                        firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
+                        lastChild: {textContent: "Upload " + filetype},
+                        style: {
+                            borderColor: "teal",
+                            pointerEvents: "auto",
+                        }
+                    });
+                    callback.apply(this, arguments);
+                });
 
-                ui.evidence_formFields[1].value = url;
-                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-
-                dragdropDiv.setAttributes({
-                    firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
-                    lastChild: {textContent: "Drop file"},
+                const elemContainer = document.createElement("div");
+                elemContainer.setAttributes({
+                    className: "d-flex justify-center",
                     style: {
-                        borderColor: "teal",
-                        pointerEvents: "auto",
+                        alignItems: "center",
+                        minWidth: "140px",
+                        border: "2px dashed teal",
+                        padding: "0px 10px",
+                        userSelect: "none",
+                        cursor: "pointer"
                     }
                 });
-            }
 
+                const elemIcon = document.createElement("i");
+                elemIcon.className = "v-icon v-icon--left mdi mdi-image-size-select-large";
+                elemContainer.append(elemIcon);
+                elemIcon.after(document.createTextNode("Upload " + filetype));
+
+                const elemFile = document.createElement("input");
+                elemFile.setAttributes({
+                    type: "file",
+                    accept: filetype + "/*",
+                    style: {opacity: 0}
+                });
+
+                elemContainer.addEventListener("click", e => {
+                    elemFile.click();
+                });
+
+                const uploaderElementEvent = function(e) {
+                    e.preventDefault();
+                    var dataList, file;
+                    if (e.target.files && e.target.files.length > 0) { // File picked
+                        dataList = e.target.files;
+                    } else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) { // File dragged
+                        dataList = e.dataTransfer.files;
+                    } else if (e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 0) { // URL dragged
+                        dataList = e.dataTransfer.items;
+                    }
+
+                    if (dataList instanceof FileList) {
+                        for (const data of dataList) {
+                            if (data.type.match("^" + filetype + "/")) {
+                                file = data;
+                                break;
+                            }
+                        }
+                    } else if (dataList instanceof DataTransferItemList) {
+                        for (const data of dataList) {
+                            if (data.kind === "string") {
+                                if (data.type.match("^text/uri")) {
+                                    file = data.getAsString(url => {
+                                        this.upload(url, uploadCallback);
+                                    });
+                                    break;
+                                }
+                            } else if (data.kind === "file") {
+                                file = data.getAsFile();
+                                break;
+                            }
+                        }
+                    }
+
+                    if (file) {
+                        elemContainer.setAttributes({
+                            firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
+                            lastChild: {textContent: "Uploading"},
+                            style: {
+                                borderColor: "yellow",
+                                pointerEvents: "none",
+                            }
+                        });
+                        this.upload(file, uploadCallback);
+                    } else {
+                        ui.Logger.log("error");
+                        return;
+                    }
+                }
+
+                elemFile.addEventListener("change", uploaderElementEvent.bind(this));
+                elemContainer.addEventListener("drop", uploaderElementEvent.bind(this));
+
+                elemContainer.addEventListener("dragover", e => {
+                    e.preventDefault();
+                    e.currentTarget.style.borderColor = "red";
+                });
+
+                elemContainer.addEventListener("dragleave", e => {
+                    e.preventDefault();
+                    e.currentTarget.style.borderColor = "teal";
+                });
+
+                return elemContainer;
+            }
+        };
+
+        const evidenceUploaders = function() {
             ui.evidence_formBottomRow_uploaderColumn = document.createElement("div");
             ui.evidence_formBottomRow_uploaderColumn.setAttributes({
                 className: "d-flex justify-center",
@@ -357,99 +452,23 @@ function onCourtroomJoin() {
                 }
             });
 
-            const dragdropDiv = document.createElement("div");
-            dragdropDiv.setAttributes({
-                className: "d-flex justify-center",
+            const evidenceImageUploader = ui.Uploader.filePicker((url, filename) => {
+                ui.evidence_formFields[0].value = filename;
+                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                ui.evidence_formFields[1].value = url;
+                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+            });
+
+            evidenceImageUploader.setAttributes({
                 style: {
-                    alignItems: "center",
                     alignSelf: "flex-end",
-                    minWidth: "140px",
-                    height: "36px",
-                    border: "2px dashed teal",
-                    userSelect: "none",
-                    cursor: "pointer"
+                    height: "36px"
                 }
-            });
-
-            const dragdropIcon = document.createElement("i");
-            dragdropIcon.className = "v-icon v-icon--left mdi mdi-image-size-select-large";
-            dragdropDiv.append(dragdropIcon);
-            dragdropIcon.after(document.createTextNode("Upload image"));
-
-            const dragdropFile = document.createElement("input");
-            dragdropFile.setAttributes({
-                type: "file",
-                accept: "image/*",
-                style: {opacity: 0}
-            });
-
-            dragdropDiv.addEventListener("click", e => {
-                dragdropFile.click();
-            });
-
-            const uploaderElementCallback = function(e) {
-                e.preventDefault();
-                var dataList, file;
-                if (e.target.files && e.target.files.length > 0) { // File picked
-                    dataList = e.target.files;
-                } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) { // File dragged
-                    dataList = e.dataTransfer.files;
-                } else if (e.dataTransfer.items && e.dataTransfer.items.length > 0) { // URL dragged
-                    dataList = e.dataTransfer.items;
-                }
-
-                if (dataList instanceof FileList) {
-                    for (const data of dataList) {
-                        if (data.type.match("^image/")) {
-                            file = data;
-                            break;
-                        }
-                    }
-                } else if (dataList instanceof DataTransferItemList) {
-                    for (const data of dataList) {
-                        if (data.kind === "string") {
-                            if (data.type.match("^text/uri")) {
-                                file = data.getAsString(url => {
-                                    upload(url, uploadCallback);
-                                });
-                            }
-                        } else if (data.kind === "file") {
-                            file = data.getAsFile();
-                        } else {
-                            console.log("error", "kind", data.kind, "type", data.type);
-                        }
-                    }
-                }
-
-                if (file) {
-                    dragdropDiv.setAttributes({
-                        firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                        lastChild: {textContent: "Uploading"},
-                        style: {
-                            borderColor: "yellow",
-                            pointerEvents: "none",
-                        }
-                    });
-                    upload(file, uploadCallback);
-                }
-            }
-
-            dragdropFile.addEventListener("change", uploaderElementCallback);
-            dragdropDiv.addEventListener("drop", uploaderElementCallback);
-
-            dragdropDiv.addEventListener("dragover", e => {
-                e.preventDefault();
-                e.currentTarget.style.borderColor = "red";
-            });
-
-            dragdropDiv.addEventListener("dragleave", e => {
-                e.preventDefault();
-                e.currentTarget.style.borderColor = "teal";
             });
 
             // Upload by gelbooru tags
-            const gelbooruDiv = document.createElement("div");
-            gelbooruDiv.setAttributes({
+            const gelbooruUploader = document.createElement("div");
+            gelbooruUploader.setAttributes({
                 className: "d-flex",
                 style: {
                     alignItems: "center"
@@ -465,7 +484,7 @@ function onCourtroomJoin() {
                 }
             });
 
-            const gelbooruTagsContainer = document.createElement("div"), gelbooruInputTags = document.createElement("input"), gelbooruBtnSend = document.createElement("div");
+            const gelbooruTagsContainer = document.createElement("div");
             gelbooruTagsContainer.setAttributes({
                 style: {
                     display: "none",
@@ -473,6 +492,7 @@ function onCourtroomJoin() {
                 }
             });
 
+            const gelbooruInputTags = document.createElement("input");
             gelbooruInputTags.setAttributes({
                 maxLength: "255",
                 placeholder: "Ex: blue_sky cloud 1girl",
@@ -482,20 +502,20 @@ function onCourtroomJoin() {
                 }
             });
 
+            const gelbooruBtnSend = document.createElement("div");
             gelbooruBtnSend.setAttributes({
                 className: "mdi mdi-send",
                 style: {cursor: "pointer"}
             });
 
             gelbooruTagsContainer.append(gelbooruInputTags, gelbooruBtnSend);
-
-            gelbooruDiv.append(gelbooruIcon, gelbooruTagsContainer);
+            gelbooruUploader.append(gelbooruIcon, gelbooruTagsContainer);
 
             gelbooruIcon.addEventListener("click", e => {
                 var state = gelbooruTagsContainer.classList.toggle("d-flex");
                 gelbooruTagsContainer.classList.toggle("d-none");
-                dragdropDiv.classList.toggle("d-flex");
-                dragdropDiv.classList.toggle("d-none");
+                evidenceImageUploader.classList.toggle("d-flex");
+                evidenceImageUploader.classList.toggle("d-none");
                 if (state) {
                     gelbooruInputTags.focus();
                 }
@@ -527,26 +547,23 @@ function onCourtroomJoin() {
                                 gelbooruInputTags.focus();
                                 return;
                             }
-                            upload(responseJSON.post[0].file_url, f => {
-                                ui.evidence_formFields[0].value = responseJSON.post[0].id;
+                            ui.Uploader.upload(responseJSON.post[0].file_url, (url, name) => {
+                                ui.evidence_formFields[0].value = name;
                                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-
-                                ui.evidence_formFields[1].value = f;
+                                ui.evidence_formFields[1].value = url;
                                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-
-                                setTimeout(f=>{ui.evidence_addButton.click()}, 500);
-
                                 gelbooruInputTags.value = "";
                                 gelbooruInputTags.style.color = "white";
                                 gelbooruInputTags.disabled = false;
                                 gelbooruIcon.click();
+                                setTimeout(f=>{ui.evidence_addButton.click()}, 500);
                             });
                         }
                     }
                 });
             });
 
-            ui.evidence_formBottomRow_uploaderColumn.append(dragdropDiv, gelbooruDiv);
+            ui.evidence_formBottomRow_uploaderColumn.append(evidenceImageUploader, gelbooruUploader);
 
             ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_uploaderColumn);
         }();
@@ -1577,7 +1594,7 @@ function setStoredUsername(username) {
     return storeSet("courtroom_username", String(username));
 }
 
-function storeGet(key, def="") {
+function storeGet(key, def = "") {
     var res;
     if (typeof GM_getValue === "undefined") {
         res = localStorage.getItem(key);
@@ -1600,7 +1617,6 @@ function storeGet(key, def="") {
 };
 
 function storeSet(key, value) {
-    //value = JSON.stringify(value);
     if (typeof GM_setValue === "undefined") {
         return localStorage.setItem(key, value);
     } else {
