@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.701
+// @version      0.702
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -222,7 +222,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            } , "audio");
+                            } , {label: "music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(musicFilePicker);
                             break;
                         case "Sounds":
@@ -233,7 +233,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            } , "audio");
+                            } , {label: "sound", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(soundFilePicker);
                             break;
                     }
@@ -364,7 +364,7 @@ function onCourtroomJoin() {
                                 break;
                         }
                         reqtype = "urlupload";
-                        filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '').substr(0, 20);
+                        filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '');
                         file = url.href;
                     } catch(e) {
                         ui.Logger.log(e);
@@ -374,7 +374,7 @@ function onCourtroomJoin() {
                     try {
                         file = data;
                         reqtype = "fileupload";
-                        filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name).substr(0, 20);
+                        filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                     } catch(e) {
                         ui.Logger.log(e);
                         return;
@@ -402,19 +402,22 @@ function onCourtroomJoin() {
                 });
             },
 
-            filePicker: function(callback, filetype = "image") {
+            filePicker: function(callback, options) {
+                const label = options.label || "image";
+                const acceptedhtml = options.acceptedhtml || "image/*";
+                const acceptedregex = options.acceptedregex || "^image/";
+                const maxsize = options.maxsize || 4e6;
 
                 const resetElem = function() {
                     elemContainer.setAttributes({
                         firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
-                        lastChild: {textContent: "Upload " + filetype},
+                        lastChild: {textContent: "Upload " + label},
                         style: {
                             borderColor: "teal",
                             pointerEvents: "auto",
                         }
                     });
                 };
-
 
                 const uploadCallback = function() {
                     resetElem();
@@ -437,12 +440,12 @@ function onCourtroomJoin() {
                 const elemIcon = document.createElement("i");
                 elemIcon.className = "v-icon v-icon--left mdi mdi-image-size-select-large";
                 elemContainer.append(elemIcon);
-                elemIcon.after(document.createTextNode("Upload " + filetype));
+                elemIcon.after(document.createTextNode("Upload " + label));
 
                 const elemFile = document.createElement("input");
                 elemFile.setAttributes({
                     type: "file",
-                    accept: filetype + "/*",
+                    accept: acceptedhtml,
                     style: {opacity: 0}
                 });
 
@@ -463,7 +466,7 @@ function onCourtroomJoin() {
 
                     if (dataList instanceof FileList) {
                         for (const data of dataList) {
-                            if (data.type.match("^" + filetype + "/")) {
+                            if (data.type.match(acceptedregex)) {
                                 file = data;
                                 break;
                             }
@@ -484,7 +487,7 @@ function onCourtroomJoin() {
                         }
                     }
 
-                    if (file) {
+                    if (file && file.size < maxsize) {
                         elemContainer.setAttributes({
                             firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
                             lastChild: {textContent: "Uploading"},
@@ -494,9 +497,21 @@ function onCourtroomJoin() {
                             }
                         });
                         this.upload(file, uploadCallback);
+                    } else if (file.size >= maxsize) {
+                        elemContainer.setAttributes({
+                            firstChild: {className: "v-icon v-icon--left mdi mdi-alert"},
+                            lastChild: {textContent: "Max size: " + maxsize/1e6 + "MB"},
+                            style: {
+                                borderColor: "red",
+                                pointerEvents: "none",
+                            }
+                        });
+                        setTimeout(resetElem, 3000);
+                        ui.Logger.log("Upload error: file too big");
+                        return;
                     } else {
                         resetElem();
-                        ui.Logger.log("Error");
+                        ui.Logger.log("Upload error");
                         return;
                     }
                 }
@@ -529,11 +544,11 @@ function onCourtroomJoin() {
             });
 
             const evidenceImageUploader = ui.Uploader.filePicker((url, filename) => {
-                ui.evidence_formFields[0].value = filename;
+                ui.evidence_formFields[0].value = filename.substr(0, 20);
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                 ui.evidence_formFields[1].value = url;
                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-            }, "image");
+            }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 4e6});
 
             evidenceImageUploader.setAttributes({
                 style: {
