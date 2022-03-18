@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.700
+// @version      0.701
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -197,8 +197,86 @@ function onCourtroomJoin() {
     ui.evidence_list.style.maxHeight = "70vh";
     ui.evidence_list.style.scrollBehavior = "smooth";
 
+    // Look for Dialog windows
+    const on_myAssetsAdded = function(node) {
+        const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
+        (new MutationObserver(on_myAssetsListChange)).observe(tabsContainer, {childList: true});
+        function on_myAssetsListChange(changes, observer) {
+            for (const change of changes) {
+                var musicFilePicker, soundFilePicker;
+                for (const addedNode of change.addedNodes) {
+                    const activeTab = node.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
+                    const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab)-1];
+                    switch (activeTab.firstChild.firstChild.textContent.trim()) {
+                        case "Backgrounds":
+                            break;
+                        case "Characters":
+                            break;
+                        case "Popups":
+                            break;
+                        case "Music":
+                            musicFilePicker = ui.Uploader.filePicker((url, filename) => {
+                                const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
+                                const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
+                                inputName.value = filename;
+                                inputName.dispatchEvent(new Event("input"));
+                                inputURL.value = url;
+                                inputURL.dispatchEvent(new Event("input"));
+                            } , "audio");
+                            activeWindow.querySelector("div.v-card__actions").prepend(musicFilePicker);
+                            break;
+                        case "Sounds":
+                            soundFilePicker = ui.Uploader.filePicker((url, filename) => {
+                                const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
+                                const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
+                                inputName.value = filename;
+                                inputName.dispatchEvent(new Event("input"));
+                                inputURL.value = url;
+                                inputURL.dispatchEvent(new Event("input"));
+                            } , "audio");
+                            activeWindow.querySelector("div.v-card__actions").prepend(soundFilePicker);
+                            break;
+                    }
+                }
+            }
+        }
+    };
+
+    (new MutationObserver(on_appNodeListChange)).observe(ui.app, {childList: true});
+    function on_appNodeListChange(changes, observer) {
+        for (const change of changes) {
+            for (const node of change.addedNodes) {
+                if (node.classList.contains("v-dialog__content")) {
+                    const closeButton = node.querySelector("header.v-sheet.v-toolbar > div.v-toolbar__content > div.v-toolbar__items > button.v-btn:last-of-type");
+                    const dialogCard = node.querySelector("div.v-dialog > div.v-card");
+                    if (dialogCard.childNodes.length == 3 &&
+                        dialogCard.childNodes[1] instanceof HTMLImageElement &&
+                        dialogCard.childNodes[1].className == "d-flex mx-auto" &&
+                        (dialogCard.childNodes[2] instanceof Comment || (dialogCard.childNodes[2] instanceof HTMLDivElement && dialogCard.childNodes[2].classList.contains("subtitle-1")))) {
+                        const img = dialogCard.childNodes[1];
+                        img.style.cursor = "pointer";
+                        img.addEventListener("click", e => {closeButton.click();});
+                    } else {
+                        const dialogTitle = node.querySelector("header.v-sheet > div.v-toolbar__content > div.v-toolbar__title").textContent.trim();
+                        switch (dialogTitle) {
+                            case "Pairing":
+                                break;
+                            case "Change Character":
+                                break;
+                            case "Manage Character":
+                                break;
+                            case "My Assets":
+                                on_myAssetsAdded(node);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Function to create a button
-    const createButton = function(id, label, icon=null, callback) {
+    const createButton = function(id, label, icon = null, callback) {
         let elem_div = document.createElement("div");
         elem_div.setAttributes({
             id: id + "_button"
@@ -1288,7 +1366,7 @@ function onCourtroomJoin() {
 
     // Chat hover tooltips
     var onChatListMouseOver, onChatItemMouseLeave;
-    var chatLogHoverTooltips = function() {
+    const chatLogHoverTooltips = function() {
         let chatLog_lastItem;
         ui.chatLog_customTooltip = document.createElement("div");
         ui.chatLog_customTooltip.setAttributes({
