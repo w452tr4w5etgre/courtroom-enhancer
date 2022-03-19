@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.703
+// @version      0.704
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -51,7 +51,7 @@ function checkJoinBoxReady(changes, observer) {
 
     for (const change of changes) {
         for (const node of change.addedNodes) {
-            if (node === ui.app.querySelector("div.v-dialog__content.v-dialog__content--active")) {
+            if (node instanceof HTMLDivElement && node.classList.contains("v-dialog__content--active") && node.querySelector("div.v-card__title > span.headline").textContent.trim() === "Join Courtroom") {
                 if (ui.joinBox_container = node.querySelector("div.v-dialog > div.v-card")) {
                     ui.joinBox_usernameInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:first-of-type > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
                     ui.joinBox_passwordInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:nth-of-type(2) > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
@@ -353,7 +353,7 @@ function onCourtroomJoin() {
                 return form;
             },
 
-            upload: function (data, callback) {
+            upload: function (data, callbackSuccess, callbackError) {
                 var reqtype, file, filename;
                 if (typeof data === "string") { // Argument passed is an URL
                     try {
@@ -367,19 +367,20 @@ function onCourtroomJoin() {
                         filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '');
                         file = url.href;
                     } catch(e) {
-                        ui.Logger.log(e);
-                        return;
+                        throw e;
                     }
-                } else if (typeof data === "object") {
+                } else if (typeof data === "object") { // Argument is a file
                     try {
                         file = data;
                         reqtype = "fileupload";
                         filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                     } catch(e) {
-                        ui.Logger.log(e);
-                        return;
+                        throw e;
                     }
+                } else {
+                    throw "Invalid data";
                 }
+
                 CrossOrigin({
                     url: "https://catbox.moe/user/api.php",
                     method: "POST",
@@ -390,14 +391,19 @@ function onCourtroomJoin() {
                     }),
                     onload: res => {
                         if (res.readyState == 4 && res.status == 200) {
-                            callback(res.responseText, filename);
+                            callbackSuccess(res.responseText, filename);
                         } else {
-                            const error = "Err " + res.status + ":" + res.responseText.substr(0, 100);
-                            if (!scriptSetting.show_console) {
-                                alert(error);
-                            }
-                            ui.Logger.log(error);
+                            callbackError("Err " + res.status + ":" + res.responseText);
                         }
+                    },
+                    onabort: res => {
+                        callbackError("Aborted");
+                    },
+                    onerror: res => {
+                        callbackError(res.error);
+                    },
+                    ontimeout: res => {
+                        callbackError("Timeout");
                     }
                 });
             },
@@ -410,16 +416,33 @@ function onCourtroomJoin() {
 
                 const resetElem = function() {
                     elemContainer.setAttributes({
+                        title: "",
                         firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
                         lastChild: {textContent: "Upload " + label},
                         style: {
                             borderColor: "teal",
                             pointerEvents: "auto",
+                            cursor: "pointer"
                         }
                     });
                 };
 
-                const uploadCallback = function() {
+                const uploadError = function(errorText) {
+                    elemContainer.setAttributes({
+                        title: errorText,
+                        firstChild: {className: "v-icon v-icon--left mdi mdi-alert"},
+                        lastChild: {textContent: errorText.substr(0, 20)},
+                        style: {
+                            borderColor: "red",
+                            pointerEvents: "auto",
+                            cursor: "not-allowed"
+                        }
+                    });
+                    setTimeout(resetElem, 3000);
+                    ui.Logger.log("Upload error: " + errorText);
+                }
+
+                const uploadCallbackSuccess = function() {
                     resetElem();
                     callback.apply(this, arguments);
                 };
@@ -455,64 +478,64 @@ function onCourtroomJoin() {
 
                 const uploaderElementEvent = function(e) {
                     e.preventDefault();
-                    var dataList, file;
-                    if (e.target.files && e.target.files.length > 0) { // File picked
-                        dataList = e.target.files;
-                    } else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) { // File dragged
-                        dataList = e.dataTransfer.files;
-                    } else if (e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 0) { // URL dragged
-                        dataList = e.dataTransfer.items;
-                    }
-
-                    if (dataList instanceof FileList) {
-                        for (const data of dataList) {
-                            if (data.type.match(acceptedregex)) {
-                                file = data;
-                                break;
-                            }
+                    try {
+                        var dataList, file;
+                        if (e.target.files && e.target.files.length > 0) { // File picked
+                            dataList = e.target.files;
+                        } else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) { // File dragged
+                            dataList = e.dataTransfer.files;
+                        } else if (e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 0) { // URL dragged
+                            dataList = e.dataTransfer.items;
+                        } else {
+                            return;
                         }
-                    } else if (dataList instanceof DataTransferItemList) {
-                        for (const data of dataList) {
-                            if (data.kind === "string") {
-                                if (data.type.match("^text/uri")) {
-                                    file = data.getAsString(url => {
-                                        this.upload(url, uploadCallback);
-                                    });
+
+                        if (dataList instanceof FileList) {
+                            for (const data of dataList) {
+                                if (data.type.match(acceptedregex)) {
+                                    file = data;
                                     break;
                                 }
-                            } else if (data.kind === "file") {
-                                file = data.getAsFile();
-                                break;
                             }
+                        } else if (dataList instanceof DataTransferItemList) {
+                            for (const data of dataList) {
+                                if (data.kind === "string") {
+                                    if (data.type.match("^text/uri")) {
+                                        file = data.getAsString(url => {
+                                            this.upload(url, uploadCallbackSuccess, uploadError);
+                                        });
+                                        break;
+                                    }
+                                } else if (data.kind === "file") {
+                                    file = data.getAsFile();
+                                    break;
+                                } else {
+                                    throw "Invalid kind";
+                                }
+                            }
+                        } else {
+                            throw "Invalid dataList";
                         }
-                    }
 
-                    if (file && file.size < maxsize) {
-                        elemContainer.setAttributes({
-                            firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                            lastChild: {textContent: "Uploading"},
-                            style: {
-                                borderColor: "yellow",
-                                pointerEvents: "none",
-                            }
-                        });
-                        this.upload(file, uploadCallback);
-                    } else if (file.size >= maxsize) {
-                        elemContainer.setAttributes({
-                            firstChild: {className: "v-icon v-icon--left mdi mdi-alert"},
-                            lastChild: {textContent: "Max size: " + maxsize/1e6 + "MB"},
-                            style: {
-                                borderColor: "red",
-                                pointerEvents: "none",
-                            }
-                        });
-                        setTimeout(resetElem, 3000);
-                        ui.Logger.log("Upload error: file too big");
-                        return;
-                    } else {
-                        resetElem();
-                        ui.Logger.log("Upload error");
-                        return;
+                        if (file.size >= maxsize) {
+                            throw "Max size: " + maxsize / 1e6 + "MB";
+                        }
+
+                        if (file) {
+                            elemContainer.setAttributes({
+                                firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
+                                lastChild: {textContent: "Uploading"},
+                                style: {
+                                    borderColor: "yellow",
+                                    pointerEvents: "none",
+                                }
+                            });
+                            this.upload(file, uploadCallbackSuccess, uploadError);
+                        } else {
+                            throw "Invalid file";
+                        }
+                    } catch (e) {
+                        uploadError(e.toString());
                     }
                 }
 
