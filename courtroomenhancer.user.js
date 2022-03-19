@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.710
+// @version      0.711
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -929,7 +929,7 @@ function onCourtroomJoin() {
             const label = document.createElement("label");
             const input = document.createElement("input");
 
-            container.className = "v-input v-input--dense v-text-field";
+            container.className = "v-input--dense v-text-field";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot mb-0";
             selectSlot.className = "v-select__slot";
@@ -978,7 +978,8 @@ function onCourtroomJoin() {
             const label = document.createElement("label");
             const select = document.createElement("select");
 
-            container.className = "v-input v-input--dense v-text-field";
+            container.className = "v-input v-input--dense v-text-field pt-1";
+            container.style.flex = "0 0 auto";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot";
             selectSlot.className = "v-select__slot";
