@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.705
+// @version      0.706
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -488,18 +488,20 @@ function onCourtroomJoin() {
 
                         if (dataList instanceof FileList) {
                             for (const data of dataList) {
-                                if (data.type.match(acceptedregex)) {
-                                    file = data;
-                                    break;
+                                if (!data.type.match(acceptedregex)) {
+                                    throw "File type";
                                 }
+                                if (data.size >= maxsize) {
+                                    throw "Max size: " + maxsize / 1e6 + "MB";
+                                }
+                                file = data;
+                                break;
                             }
                         } else if (dataList instanceof DataTransferItemList) {
                             for (const data of dataList) {
                                 if (data.kind === "string") {
                                     if (data.type.match("^text/uri")) {
-                                        file = data.getAsString(url => {
-                                            this.upload(url, uploadCallbackSuccess, uploadError);
-                                        });
+                                        file = data;
                                         break;
                                     }
                                 } else if (data.kind === "file") {
@@ -513,20 +515,20 @@ function onCourtroomJoin() {
                             throw "Invalid dataList";
                         }
 
-                        if (file.size >= maxsize) {
-                            throw "Max size: " + maxsize / 1e6 + "MB";
-                        }
-
-                        if (file) {
-                            elemContainer.setAttributes({
-                                firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                                lastChild: {textContent: "Uploading"},
-                                style: {
-                                    borderColor: "yellow",
-                                    pointerEvents: "none",
-                                }
-                            });
+                        elemContainer.setAttributes({
+                            firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
+                            lastChild: {textContent: "Uploading"},
+                            style: {
+                                borderColor: "yellow",
+                                pointerEvents: "none",
+                            }
+                        });
+                        if (file instanceof File) {
                             this.upload(file, uploadCallbackSuccess, uploadError);
+                        } else if (file instanceof DataTransferItem && file.kind == "string") {
+                            file.getAsString(url => {
+                                this.upload(url, uploadCallbackSuccess, uploadError);
+                            });
                         } else {
                             throw "Invalid file";
                         }
