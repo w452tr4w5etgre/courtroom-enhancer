@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.702
+// @version      0.703
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -406,7 +406,7 @@ function onCourtroomJoin() {
                 const label = options.label || "image";
                 const acceptedhtml = options.acceptedhtml || "image/*";
                 const acceptedregex = options.acceptedregex || "^image/";
-                const maxsize = options.maxsize || 4e6;
+                const maxsize = options.maxsize || 2e6;
 
                 const resetElem = function() {
                     elemContainer.setAttributes({
@@ -548,7 +548,7 @@ function onCourtroomJoin() {
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                 ui.evidence_formFields[1].value = url;
                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-            }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 4e6});
+            }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
 
             evidenceImageUploader.setAttributes({
                 style: {
