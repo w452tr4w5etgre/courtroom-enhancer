@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.707
+// @version      0.708
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -198,10 +198,16 @@ function onCourtroomJoin() {
     ui.evidence_list.style.scrollBehavior = "smooth";
 
     // Look for Dialog windows
-    const on_myAssetsAdded = function(node) {
-        const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
-        (new MutationObserver(on_myAssetsListChange)).observe(tabsContainer, {childList: true});
-        function on_myAssetsListChange(changes, observer) {
+    const myAssetsWatcher = {
+        on_myAssetsAdded: function(node) {
+            console.log("addedstart",this);
+            const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
+            this.element = node;
+            this.observer = new MutationObserver(this.on_myAssetsListChange.bind(this))
+            this.observer.observe(tabsContainer, {childList: true});
+        },
+        on_myAssetsListChange: function(changes, observer) {
+            const node = this.element;
             for (const change of changes) {
                 var musicFilePicker, soundFilePicker;
                 for (const addedNode of change.addedNodes) {
@@ -239,6 +245,9 @@ function onCourtroomJoin() {
                     }
                 }
             }
+        },
+        on_myAssetsRemoved: function(node) {
+            this.observer.disconnect();
         }
     };
 
@@ -266,10 +275,15 @@ function onCourtroomJoin() {
                             case "Manage Character":
                                 break;
                             case "My Assets":
-                                on_myAssetsAdded(node);
+                                myAssetsWatcher.on_myAssetsAdded(node);
                                 break;
                         }
                     }
+                }
+            }
+            for (const node of change.removedNodes) {
+                if (node === myAssetsWatcher.element) {
+                    myAssetsWatcher.on_myAssetsRemoved(node);
                 }
             }
         }
