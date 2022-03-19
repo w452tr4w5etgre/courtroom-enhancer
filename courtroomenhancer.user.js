@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.708
+// @version      0.709
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -200,7 +200,6 @@ function onCourtroomJoin() {
     // Look for Dialog windows
     const myAssetsWatcher = {
         on_myAssetsAdded: function(node) {
-            console.log("addedstart",this);
             const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
             this.element = node;
             this.observer = new MutationObserver(this.on_myAssetsListChange.bind(this))
