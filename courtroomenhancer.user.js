@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.709
+// @version      0.710
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -34,7 +34,8 @@ var initSettings = function() {
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
         "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 485000),
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41700),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000)
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000),
+        "file_host": getSetting("file_host", "zzht")
     };
 }();
 
@@ -365,44 +366,89 @@ function onCourtroomJoin() {
                 Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
                 return form;
             },
-
-            upload: function (data, callbackSuccess, callbackError) {
-                var reqtype, file, filename;
-                if (typeof data === "string") { // Argument passed is an URL
-                    try {
-                        let url = new URL(data);
-                        switch (url.host) {
-                            case "pbs.twimg.com":
-                                url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
-                                break;
+            parseParams: function(data) {
+                return Object.entries(data).map(([key, val]) => `${key}=${val}`).join('&');
+            },
+            fileHosts: {
+                catbox: {
+                    name: "catbox.moe",
+                    apiUrl: "https://catbox.moe/user/api.php",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({reqtype: "fileupload", fileToUpload: data})
                         }
-                        reqtype = "urlupload";
-                        filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '');
-                        file = url.href;
-                    } catch(e) {
-                        throw e;
+                    },
+                    formatDataUrl: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({reqtype: "urlupload", url: data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        return response.toString();
                     }
-                } else if (typeof data === "object" && data instanceof File) { // Argument is a file
-                    file = data;
-                    reqtype = "fileupload";
+                },
+                zzht: {
+                    name: "zz.ht",
+                    apiUrl: "https://zz.ht/api/upload",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    formatDataUrl: data => {
+                        return {
+                            headers: {"Content-type": "application/x-www-form-urlencoded"},
+                            data: ui.Uploader.parseParams({"urls[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error("Upload failed");
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                }
+            },
+
+            upload: function (file, callbackSuccess, callbackError) {
+                var dataToUpload, filename, fileHost = Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : "catbox";
+
+                if (typeof file === "string") { // Argument passed is an URL
+                    let url = new URL(file);
+                    switch (url.host) {
+                        case "pbs.twimg.com":
+                            url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
+                            break;
+                    }
+                    dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
+                    filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '');
+                } else if (typeof file === "object" && file instanceof File) { // Argument is a file
+                    dataToUpload = this.fileHosts[fileHost].formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
                     throw new Error("Invalid data");
                 }
 
                 CrossOrigin({
-                    url: "https://catbox.moe/user/api.php",
-                    method: "POST",
-                    data: this.parseForm({
-                        reqtype: reqtype,
-                        fileToUpload: file,
-                        url: file
-                    }),
+                    url: this.fileHosts[fileHost].apiUrl,
+                    method: this.fileHosts[fileHost].method,
+                    headers: dataToUpload.headers,
+                    data: dataToUpload.data,
                     onload: response => {
                         if (response.readyState == 4 && response.status == 200) {
-                            callbackSuccess({url: response.responseText, filename: filename});
+                            callbackSuccess({url: this.fileHosts[fileHost].urlFromResponse(response.responseText), filename: filename});
                         } else {
-                            callbackError("Err " + response.status + ":" + response.responseText);
+                            callbackError("Err " + response.status + ": " + response.responseText);
                         }
                     },
                     onabort: response => {
@@ -664,29 +710,33 @@ function onCourtroomJoin() {
                     url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
                     method: "GET",
                     onload: getterResponse => {
-                        if (getterResponse.readyState == 4 && getterResponse.status == 200) {
-                            var responseJSON = JSON.parse(getterResponse.responseText);
-                            if (!responseJSON.post) {
-                                gelbooruInputTags.value = "No results";
-                                gelbooruInputTags.style.color = "white";
-                                gelbooruInputTags.disabled = false;
-                                gelbooruInputTags.addEventListener("focus", e => {
-                                    e.target.value = "";
-                                }, {once: true});
-
-                                return;
+                        try {
+                            if (getterResponse.readyState == 4 && getterResponse.status == 200) {
+                                var responseJSON = JSON.parse(getterResponse.responseText);
+                                if (!responseJSON.post) {
+                                    throw new Error("No results");
+                                }
+                                ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
+                                    ui.evidence_formFields[0].value = responseJSON.post[0].id;
+                                    ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                                    ui.evidence_formFields[1].value = uploaderResponse.url;
+                                    ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                                    gelbooruInputTags.value = "";
+                                    gelbooruInputTags.style.color = "white";
+                                    gelbooruInputTags.disabled = false;
+                                    gelbooruIcon.click();
+                                    setTimeout(f => {ui.evidence_addButton.click()}, 500);
+                                }, uploaderError => {
+                                    ui.Logger.log(uploaderError);
+                                });
                             }
-                            ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
-                                ui.evidence_formFields[0].value = responseJSON.post[0].id;
-                                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                                ui.evidence_formFields[1].value = uploaderResponse.url;
-                                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                                gelbooruInputTags.value = "";
-                                gelbooruInputTags.style.color = "white";
-                                gelbooruInputTags.disabled = false;
-                                gelbooruIcon.click();
-                                setTimeout(f => {ui.evidence_addButton.click()}, 500);
-                            });
+                        } catch(e) {
+                            gelbooruInputTags.value = e.toString();
+                            gelbooruInputTags.style.color = "white";
+                            gelbooruInputTags.disabled = false;
+                            gelbooruInputTags.addEventListener("focus", e => {
+                                e.target.value = "";
+                            }, {once: true});
                         }
                     }
                 });
@@ -780,11 +830,8 @@ function onCourtroomJoin() {
 
     // Add setting options under the Settings tab
     var enhanceSettingsTab = function() {
-        var createExtraSettingElemCheckbox = function(id, text, callback) {
+        const createExtraSettingElemCheckbox = function(id, text, callback) {
             const div = document.createElement("div");
-            div.setAttributes({
-                className: "v-input d-inline-block mr-2"
-            });
 
             const div_input_control = document.createElement("div");
             div_input_control.setAttributes({
@@ -794,7 +841,7 @@ function onCourtroomJoin() {
 
             const div_input_slot = document.createElement("div");
             div_input_slot.setAttributes({
-                className: "v-input__slot"
+                className: "v-input__slot mb-0"
             });
             div_input_control.appendChild(div_input_slot);
 
@@ -831,190 +878,304 @@ function onCourtroomJoin() {
             return div;
         }
 
-        var createExtraSettingElemText = function(id, text, callback, input_type="text") {
-            const div_column = document.createElement("div");
-            div_column.setAttributes({
-                className: "d-inline-block"
-            });
-
-            const div = document.createElement("div");
-            div.setAttributes({
-                className: "v-input v-text-field",
-                style: {
-                    padding: "0px"
-                }
-            });
-            div_column.appendChild(div);
-
-            const div_input_control = document.createElement("div");
-            div_input_control.setAttributes({
-                className: "v-input__control"
-            });
-            div.appendChild(div_input_control);
-
-            const div_input_slot = document.createElement("div");
-            div_input_slot.setAttributes({
-                className: "v-input__slot",
-                style: {
-                    margin: "0"
-                }
-            });
-            div_input_control.appendChild(div_input_slot);
-
-            const div_input_selection = document.createElement("div");
-            div_input_selection.setAttributes({
-                className: "v-text-field__slot"
-            });
-            div_input_slot.appendChild(div_input_selection);
-
+        const createInputCheckbox = function(options) {
+            const container = document.createElement("div");
+            const inputControl = document.createElement("div");
+            const inputSlot = document.createElement("div");
+            const selectSlot = document.createElement("div");
             const label = document.createElement("label");
+            const input = document.createElement("input");
+
+            inputControl.className = "v-input__control";
+            inputSlot.className = "v-input__slot mb-0";
+            inputSlot.style.gap = "5px";
+            selectSlot.className = "v-input--selection-controls__input mr-0";
             label.setAttributes({
-                htmlFor: id,
-                className: "v-label v-label--active",
+                className: "v-label pointer-item"
+            });
+            input.setAttributes({
+                className: "v-input--selection-controls__input pointer-item",
+                style: {
+                    accentColor: "#007aff"
+                },
+                checked: options.value,
+                type: "checkbox",
+                style: {color: "white", backgroundColor: "#1e1e1e"}
+            });
+
+            container.append(inputControl);
+            inputControl.append(inputSlot);
+            inputSlot.append(selectSlot, label);
+            selectSlot.append(input);
+
+            label.textContent = options.label;
+
+            label.addEventListener("click", e => {
+                input.click();
+            });
+
+            input.addEventListener("change", e => {
+                options.onchange.call(this, e);
+            });
+
+            return container;
+        }
+
+        const createInputText = function(options) {
+            const container = document.createElement("div");
+            const inputControl = document.createElement("div");
+            const inputSlot = document.createElement("div");
+            const selectSlot = document.createElement("div");
+            const label = document.createElement("label");
+            const input = document.createElement("input");
+
+            container.className = "v-input v-input--dense v-text-field";
+            inputControl.className = "v-input__control";
+            inputSlot.className = "v-input__slot mb-0";
+            selectSlot.className = "v-select__slot";
+            label.setAttributes({
+                className: "v-label v-label--active theme--dark",
                 style: {
                     left: "0px",
                     right: "auto",
                     position: "absolute"
                 }
             });
-
-            label.textContent = text;
-            div_input_slot.appendChild(label);
-
-            const input = document.createElement("input");
-            input.type = input_type;
-            input.id = id;
-            input.value = scriptSetting[id];
             input.setAttributes({
-                className: "v-input--selection-controls__input",
-                style: {
-                    marginRight: "0"
-                }
+                className: "v-input--selection-controls__input mr-0",
+                type: options.type,
+                style: {color: "white", backgroundColor: "#1e1e1e"}
             });
 
+            container.append(inputControl);
+            inputControl.append(inputSlot);
+            inputSlot.append(selectSlot);
+            selectSlot.append(label);
+            selectSlot.append(input);
+
+            label.textContent = options.label;
+            input.value = options.value;
+
             input.addEventListener("focus", function(e) {
-                div.classList.add("v-input--is-focused","primary--text");
+                container.classList.add("v-input--is-focused","primary--text");
                 label.classList.add("primary--text");
             });
 
-            input.addEventListener("focusout",function (e) {
-                div.classList.remove("v-input--is-focused","primary--text");
+            input.addEventListener("focusout", function (e) {
+                container.classList.remove("v-input--is-focused","primary--text");
                 label.classList.remove("primary--text");
-                callback(e)
+                options.onfocusout.call(this, e);
             });
 
-            div_input_selection.append(label, input);
-
-            return div_column;
+            return container;
         }
 
-        ui.extraSettings_warnOnExit = createExtraSettingElemCheckbox("warn_on_exit", "Confirm on exit", e => {
-            const value = e.target.checked;
-            setSetting("warn_on_exit", value);
-        });
+        const createInputSelect = function(options) {
+            const container = document.createElement("div");
+            const inputControl = document.createElement("div");
+            const inputSlot = document.createElement("div");
+            const selectSlot = document.createElement("div");
+            const label = document.createElement("label");
+            const select = document.createElement("select");
 
-        ui.extraSettings_rememberUsername = createExtraSettingElemCheckbox("remember_username", "Remember username", e => {
-            const value = e.target.checked;
-            setSetting("remember_username", value);
-        });
+            container.className = "v-input v-input--dense v-text-field";
+            inputControl.className = "v-input__control";
+            inputSlot.className = "v-input__slot";
+            selectSlot.className = "v-select__slot";
+            label.setAttributes({
+                className: "v-label v-label--active theme--dark",
+                style: {
+                    left: "0px",
+                    right: "auto",
+                    position: "absolute"
+                }
+            });
+            select.setAttributes({
+                className: "v-select__selections",
+                style: {color: "white", backgroundColor: "#1e1e1e"}
+            });
 
-        ui.extraSettings_showConsole = createExtraSettingElemCheckbox("show_console", "Show log console", e => {
-            const value = e.target.checked;
-            setSetting("show_console", value);
-            ui.customButtons_rowLogLogger.style.display = value ? "flex" : "none";
-        });
+            container.append(inputControl);
+            inputControl.append(inputSlot);
+            inputSlot.append(selectSlot);
+            selectSlot.append(label);
+            selectSlot.append(select);
 
-        ui.extraSettings_adjustChatTextWithWheel = createExtraSettingElemCheckbox("adjust_chat_text_with_wheel", "Scroll to adjust text", e => {
-            const value = e.target.checked;
-            setSetting("adjust_chat_text_with_wheel", value);
-            if (value) {
-                ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
-            } else {
-                ui.courtroom_chatBoxes.removeEventListener("wheel", on_chatBoxTextWheel);
+            label.textContent = options.label;
+            Object.entries(options.values).forEach(([key, value]) => {
+                const option = document.createElement("option");
+                option.value = key;
+                option.textContent = value;
+                option.selected = (key == options.selectedValue);
+                select.append(option);
+            });
+
+            select.addEventListener("change", e => {
+                options.onchange.call(this, e);
+            });
+
+            return container;
+        };
+
+        ui.extraSettings_warnOnExit = createInputCheckbox({
+            value: scriptSetting.warn_on_exit,
+            label: "Confirm on exit",
+            onchange: e => {
+                setSetting("warn_on_exit", e.target.checked);
             }
         });
 
-        ui.extraSettings_chatHoverTooltip = createExtraSettingElemCheckbox("chat_hover_tooltip", "Link tooltips", e => {
-            const value = e.target.checked;
-            setSetting("chat_hover_tooltip", value);
-            if (value) {
-                ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
-            } else {
-                ui.chatLog_chat.removeEventListener("mouseover", onChatListMouseOver, false);
+        ui.extraSettings_rememberUsername = createInputCheckbox({
+            value: scriptSetting.remember_username,
+            label: "Remember username",
+            onchange: e => {
+                setSetting("remember_username", e.target.checked);
             }
         });
 
-        ui.extraSettings_disableKeyboardShortcuts = createExtraSettingElemCheckbox("disable_keyboard_shortcuts", "Disable WASD shortcuts", e => {
-            const value = e.target.checked;
-            setSetting("disable_keyboard_shortcuts", value);
-            if (value) {
-                ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
-            } else {
-                ui.main.removeEventListener("shortkey", disableKeyboardShortcuts, true);
+        ui.extraSettings_showConsole = createInputCheckbox({
+            value: scriptSetting.show_console,
+            label: "Show console",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("show_console", value);
+                ui.Logger.toggle(value);
             }
-            ui.settings_keyboardShortcutsWS.style.display = value ? "none" : "flex";
-            ui.settings_keyboardShortcutsAD.style.display = value ? "none" : "flex";
         });
 
-        ui.extraSettings_rouletteEvid = createExtraSettingElemCheckbox("evid_roulette", "Evidence roulette", e => {
-            const value = e.target.checked;
-            setSetting("evid_roulette", value);
-            ui.customButtons_evidRouletteButton.style.display = value ? "inline" : "none";
-            ui.extraSettings_rouletteEvidAsIcon.style.display = value ? "inline-block" : "none";
-            ui.extraSettings_rouletteEvidMax.style.display = value ? "inline-block" : "none";
-        });
-
-        ui.extraSettings_rouletteSound = createExtraSettingElemCheckbox("sound_roulette", "Sound roulette", e => {
-            const value = e.target.checked;
-            setSetting("sound_roulette", value);
-            ui.customButtons_soundRouletteButton.style.display = value ? "inline" : "none"
-            ui.extraSettings_rouletteSoundMax.style.display = value ? "inline-block" : "none";
-        });
-
-        ui.extraSettings_rouletteMusic = createExtraSettingElemCheckbox("music_roulette", "Music roulette", e => {
-            const value = e.target.checked;
-            setSetting("music_roulette", value);
-            ui.customButtons_musicRouletteButton.style.display = value ? "inline" : "none"
-            ui.extraSettings_rouletteMusicMax.style.display = value ? "inline-block" : "none";
-        });
-
-        ui.extraSettings_rouletteEvidAsIcon = createExtraSettingElemCheckbox("evid_roulette_as_icon", "icon", e => {
-            const value = e.target.checked;
-            setSetting("evid_roulette_as_icon", value);
-        });
-
-        ui.extraSettings_rouletteEvidMax = createExtraSettingElemText("evid_roulette_max", "max", e => {
-            const value = parseInt(e.target.value);
-            if (value) {
-                setSetting("evid_roulette_max", value);
-            } else {
-                e.target.value = scriptSetting.evid_roulette_max;
-                e.preventDefault();
-                return false;
+        ui.extraSettings_adjustChatTextWithWheel = createInputCheckbox({
+            value: scriptSetting.adjust_chat_text_with_wheel,
+            label: "Scroll to resize chat",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("adjust_chat_text_with_wheel", value);
+                if (value) {
+                    ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
+                } else {
+                    ui.courtroom_chatBoxes.removeEventListener("wheel", on_chatBoxTextWheel);
+                }
             }
-        }, "number");
+        });
 
-        ui.extraSettings_rouletteSoundMax = createExtraSettingElemText("sound_roulette_max", "max", e => {
-            const value = parseInt(e.target.value);
-            if (value) {
-                setSetting("sound_roulette_max", value);
-            } else {
-                e.target.value = scriptSetting.sound_roulette_max;
-                e.preventDefault();
-                return false;
+        ui.extraSettings_chatHoverTooltip = createInputCheckbox({
+            value: scriptSetting.chat_hover_tooltip,
+            label: "Chat tooltips",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("chat_hover_tooltip", value);
+                if (value) {
+                    ui.chatLog_chat.addEventListener("mouseover", onChatListMouseOver, false);
+                } else {
+                    ui.chatLog_chat.removeEventListener("mouseover", onChatListMouseOver, false);
+                }
             }
-        }, "number");
+        });
 
-        ui.extraSettings_rouletteMusicMax = createExtraSettingElemText("music_roulette_max", "max", e => {
-            const value = parseInt(e.target.value);
-            if (value) {
-                setSetting("music_roulette_max", value);
-            } else {
-                e.target.value = scriptSetting.music_roulette_max;
-                e.preventDefault();
-                return false;
+        ui.extraSettings_disableKeyboardShortcuts = createInputCheckbox({
+            value: scriptSetting.disable_keyboard_shortcuts,
+            label: "Disable WASD hotkeys",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("disable_keyboard_shortcuts", value);
+                if (value) {
+                    ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
+                } else {
+                    ui.main.removeEventListener("shortkey", disableKeyboardShortcuts, true);
+                }
+                ui.settings_keyboardShortcutsWS.style.display = value ? "none" : "flex";
+                ui.settings_keyboardShortcutsAD.style.display = value ? "none" : "flex";
             }
-        }, "number")
+        });
+
+        ui.extraSettings_rouletteEvid = createInputCheckbox({
+            value: scriptSetting.evid_roulette,
+            label: "EVD roulette",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("evid_roulette", value);
+                ui.customButtons_evidRouletteButton.style.display = value ? "flex" : "none";
+                ui.extraSettings_rouletteEvidAsIcon.style.display = value ? "flex" : "none";
+                ui.extraSettings_rouletteEvidMax.style.display = value ? "flex" : "none";
+            }
+        });
+
+        ui.extraSettings_rouletteSound = createInputCheckbox({
+            value: scriptSetting.sound_roulette,
+            label: "SND roulette",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("sound_roulette", value);
+                ui.customButtons_soundRouletteButton.style.display = value ? "flex" : "none";
+                ui.extraSettings_rouletteSoundMax.style.display = value ? "flex" : "none";
+            }
+        });
+
+        ui.extraSettings_rouletteMusic = createInputCheckbox({
+            value: scriptSetting.music_roulette,
+            label: "MUS roulette",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("music_roulette", value);
+                ui.customButtons_musicRouletteButton.style.display = value ? "flex" : "none";
+                ui.extraSettings_rouletteMusicMax.style.display = value ? "flex" : "none";
+            }
+        });
+
+        ui.extraSettings_rouletteEvidAsIcon = createInputCheckbox({
+            value: scriptSetting.evid_roulette_as_icon,
+            label: "small",
+            onchange: e => {
+                setSetting("evid_roulette_as_icon", e.target.checked);
+            }
+        });
+
+        ui.extraSettings_rouletteEvidMax = createInputText({
+            label: "max",
+            value: scriptSetting.evid_roulette_max,
+            type: "number",
+            onfocusout: e => {
+                const value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("evid_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.evid_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        ui.extraSettings_rouletteSoundMax = createInputText({
+            label: "max",
+            value: scriptSetting.sound_roulette_max,
+            type: "number",
+            onfocusout: e => {
+                const value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("sound_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.sound_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        ui.extraSettings_rouletteMusicMax = createInputText({
+            label: "max",
+            value: scriptSetting.music_roulette_max,
+            type: "number",
+            onfocusout: e => {
+                const value = parseInt(e.target.value);
+                if (value) {
+                    setSetting("music_roulette_max", value);
+                } else {
+                    e.target.value = scriptSetting.music_roulette_max;
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
 
         // Get the <hr> separator on the Settings page
         const settings_separator = ui.settings_separator;
@@ -1042,80 +1203,115 @@ function onCourtroomJoin() {
         extraSettings_rows.push(ui.extraSettings_rowHeader);
 
         // Row 2 - Buttons
-        ui.extraSettings_rowButtons = ui.settings_switchDiv.cloneNode();
-        ui.extraSettings_rowButtons.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
-        ui.extraSettings_rowButtons.lastChild.append(ui.extraSettings_warnOnExit,
-                                                     ui.extraSettings_rememberUsername,
-                                                     ui.extraSettings_showConsole,
-                                                     ui.extraSettings_adjustChatTextWithWheel,
-                                                     ui.extraSettings_chatHoverTooltip,
-                                                     ui.extraSettings_disableKeyboardShortcuts);
+        ui.extraSettings_rowButtons = document.createElement("div");
+        ui.extraSettings_rowButtons.className = "row mt-4 no-gutters";
+        ui.extraSettings_rowButtonsCol = document.createElement("div");
+        ui.extraSettings_rowButtonsCol.setAttributes({
+            className: "col col-12 d-flex",
+            style: {
+                flexWrap: "wrap",
+                gap: "10px 15px"
+            }
+        });
+
+        ui.extraSettings_fileHostSelector = createInputSelect({
+            label: "File host",
+            values: Object.fromEntries(Object.entries(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name])),
+            selectedValue: scriptSetting.file_host,
+            onchange: e => {
+                console.log("event",e.target.value);
+                if (Object.keys(ui.Uploader.fileHosts).includes(e.target.value)) {
+                    setSetting("file_host", e.target.value);
+                }
+            }
+        });
+
+        ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
+        ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
+                                              ui.extraSettings_rememberUsername,
+                                              ui.extraSettings_showConsole,
+                                              ui.extraSettings_adjustChatTextWithWheel,
+                                              ui.extraSettings_chatHoverTooltip,
+                                              ui.extraSettings_disableKeyboardShortcuts,
+                                              ui.extraSettings_fileHostSelector);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
-        ui.extraSettings_rowRoulettes = ui.settings_switchDiv.cloneNode();
-
-        ui.extraSettings_rowRoulettes.appendChild(ui.settings_switchDiv.firstChild.cloneNode());
-
-        ui.extraSettings_rouletteEvidMax.classList.remove("d-inline-block");
-        ui.extraSettings_rouletteEvidMax.setAttributes({
+        ui.extraSettings_rowRoulettes = document.createElement("div");
+        ui.extraSettings_rowRoulettes.className = "row mt-4 no-gutters";
+        ui.extraSettings_rowRoulettesCol = document.createElement("div");
+        ui.extraSettings_rowRoulettesCol.setAttributes({
+            className: "col col-12 d-flex",
             style: {
-                display: scriptSetting.evid_roulette ? "inline-block" : "none",
-                padding: "0px",
-                marginRight: "8px"
+                flexWrap: "wrap",
+                gap: "10px 15px"
             }
         });
+
+        ui.extraSettings_rowRoulettes.appendChild(ui.extraSettings_rowRoulettesCol);
+
+        ui.extraSettings_rouletteEvidMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
+        ui.extraSettings_rouletteSoundMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
+        ui.extraSettings_rouletteMusicMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
+
         ui.extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
             maxLength: "7",
             min: "0",
             max: "9999999",
             style: {
-                width:"55px"
+                width: "55px"
             }
         });
 
-        ui.extraSettings_rouletteSoundMax.classList.remove("d-inline-block");
-        ui.extraSettings_rouletteSoundMax.setAttributes({
-            style: {
-                display: scriptSetting.sound_roulette ? "inline-block" : "none",
-                padding: "0px",
-                marginRight: "8px"
-            }
-        });
         ui.extraSettings_rouletteSoundMax.querySelector("input").setAttributes({
             maxLength: "7",
             min: "0",
             max: "9999999",
             style: {
-                width:"45px"
+                width: "45px"
             }
         });
 
-        ui.extraSettings_rouletteMusicMax.classList.remove("d-inline-block");
-        ui.extraSettings_rouletteMusicMax.setAttributes({
-            style: {
-                display: scriptSetting.music_roulette ? "inline-block" : "none",
-                padding: "0px",
-                marginRight: "8px"
-            }
-        });
         ui.extraSettings_rouletteMusicMax.querySelector("input").setAttributes({
             maxLength: "7",
             min: "0",
             max: "9999999",
             style: {
-                width:"55px"
+                width: "55px"
             }
         });
 
-        ui.extraSettings_rowRoulettes.lastChild.append(
+        const rouletteEvidContainer = document.createElement("div");
+        rouletteEvidContainer.setAttributes({
+            className: "d-flex",
+            style: {
+                gap: "0px 10px",
+                alignItems: "center"
+            }
+        });
+        const rouletteSoundContainer = rouletteEvidContainer.cloneNode();
+        const rouletteMusicContainer = rouletteEvidContainer.cloneNode();
+
+        rouletteEvidContainer.append(
             ui.extraSettings_rouletteEvid,
             ui.extraSettings_rouletteEvidAsIcon,
-            ui.extraSettings_rouletteEvidMax,
+            ui.extraSettings_rouletteEvidMax
+        );
+
+        rouletteSoundContainer.append(
             ui.extraSettings_rouletteSound,
-            ui.extraSettings_rouletteSoundMax,
+            ui.extraSettings_rouletteSoundMax
+        );
+
+        rouletteMusicContainer.append(
             ui.extraSettings_rouletteMusic,
-            ui.extraSettings_rouletteMusicMax);
+            ui.extraSettings_rouletteMusicMax
+        );
+
+        ui.extraSettings_rowRoulettes.lastChild.append(
+            rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer
+        );
+
         extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
         // Find the element after the last <hr> and attach the extra settings before it
@@ -1140,7 +1336,7 @@ function onCourtroomJoin() {
         ui.customButtons_rowButtons.setAttributes({
             className: "row no-gutters",
             style: {
-                gap: "10px"
+                gap: "15px 5px"
             }
         });
 
@@ -1151,11 +1347,8 @@ function onCourtroomJoin() {
             }
 
             const random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
-
             ui.leftFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-
-            // Click Send button
             ui.leftFrame_sendButton.click()
             ui.Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
         });
@@ -1173,11 +1366,8 @@ function onCourtroomJoin() {
             }
 
             const random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
-
             ui.leftFrame_textarea.value = "[#bgs" + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-
-            // Click Send button
             ui.leftFrame_sendButton.click();
             ui.Logger.log("[#bgs" + random + "]", "volume-medium");
         });
@@ -1195,14 +1385,12 @@ function onCourtroomJoin() {
             }
 
             const random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
-
             ui.leftFrame_textarea.value = "[#bgm" + random + "]";
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-
-            // Click Send button
             ui.leftFrame_sendButton.click();
             ui.Logger.log("[#bgm" + random + "]", "music-note");
         });
+
         ui.customButtons_musicRouletteButton.setAttributes({
             title: "Play a random Music",
             style: {
@@ -1221,7 +1409,7 @@ function onCourtroomJoin() {
             });
 
             ui.customButton_stopAllSounds.firstChild.setAttributes({
-                title: "Stop all currently playing sounds and music (just for me)",
+                title: "Stop all currently playing sounds and music (just for you)",
                 style: {
                     backgroundColor: "teal"
                 }
@@ -1315,7 +1503,7 @@ function onCourtroomJoin() {
                 while (this.elemItems.firstChild) {
                     this.elemItems.firstChild.remove()
                 }
-                this.elemContainer.style.display = "none";
+                this.toggle(false);
             },
             init: function() {
                 const elemContainer = document.createElement("div");
@@ -1374,6 +1562,9 @@ function onCourtroomJoin() {
                 this.elemContainer = elemContainer;
                 this.elemItems = elemItems;
                 return elemContainer;
+            },
+            toggle: function(value) {
+                this.elemContainer.style.display = value ? "flex" : "none";
             }
         }
 
