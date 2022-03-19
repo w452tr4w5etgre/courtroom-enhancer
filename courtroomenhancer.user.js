@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.706
+// @version      0.707
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -374,7 +374,7 @@ function onCourtroomJoin() {
                     reqtype = "fileupload";
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
-                    throw "Invalid data";
+                    throw new Error("Invalid data");
                 }
 
                 CrossOrigin({
@@ -489,10 +489,10 @@ function onCourtroomJoin() {
                         if (dataList instanceof FileList) {
                             for (const data of dataList) {
                                 if (!data.type.match(acceptedregex)) {
-                                    throw "File type";
+                                    throw new Error("File type");
                                 }
                                 if (data.size >= maxsize) {
-                                    throw "Max size: " + maxsize / 1e6 + "MB";
+                                    throw new Error("Max size: " + maxsize / 1e6 + "MB");
                                 }
                                 file = data;
                                 break;
@@ -508,11 +508,11 @@ function onCourtroomJoin() {
                                     file = data.getAsFile();
                                     break;
                                 } else {
-                                    throw "Invalid kind";
+                                    throw new Error("Invalid kind");
                                 }
                             }
                         } else {
-                            throw "Invalid dataList";
+                            throw new Error("Invalid dataList");
                         }
 
                         elemContainer.setAttributes({
@@ -530,7 +530,7 @@ function onCourtroomJoin() {
                                 this.upload(url, uploadCallbackSuccess, uploadError);
                             });
                         } else {
-                            throw "Invalid file";
+                            throw new Error("Invalid file");
                         }
                     } catch (e) {
                         uploadError(e.toString());
@@ -1682,8 +1682,8 @@ function on_beforeUnload(e) {
     if (scriptSetting.warn_on_exit) {
         e.preventDefault();
         e.returnValue = "Are you sure you want to leave?";
+        return "Are you sure you want to leave?";
     }
-    return "Are you sure you want to leave?";
 }
 
 function getSetting(setting_name, default_value) {
@@ -1726,7 +1726,7 @@ function storeGet(key, def = "") {
         } else {
             return JSON.parse(res);
         }
-    } catch(e) {
+    } catch {
         if (typeof res === "undefined" || res === null) {
             return def;
         } else {
@@ -1767,8 +1767,8 @@ function storeClear() {
 const CrossOrigin = (function() {
     try {
         return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
-    } catch (error) {
-        return console.error(error);
+    } catch (e) {
+        return console.error(e);
     }
 })();
 
