@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.704
+// @version      0.705
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -215,25 +215,25 @@ function onCourtroomJoin() {
                         case "Popups":
                             break;
                         case "Music":
-                            musicFilePicker = ui.Uploader.filePicker((url, filename) => {
+                            musicFilePicker = ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                                inputName.value = filename;
+                                inputName.value = uploaderResponse.filename;
                                 inputName.dispatchEvent(new Event("input"));
-                                inputURL.value = url;
+                                inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            } , {label: "music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(musicFilePicker);
                             break;
                         case "Sounds":
-                            soundFilePicker = ui.Uploader.filePicker((url, filename) => {
+                            soundFilePicker = ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                                inputName.value = filename;
+                                inputName.value = uploaderResponse.filename;
                                 inputName.dispatchEvent(new Event("input"));
-                                inputURL.value = url;
+                                inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            } , {label: "sound", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "sound", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(soundFilePicker);
                             break;
                     }
@@ -369,14 +369,10 @@ function onCourtroomJoin() {
                     } catch(e) {
                         throw e;
                     }
-                } else if (typeof data === "object") { // Argument is a file
-                    try {
-                        file = data;
-                        reqtype = "fileupload";
-                        filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
-                    } catch(e) {
-                        throw e;
-                    }
+                } else if (typeof data === "object" && data instanceof File) { // Argument is a file
+                    file = data;
+                    reqtype = "fileupload";
+                    filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
                     throw "Invalid data";
                 }
@@ -389,20 +385,20 @@ function onCourtroomJoin() {
                         fileToUpload: file,
                         url: file
                     }),
-                    onload: res => {
-                        if (res.readyState == 4 && res.status == 200) {
-                            callbackSuccess(res.responseText, filename);
+                    onload: response => {
+                        if (response.readyState == 4 && response.status == 200) {
+                            callbackSuccess({url: response.responseText, filename: filename});
                         } else {
-                            callbackError("Err " + res.status + ":" + res.responseText);
+                            callbackError("Err " + response.status + ":" + response.responseText);
                         }
                     },
-                    onabort: res => {
+                    onabort: response => {
                         callbackError("Aborted");
                     },
-                    onerror: res => {
-                        callbackError(res.error);
+                    onerror: response => {
+                        callbackError(response.error);
                     },
-                    ontimeout: res => {
+                    ontimeout: response => {
                         callbackError("Timeout");
                     }
                 });
@@ -566,10 +562,10 @@ function onCourtroomJoin() {
                 }
             });
 
-            const evidenceImageUploader = ui.Uploader.filePicker((url, filename) => {
-                ui.evidence_formFields[0].value = filename.substr(0, 20);
+            const evidenceImageUploader = ui.Uploader.filePicker(res => {
+                ui.evidence_formFields[0].value = res.filename.substr(0, 20);
                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                ui.evidence_formFields[1].value = url;
+                ui.evidence_formFields[1].value = res.url;
                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
             }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
 
@@ -652,9 +648,9 @@ function onCourtroomJoin() {
                 CrossOrigin({
                     url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
                     method: "GET",
-                    onload: res => {
-                        if (res.readyState == 4 && res.status == 200) {
-                            var responseJSON = JSON.parse(res.responseText);
+                    onload: getterResponse => {
+                        if (getterResponse.readyState == 4 && getterResponse.status == 200) {
+                            var responseJSON = JSON.parse(getterResponse.responseText);
                             if (!responseJSON.post) {
                                 gelbooruInputTags.value = "No results";
                                 gelbooruInputTags.style.color = "white";
@@ -665,10 +661,10 @@ function onCourtroomJoin() {
 
                                 return;
                             }
-                            ui.Uploader.upload(responseJSON.post[0].file_url, (url, filename) => {
+                            ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                 ui.evidence_formFields[0].value = responseJSON.post[0].id;
                                 ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                                ui.evidence_formFields[1].value = url;
+                                ui.evidence_formFields[1].value = uploaderResponse.url;
                                 ui.evidence_formFields[1].dispatchEvent(new Event("input"));
                                 gelbooruInputTags.value = "";
                                 gelbooruInputTags.style.color = "white";
