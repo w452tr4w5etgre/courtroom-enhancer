@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.715
+// @version      0.716
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -430,34 +430,6 @@ function onCourtroomJoin() {
                 zzht: {
                     name: "zz.ht",
                     apiUrl: "https://zz.ht/api/upload",
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
-                        }
-                    },
-                    formatDataUrl: data => {
-                        return {
-                            headers: {"Content-type": "application/x-www-form-urlencoded"},
-                            data: ui.Uploader.parseParams({"urls[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
-                        }
-                    }
-                },
-                waifuhunterclub: {
-                    name: "waifuhunter.club",
-                    apiUrl: "https://safe.waifuhunter.club/api/upload",
                     method: "POST",
                     formatDataFile: data => {
                         return {
