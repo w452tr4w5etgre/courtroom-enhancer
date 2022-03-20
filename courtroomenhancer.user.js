@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.721
+// @version      0.722
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -227,7 +227,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "music", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "music", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
                             break;
                         case "Sounds":
@@ -238,7 +238,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "sound", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "sound", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
                             break;
                     }
@@ -568,18 +568,27 @@ function onCourtroomJoin() {
                 });
 
                 const uploaderElementEvent = function(e) {
-                    e.preventDefault();
                     try {
                         var dataList, file;
-                        if (e.target.files && e.target.files.length > 0) { // File picked
+                        if (e instanceof Event && e.type === "change" && e.target.files instanceof FileList && e.target.files.length > 0) {
                             dataList = e.target.files;
-                        } else if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) { // File dragged
-                            dataList = e.dataTransfer.files;
-                        } else if (e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 0) { // URL dragged
-                            dataList = e.dataTransfer.items;
-                        } else {
+                        } else if (e instanceof DragEvent && e.type === "drop" && e.dataTransfer instanceof DataTransfer) {
+                            if (e.dataTransfer.files instanceof FileList && e.dataTransfer.files.length > 0) { // File dropped
+                                dataList = e.dataTransfer.files;
+                            } else if (e.dataTransfer.items instanceof DataTransferItemList && e.dataTransfer.items.length > 0) { // URL dropped
+                                dataList = e.dataTransfer.items;
+                            }
+                        } else if (e instanceof ClipboardEvent && e.type === "paste") {
+                            if (e.clipboardData instanceof DataTransfer && e.clipboardData.files instanceof FileList && e.clipboardData.files.length > 0) { // File pasted
+                                dataList = e.clipboardData.files;
+                            }
+                        }
+
+                        if (!dataList) {
                             return;
                         }
+
+                        e.preventDefault();
 
                         if (dataList instanceof FileList) {
                             for (const data of dataList) {
@@ -645,6 +654,14 @@ function onCourtroomJoin() {
                     e.currentTarget.style.borderColor = "teal";
                 });
 
+                if (options.pastetargets) {
+                    if (options.pastetargets instanceof Node) {
+                        options.pastetargets.addEventListener("paste", e =>{ uploaderElementEvent.bind(this, e)});
+                    } else if (options.pastetargets instanceof NodeList) {
+                        options.pastetargets.forEach(f => {f.addEventListener("paste", e => { uploaderElementEvent.call(this, e);});})
+                    }
+                }
+
                 return elemContainer;
             }
         };
@@ -665,7 +682,7 @@ function onCourtroomJoin() {
                     ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                     ui.evidence_formFields[1].value = res.url;
                     ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                }, {label: "image", icon: "image-size-select-large", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
+                }, {label: "image", icon: "image-size-select-large", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields});
 
                 evidenceImageUploader.setAttributes({
                     style: {
