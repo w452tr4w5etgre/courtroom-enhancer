@@ -496,8 +496,6 @@ function onCourtroomJoin() {
                     ontimeout: response => {
                         callbackError("Timeout" + response.responseText);
                     }
-                }).catch(response => {
-                    callbackError("Error" + response.responseText);
                 });
             },
 
@@ -786,7 +784,7 @@ function onCourtroomJoin() {
                             }
                         },
                         onerror: gelbooruUploaderError
-                    }).catch(gelbooruUploaderError);
+                    });
                 });
 
                 container.append(evidenceImageUploader, gelbooruUploader);
