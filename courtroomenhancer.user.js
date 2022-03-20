@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.712
+// @version      0.714
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,10 +32,10 @@ var initSettings = function() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 485000),
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 486000),
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41700),
         "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000),
-        "file_host": getSetting("file_host", "zzht")
+        "file_host": getSetting("file_host", "catbox")
     };
 }();
 
@@ -227,7 +227,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "music", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
                             break;
                         case "Sounds":
@@ -238,7 +238,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "sound", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
+                            }, {label: "sound", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
                             break;
                     }
@@ -289,41 +289,43 @@ function onCourtroomJoin() {
     }
 
     // Function to create a button
-    const createButton = function(id, label, icon = null, callback) {
-        let elem_div = document.createElement("div");
-        elem_div.setAttributes({
-            id: id + "_button"
-        });
+    const createButton = function(options) {
+        const container = document.createElement("div");
+        const button = document.createElement("button");
 
-        let elem_button = document.createElement("button");
-        elem_button.setAttributes({
+        button.setAttributes({
             className: "v-btn v-btn--has-bg v-size--small theme--dark",
             type: "button",
+            title: options.title || "",
             style: {
-                background: "rgb(184 39 146)"
+                backgroundColor: options.backgroundColor || "rgb(184 39 146)"
             }
         });
-        elem_button.addEventListener("click", callback)
+        button.addEventListener("click", options.onclick.bind(this));
 
-        let elem_span = document.createElement("span");
-        elem_span.setAttributes({
+        const label = document.createElement("span");
+        label.setAttributes({
             className: "v-btn__content"
         });
 
-        elem_span.textContent = label;
+        label.textContent = options.label;
 
-        if (icon) {
-            let elem_icon = document.createElement("i");
-            elem_icon.setAttributes({
-                className: "v-icon v-icon--left mdi mdi-"+icon+" theme--dark"
+        if (options.icon) {
+            const icon = document.createElement("i");
+            icon.setAttributes({
+                className: "v-icon v-icon--left mdi mdi-" + options.icon + " theme--dark"
             });
-            elem_span.firstChild.before(elem_icon);
+            label.firstChild.before(icon);
         }
 
-        elem_button.appendChild(elem_span);
-        elem_div.appendChild(elem_button);
+        if (options.display === false) {
+            container.style.display = "none";
+        }
 
-        return elem_div;
+        button.appendChild(label);
+        container.appendChild(button);
+
+        return container;
     }
 
     // Evidence tab enhancements
@@ -381,6 +383,50 @@ function onCourtroomJoin() {
                         return response.toString();
                     }
                 },
+                uguuse: {
+                    name: "uguu.se",
+                    apiUrl: "https://uguu.se/upload.php",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error(responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                },
+                pomflain: {
+                    name: "pomf.lain.la",
+                    apiUrl: "https://pomf.lain.la/upload.php",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error(responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                },
                 zzht: {
                     name: "zz.ht",
                     apiUrl: "https://zz.ht/api/upload",
@@ -400,7 +446,57 @@ function onCourtroomJoin() {
                     urlFromResponse: response => {
                         const responseJSON = JSON.parse(response);
                         if (!responseJSON.success) {
-                            throw new Error("Upload failed");
+                            throw new Error(responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                },
+                imoutokawaii: {
+                    name: "imouto.kawaii.su",
+                    apiUrl: "https://imouto.kawaii.su/api/upload",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    formatDataUrl: data => {
+                        return {
+                            headers: {"Content-type": "application/x-www-form-urlencoded"},
+                            data: ui.Uploader.parseParams({"urls[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error(responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                },
+                takemetospace: {
+                    name: "take-me-to.space",
+                    apiUrl: "https://take-me-to.space/api/upload",
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error(responseJSON.description);
                         }
                         for (const file of responseJSON.files) {
                             if (file.url) {
@@ -421,8 +517,14 @@ function onCourtroomJoin() {
                             url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
                             break;
                     }
-                    dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
-                    filename = (url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname.name).replace(/^.*[\\\/]/, '');
+
+                    if (typeof this.fileHosts[fileHost].formatDataUrl === "function") { // Check if the chosen file host supports URL uploads
+                        dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
+                    } else { // Fall back to catbox
+                        fileHost = "catbox";
+                        dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
+                    }
+                    filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, '')) || "file";
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
                     dataToUpload = this.fileHosts[fileHost].formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
@@ -436,8 +538,12 @@ function onCourtroomJoin() {
                     headers: dataToUpload.headers,
                     data: dataToUpload.data,
                     onload: response => {
-                        if (response.readyState == 4 && response.status == 200) {
-                            callbackSuccess({url: this.fileHosts[fileHost].urlFromResponse(response.responseText), filename: filename});
+                        if (response.readyState == 4 && response.status == 200 || response.status == 400) {
+                            try {
+                                callbackSuccess({url: this.fileHosts[fileHost].urlFromResponse(response.responseText), filename: filename});
+                            } catch (e) {
+                                callbackError(e.toString());
+                            }
                         } else {
                             callbackError("Err " + response.status + ": " + response.responseText);
                         }
@@ -455,29 +561,30 @@ function onCourtroomJoin() {
             },
 
             filePicker: function(callback, options) {
-                const label = options.label || "image";
-                const acceptedhtml = options.acceptedhtml || "image/*";
-                const acceptedregex = options.acceptedregex || "^image/";
-                const maxsize = options.maxsize || 2e6;
+                this.label = options.label || "image";
+                this.icon = options.icon || "image-size-select-large";
+                this.acceptedhtml = options.acceptedhtml || "image/*";
+                this.acceptedregex = options.acceptedregex || "^image/";
+                this.maxsize = options.maxsize || 2e6;
 
-                const resetElem = function() {
+                const resetElem = (function() {
                     elemContainer.setAttributes({
                         title: "",
-                        firstChild: {className: "v-icon v-icon--left mdi mdi-image-size-select-large"},
-                        lastChild: {textContent: "Upload " + label},
+                        firstChild: {className: "v-icon v-icon--left mdi mdi-" + this.icon},
+                        lastChild: {textContent: "Upload " + this.label},
                         style: {
                             borderColor: "teal",
                             pointerEvents: "auto",
                             cursor: "pointer"
                         }
                     });
-                };
+                }).bind(this);
 
                 const uploadError = function(errorText) {
                     elemContainer.setAttributes({
                         title: errorText,
                         firstChild: {className: "v-icon v-icon--left mdi mdi-alert"},
-                        lastChild: {textContent: errorText.substr(0, 20)},
+                        lastChild: {textContent: errorText.substr(0, 100)},
                         style: {
                             borderColor: "red",
                             pointerEvents: "auto",
@@ -485,7 +592,7 @@ function onCourtroomJoin() {
                         }
                     });
                     setTimeout(resetElem, 3000);
-                    ui.Logger.log("Upload error: " + errorText);
+                    ui.Logger.log(errorText);
                 }
 
                 const uploadCallbackSuccess = function() {
@@ -495,26 +602,25 @@ function onCourtroomJoin() {
 
                 const elemContainer = document.createElement("div");
                 elemContainer.setAttributes({
-                    className: "d-flex justify-center",
+                    className: "d-flex justify-center px-2",
                     style: {
                         alignItems: "center",
                         minWidth: "140px",
                         border: "2px dashed teal",
-                        padding: "0px 10px",
                         userSelect: "none",
                         cursor: "pointer"
                     }
                 });
 
                 const elemIcon = document.createElement("i");
-                elemIcon.className = "v-icon v-icon--left mdi mdi-image-size-select-large";
+                elemIcon.className = "v-icon v-icon--left mdi mdi-" + this.icon;
                 elemContainer.append(elemIcon);
-                elemIcon.after(document.createTextNode("Upload " + label));
+                elemIcon.after(document.createTextNode("Upload " + this.label));
 
                 const elemFile = document.createElement("input");
                 elemFile.setAttributes({
                     type: "file",
-                    accept: acceptedhtml,
+                    accept: this.acceptedhtml,
                     style: {opacity: 0}
                 });
 
@@ -538,11 +644,11 @@ function onCourtroomJoin() {
 
                         if (dataList instanceof FileList) {
                             for (const data of dataList) {
-                                if (!data.type.match(acceptedregex)) {
+                                if (!data.type.match(this.acceptedregex)) {
                                     throw new Error("File type");
                                 }
-                                if (data.size >= maxsize) {
-                                    throw new Error("Max size: " + maxsize / 1e6 + "MB");
+                                if (data.size >= this.maxsize) {
+                                    throw new Error("Max size: " + this.maxsize / 1e6 + "MB");
                                 }
                                 file = data;
                                 break;
@@ -577,7 +683,7 @@ function onCourtroomJoin() {
                             ui.Uploader.upload(file, uploadCallbackSuccess, uploadError);
                         } else if (file instanceof DataTransferItem && file.kind == "string") {
                             file.getAsString(url => {
-                                ui.Uploader.upload(url, uploadCallbackSuccess, uploadError);
+                                ui.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this));
                             });
                         } else {
                             throw new Error("Invalid file");
@@ -620,7 +726,7 @@ function onCourtroomJoin() {
                     ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                     ui.evidence_formFields[1].value = res.url;
                     ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
+                }, {label: "image", icon: "image-size-select-large", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
 
                 evidenceImageUploader.setAttributes({
                     style: {
@@ -833,54 +939,6 @@ function onCourtroomJoin() {
 
     // Add setting options under the Settings tab
     var enhanceSettingsTab = function() {
-        const createExtraSettingElemCheckbox = function(id, text, callback) {
-            const div = document.createElement("div");
-
-            const div_input_control = document.createElement("div");
-            div_input_control.setAttributes({
-                className: "v-input__control"
-            });
-            div.appendChild(div_input_control);
-
-            const div_input_slot = document.createElement("div");
-            div_input_slot.setAttributes({
-                className: "v-input__slot mb-0"
-            });
-            div_input_control.appendChild(div_input_slot);
-
-            const div_input_selection = document.createElement("div");
-            div_input_selection.setAttributes({
-                className: "v-input--selection-controls__input mr-0"
-            });
-            div_input_slot.appendChild(div_input_selection);
-
-            const input = document.createElement("input");
-            div_input_selection.appendChild(input);
-            input.setAttributes({
-                className: "v-input--selection-controls__input pointer-item",
-                style: {
-                    accentColor: "#007aff"
-                },
-                checked: scriptSetting[id],
-                id: id,
-                type: "checkbox"
-            });
-            input.addEventListener("change", callback);
-
-            const label = document.createElement("label");
-            div_input_slot.appendChild(label);
-            label.setAttributes({
-                htmlFor: id,
-                className: "v-label pointer-item",
-                style: {
-                    paddingLeft: "6px"
-                }
-            });
-            label.textContent = text;
-
-            return div;
-        }
-
         const createInputCheckbox = function(options) {
             const container = document.createElement("div");
             const inputControl = document.createElement("div");
@@ -889,6 +947,7 @@ function onCourtroomJoin() {
             const label = document.createElement("label");
             const input = document.createElement("input");
 
+            container.title = options.title || "";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot mb-0";
             inputSlot.style.gap = "5px";
@@ -901,7 +960,7 @@ function onCourtroomJoin() {
                 style: {
                     accentColor: "#007aff"
                 },
-                checked: options.value,
+                checked: options.value || false,
                 type: "checkbox",
                 style: {color: "white", backgroundColor: "#1e1e1e"}
             });
@@ -911,7 +970,11 @@ function onCourtroomJoin() {
             inputSlot.append(selectSlot, label);
             selectSlot.append(input);
 
-            label.textContent = options.label;
+            if (options.display === false) {
+                container.style.display = "none";
+            }
+
+            label.textContent = options.label || "Button";
 
             label.addEventListener("click", e => {
                 input.click();
@@ -932,7 +995,7 @@ function onCourtroomJoin() {
             const label = document.createElement("label");
             const input = document.createElement("input");
 
-            container.className = "v-input--dense v-text-field";
+            container.className = "v-input v-input--dense v-text-field";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot mb-0";
             selectSlot.className = "v-select__slot";
@@ -945,9 +1008,9 @@ function onCourtroomJoin() {
                 }
             });
             input.setAttributes({
-                className: "v-input--selection-controls__input mr-0",
+                className: "v-select__selections pa-0 mr-0",
                 type: options.type,
-                style: {color: "white", backgroundColor: "#1e1e1e"}
+                style: {color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px"}
             });
 
             container.append(inputControl);
@@ -955,6 +1018,10 @@ function onCourtroomJoin() {
             inputSlot.append(selectSlot);
             selectSlot.append(label);
             selectSlot.append(input);
+
+            if (options.display === false) {
+                container.style.display = "none";
+            }
 
             label.textContent = options.label;
             input.value = options.value;
@@ -965,7 +1032,7 @@ function onCourtroomJoin() {
             });
 
             input.addEventListener("focusout", function (e) {
-                container.classList.remove("v-input--is-focused","primary--text");
+                container.classList.remove("v-input--is-focused", "primary--text");
                 label.classList.remove("primary--text");
                 options.onfocusout.call(this, e);
             });
@@ -985,6 +1052,7 @@ function onCourtroomJoin() {
             container.style.flex = "0 0 auto";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot";
+            inputSlot.style.cursor = "default";
             selectSlot.className = "v-select__slot";
             label.setAttributes({
                 className: "v-label v-label--active theme--dark",
@@ -1004,6 +1072,10 @@ function onCourtroomJoin() {
             inputSlot.append(selectSlot);
             selectSlot.append(label);
             selectSlot.append(select);
+
+            if (options.display === false) {
+                container.style.display = "none";
+            }
 
             label.textContent = options.label;
             Object.entries(options.values).forEach(([key, value]) => {
@@ -1128,6 +1200,8 @@ function onCourtroomJoin() {
         ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
             value: scriptSetting.evid_roulette_as_icon,
             label: "small",
+            title: "Smaller evidence in the corner",
+            display: scriptSetting.evid_roulette,
             onchange: e => {
                 setSetting("evid_roulette_as_icon", e.target.checked);
             }
@@ -1137,6 +1211,7 @@ function onCourtroomJoin() {
             label: "max",
             value: scriptSetting.evid_roulette_max,
             type: "number",
+            display: scriptSetting.evid_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
@@ -1153,6 +1228,7 @@ function onCourtroomJoin() {
             label: "max",
             value: scriptSetting.sound_roulette_max,
             type: "number",
+            display: scriptSetting.sound_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
@@ -1169,6 +1245,7 @@ function onCourtroomJoin() {
             label: "max",
             value: scriptSetting.music_roulette_max,
             type: "number",
+            display: scriptSetting.music_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
@@ -1189,11 +1266,15 @@ function onCourtroomJoin() {
         ui.extraSettings_rowHeader = document.createElement("h3");
         ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-        ui.extraSettings_resetButton = createButton("extraSettings_reset", "Reset and reload", "refresh", e => {
-            if (!confirm("Reset Courtroom Enhancer settings and refresh the page?")) {
-                return;
+        ui.extraSettings_resetButton = new createButton({
+            label: "Reset and reload",
+            icon: "refresh",
+            onclick: e => {
+                if (!confirm("Reset Courtroom Enhancer settings and refresh the page?")) {
+                    return;
+                }
+                storeClear();
             }
-            storeClear();
         });
 
         ui.extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
@@ -1214,7 +1295,7 @@ function onCourtroomJoin() {
             className: "col col-12 d-flex",
             style: {
                 flexWrap: "wrap",
-                gap: "10px 15px"
+                gap: "12px"
             }
         });
 
@@ -1223,7 +1304,6 @@ function onCourtroomJoin() {
             values: Object.fromEntries(Object.entries(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name])),
             selectedValue: scriptSetting.file_host,
             onchange: e => {
-                console.log("event",e.target.value);
                 if (Object.keys(ui.Uploader.fileHosts).includes(e.target.value)) {
                     setSetting("file_host", e.target.value);
                 }
@@ -1248,15 +1328,11 @@ function onCourtroomJoin() {
             className: "col col-12 d-flex",
             style: {
                 flexWrap: "wrap",
-                gap: "10px 15px"
+                gap: "12px"
             }
         });
 
         ui.extraSettings_rowRoulettes.appendChild(ui.extraSettings_rowRoulettesCol);
-
-        ui.extraSettings_rouletteEvidMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
-        ui.extraSettings_rouletteSoundMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
-        ui.extraSettings_rouletteMusicMax.style.display = scriptSetting.evid_roulette ? "flex" : "none";
 
         ui.extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
             maxLength: "7",
@@ -1312,9 +1388,7 @@ function onCourtroomJoin() {
             ui.extraSettings_rouletteMusicMax
         );
 
-        ui.extraSettings_rowRoulettes.lastChild.append(
-            rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer
-        );
+        ui.extraSettings_rowRoulettes.lastChild.append(rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer);
 
         extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
@@ -1344,62 +1418,38 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButtons_evidRouletteButton = createButton("customButtons_evidRoulette", "EVD", "dice-multiple", e => {
-            // Check if the send button is not on cooldown
+        function rouletteClick(command, icon) {
             if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
-
-            const random = Math.floor(Math.random() * scriptSetting.evid_roulette_max);
-            ui.leftFrame_textarea.value = "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]";
+            ui.leftFrame_textarea.value = command;
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-            ui.leftFrame_sendButton.click()
-            ui.Logger.log("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + random + "]", "image");
-        });
-        ui.customButtons_evidRouletteButton.setAttributes({
+            ui.leftFrame_sendButton.click();
+            ui.Logger.log(command, icon);
+        }
+
+        ui.customButtons_evidRouletteButton = new createButton({
+            label: "EVD",
             title: "Show a random piece of evidence",
-            style: {
-                display: scriptSetting.evid_roulette ? "inline" : "none"
-            }
+            display: scriptSetting.evid_roulette,
+            icon: "dice-multiple",
+            onclick: rouletteClick.bind(this, "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * scriptSetting.evid_roulette_max) + "]", "image")
         });
 
-        ui.customButtons_soundRouletteButton = createButton("customButtons_soundRoulette", "SFX", "dice-multiple", e => {
-            // Check if the send button is not on cooldown
-            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
-                return;
-            }
-
-            const random = Math.floor(Math.random() * scriptSetting.sound_roulette_max);
-            ui.leftFrame_textarea.value = "[#bgs" + random + "]";
-            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-            ui.leftFrame_sendButton.click();
-            ui.Logger.log("[#bgs" + random + "]", "volume-medium");
-        });
-        ui.customButtons_soundRouletteButton.setAttributes({
-            title: "Play a random sound effect",
-            style: {
-                display: scriptSetting.sound_roulette ? "inline" : "none"
-            }
+        ui.customButtons_soundRouletteButton = new createButton({
+            label: "SFX",
+            title: "Play a random sound",
+            display: scriptSetting.sound_roulette,
+            icon: "dice-multiple",
+            onclick: rouletteClick.bind(this, "[#bgs" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "volume-medium")
         });
 
-        ui.customButtons_musicRouletteButton = createButton("customButtons_musicRoulette", "BGM", "dice-multiple", e => {
-            // Check if the send button is not on cooldown
-            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
-                return;
-            }
-
-            const random = Math.floor(Math.random() * scriptSetting.music_roulette_max);
-            ui.leftFrame_textarea.value = "[#bgm" + random + "]";
-            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-            ui.leftFrame_sendButton.click();
-            ui.Logger.log("[#bgm" + random + "]", "music-note");
-        });
-
-        ui.customButtons_musicRouletteButton.setAttributes({
-            title: "Play a random Music",
-            style: {
-                display: scriptSetting.music_roulette ? "inline" : "none"
-            }
+        ui.customButtons_musicRouletteButton = new createButton({
+            label: "BGM",
+            title: "Play a random song",
+            display: scriptSetting.music_roulette,
+            icon: "dice-multiple",
+            onclick: rouletteClick.bind(this, "[#bgm" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "music-note")
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
@@ -1408,33 +1458,29 @@ function onCourtroomJoin() {
 
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
-            ui.customButton_stopAllSounds = createButton("stop_all_sounds", "Shut up SFX and BGM", "volume-variant-off", e => {
-                unsafeWindow.Howler.stop();
+            ui.customButton_stopAllSounds = new createButton({
+                label: "Shut up SFX and BGM",
+                title: "Stop all sounds that are currently playing (only for you)",
+                icon: "volume-variant-off",
+                backgroundColor: "teal",
+                onclick: unsafeWindow.Howler.stop.bind(this)
             });
 
-            ui.customButton_stopAllSounds.firstChild.setAttributes({
-                title: "Stop all currently playing sounds and music (just for you)",
-                style: {
-                    backgroundColor: "teal"
-                }
-            });
-
-            ui.customButton_getCurMusicUrl = createButton("get_cur_music_url", "BGM URL", "link-variant", e => {
-                for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._state == "loaded" && howl._loop) {
-                        if (!scriptSetting.show_console) {
-                            alert(howl._src);
+            ui.customButton_getCurMusicUrl = new createButton({
+                label: "BGM URL",
+                title: "Get the URL for the song playing now",
+                icon: "link-variant",
+                backgroundColor: "teal",
+                onclick: e => {
+                    for (const howl of unsafeWindow.Howler._howls) {
+                        if (howl._state == "loaded" && howl._loop) {
+                            if (!scriptSetting.show_console) {
+                                alert(howl._src);
+                            }
+                            ui.Logger.log(howl._src, "link-variant");
+                            break;
                         }
-                        ui.Logger.log(howl._src, "link-variant");
-                        break;
-                    }
-                };
-            });
-
-            ui.customButton_getCurMusicUrl.firstChild.setAttributes({
-                title: "Get the URL for the currently playing Music",
-                style: {
-                    backgroundColor: "teal"
+                    };
                 }
             });
 
