@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.720
+// @version      0.721
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -447,7 +447,7 @@ function onCourtroomJoin() {
             },
 
             upload: function (file, callbackSuccess, callbackError) {
-                const fileHostFallback = "catboxmoe";
+                const fileHostFallback = "zzht", fileHostFallbackAudio = "zzht", fileHostFallbackUrls = "imoutokawaii";
                 var dataToUpload, filename, fileHost = (Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : fileHostFallback);
 
                 if (typeof file === "string") { // Argument passed is an URL
@@ -458,16 +458,16 @@ function onCourtroomJoin() {
                             break;
                     }
                     if (this.fileHosts[fileHost].supported.urls === false) {
-                        fileHost = fileHostFallback;
+                        fileHost = fileHostFallbackUrls;
                     }
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataUrl(url.href);
                     filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, '')) || "file";
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
                     if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
-                        fileHost = fileHostFallback;
+                        fileHost = fileHostFallbackAudio;
                     }
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
-                    filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
+                    filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name) || "file";
                 } else {
                     throw new Error("Invalid data");
                 }
