@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.716
+// @version      0.717
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -288,7 +288,6 @@ function onCourtroomJoin() {
         }
     }
 
-    // Function to create a button
     const createButton = function(options) {
         const container = document.createElement("div");
         const button = document.createElement("button");
@@ -362,10 +361,8 @@ function onCourtroomJoin() {
             parseParams: function(data) {
                 return Object.entries(data).map(([key, val]) => `${key}=${val}`).join('&');
             },
-            fileHosts: {
-                catboxmoe: {
-                    name: "catbox.moe",
-                    apiUrl: "https://catbox.moe/user/api.php",
+            hostApis: {
+                catbox: {
                     method: "POST",
                     formatDataFile: data => {
                         return {
@@ -383,53 +380,7 @@ function onCourtroomJoin() {
                         return response.toString();
                     }
                 },
-                uguuse: {
-                    name: "uguu.se",
-                    apiUrl: "https://uguu.se/upload.php",
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
-                        }
-                    }
-                },
-                pomflainla: {
-                    name: "pomf.lain.la",
-                    apiUrl: "https://pomf.lain.la/upload.php",
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
-                        }
-                    }
-                },
-                zzht: {
-                    name: "zz.ht",
-                    apiUrl: "https://zz.ht/api/upload",
+                lolisafe: {
                     method: "POST",
                     formatDataFile: data => {
                         return {
@@ -441,56 +392,6 @@ function onCourtroomJoin() {
                         return {
                             headers: {"Content-type": "application/x-www-form-urlencoded"},
                             data: ui.Uploader.parseParams({"urls[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
-                        }
-                    }
-                },
-                imoutokawaii: {
-                    name: "imouto.kawaii.su",
-                    apiUrl: "https://imouto.kawaii.su/api/upload",
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
-                        }
-                    },
-                    formatDataUrl: data => {
-                        return {
-                            headers: {"Content-type": "application/x-www-form-urlencoded"},
-                            data: ui.Uploader.parseParams({"urls[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
-                        }
-                    }
-                },
-                takemetospace: {
-                    name: "take-me-to.space",
-                    apiUrl: "https://take-me-to.space/api/upload",
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
                         }
                     },
                     urlFromResponse: response => {
@@ -506,9 +407,48 @@ function onCourtroomJoin() {
                     }
                 }
             },
+            fileHosts: {
+                catboxmoe: {
+                    name: "catbox.moe",
+                    url: "https://catbox.moe/user/api.php",
+                    api: "catbox",
+                    supported: {audio: true, urls: true}
+                },
+                uguuse: {
+                    name: "uguu.se",
+                    url: "https://uguu.se/upload.php",
+                    api: "lolisafe",
+                    supported: {audio: true, urls: false}
+                },
+                pomflainla: {
+                    name: "pomf.lain.la",
+                    url: "https://pomf.lain.la/upload.php",
+                    api: "lolisafe",
+                    supported: {audio: true, urls: false}
+                },
+                zzht: {
+                    name: "zz.ht",
+                    url: "https://zz.ht/api/upload",
+                    api: "lolisafe",
+                    supported: {audio: true, urls: true}
+                },
+                imoutokawaii: {
+                    name: "imouto.kawaii.su",
+                    url: "https://imouto.kawaii.su/api/upload",
+                    api: "lolisafe",
+                    supported: {audio: false, urls: true}
+                },
+                takemetospace: {
+                    name: "take-me-to.space",
+                    url: "https://take-me-to.space/api/upload",
+                    api: "lolisafe",
+                    supported: {audio: true, urls: false}
+                }
+            },
 
             upload: function (file, callbackSuccess, callbackError) {
-                var dataToUpload, filename, fileHost = Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : "catbox";
+                const fileHostFallback = "catboxmoe";
+                var dataToUpload, filename, fileHost = (Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : fileHostFallback);
 
                 if (typeof file === "string") { // Argument passed is an URL
                     let url = new URL(file);
@@ -517,30 +457,29 @@ function onCourtroomJoin() {
                             url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
                             break;
                     }
-
-                    if (typeof this.fileHosts[fileHost].formatDataUrl === "function") { // Check if the chosen file host supports URL uploads
-                        dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
-                    } else { // Fall back to catbox
-                        fileHost = "catbox";
-                        dataToUpload = this.fileHosts[fileHost].formatDataUrl(url.href);
+                    if (this.fileHosts[fileHost].supported.urls === false) {
+                        fileHost = fileHostFallback;
                     }
+                    dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataUrl(url.href);
                     filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, '')) || "file";
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
-                    dataToUpload = this.fileHosts[fileHost].formatDataFile(file);
+                    if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
+                        fileHost = fileHostFallback;
+                    }
+                    dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
                     throw new Error("Invalid data");
                 }
-
                 CrossOrigin({
-                    url: this.fileHosts[fileHost].apiUrl,
-                    method: this.fileHosts[fileHost].method,
+                    url: this.fileHosts[fileHost].url,
+                    method: this.hostApis[this.fileHosts[fileHost].api].method,
                     headers: dataToUpload.headers,
                     data: dataToUpload.data,
                     onload: response => {
                         if (response.readyState == 4 && response.status == 200 || response.status == 400) {
                             try {
-                                callbackSuccess({url: this.fileHosts[fileHost].urlFromResponse(response.responseText), filename: filename});
+                                callbackSuccess({url: this.hostApis[this.fileHosts[fileHost].api].urlFromResponse(response.responseText), filename: filename});
                             } catch (e) {
                                 callbackError(e.toString());
                             }
@@ -549,14 +488,16 @@ function onCourtroomJoin() {
                         }
                     },
                     onabort: response => {
-                        callbackError("Aborted");
+                        callbackError("Aborted" + response.responseText);
                     },
                     onerror: response => {
-                        callbackError(response.error);
+                        callbackError("Error" + response.responseText);
                     },
                     ontimeout: response => {
-                        callbackError("Timeout");
+                        callbackError("Timeout" + response.responseText);
                     }
+                }).catch(response => {
+                    callbackError("Error" + response.responseText);
                 });
             },
 
@@ -797,13 +738,23 @@ function onCourtroomJoin() {
                     }
                 });
 
+                const gelbooruUploaderError = function(error = "Error") {
+                    const errorText = (error instanceof Error || typeof error === "string") ? error.toString() : (error.responseText || "Error");
+                    gelbooruInputTags.value = errorText;
+                    gelbooruInputTags.style.color = "white";
+                    gelbooruInputTags.disabled = false;
+                    gelbooruInputTags.addEventListener("focus", e => {
+                        e.target.value = "";
+                    }, {once: true});
+                    ui.Logger.log(errorText);
+                }
+
                 gelbooruBtnSend.addEventListener("click", e => {
                     var tags = gelbooruInputTags.value;
                     if (!tags || tags.length === 0) { gelbooruInputTags.focus(); return; }
                     gelbooruInputTags.value = "Uploading...";
                     gelbooruInputTags.style.color = "grey";
                     gelbooruInputTags.disabled = true;
-
                     CrossOrigin({
                         url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
                         method: "GET",
@@ -815,29 +766,27 @@ function onCourtroomJoin() {
                                         throw new Error("No results");
                                     }
                                     ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
-                                        ui.evidence_formFields[0].value = responseJSON.post[0].id;
-                                        ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                                        ui.evidence_formFields[1].value = uploaderResponse.url;
-                                        ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                                        gelbooruInputTags.value = "";
-                                        gelbooruInputTags.style.color = "white";
-                                        gelbooruInputTags.disabled = false;
-                                        gelbooruIcon.click();
-                                        setTimeout(f => {ui.evidence_addButton.click()}, 500);
-                                    }, uploaderError => {
-                                        ui.Logger.log(uploaderError);
-                                    });
+                                        try {
+                                            ui.evidence_formFields[0].value = responseJSON.post[0].id;
+                                            ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                                            ui.evidence_formFields[1].value = uploaderResponse.url;
+                                            ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                                            gelbooruInputTags.value = "";
+                                            gelbooruInputTags.style.color = "white";
+                                            gelbooruInputTags.disabled = false;
+                                            gelbooruIcon.click();
+                                            setTimeout(f => {ui.evidence_addButton.click()}, 500);
+                                        } catch (e) {
+                                            throw (e);
+                                        }
+                                    }, gelbooruUploaderError);
                                 }
                             } catch(e) {
-                                gelbooruInputTags.value = e.toString();
-                                gelbooruInputTags.style.color = "white";
-                                gelbooruInputTags.disabled = false;
-                                gelbooruInputTags.addEventListener("focus", e => {
-                                    e.target.value = "";
-                                }, {once: true});
+                                gelbooruUploaderError(e);
                             }
-                        }
-                    });
+                        },
+                        onerror: gelbooruUploaderError
+                    }).catch(gelbooruUploaderError);
                 });
 
                 container.append(evidenceImageUploader, gelbooruUploader);
@@ -945,30 +894,29 @@ function onCourtroomJoin() {
             const inputSlot = document.createElement("div");
             const selectSlot = document.createElement("div");
             const label = document.createElement("label");
+            const icon = document.createElement("i");
             const input = document.createElement("input");
 
             container.title = options.title || "";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot mb-0";
-            inputSlot.style.gap = "5px";
             selectSlot.className = "v-input--selection-controls__input mr-0";
             label.setAttributes({
                 className: "v-label pointer-item"
             });
-            input.setAttributes({
-                className: "v-input--selection-controls__input pointer-item",
-                style: {
-                    accentColor: "#007aff"
-                },
-                checked: options.value || false,
-                type: "checkbox",
-                style: {color: "white", backgroundColor: "#1e1e1e"}
+            icon.setAttributes({
+                className: "v-icon notranslate mdi " + (options.checked ? "mdi-checkbox-marked primary--text" : "mdi-checkbox-blank-outline")
             });
-
+            input.setAttributes({
+                className: "v-input--selection-controls__input",
+                checked: options.checked || false,
+                type: "checkbox"
+            });
+            input.setAttribute("role", "checkbox");
             container.append(inputControl);
             inputControl.append(inputSlot);
             inputSlot.append(selectSlot, label);
-            selectSlot.append(input);
+            selectSlot.append(icon, input);
 
             if (options.display === false) {
                 container.style.display = "none";
@@ -981,6 +929,9 @@ function onCourtroomJoin() {
             });
 
             input.addEventListener("change", e => {
+                icon.classList.toggle("mdi-checkbox-blank-outline", !e.target.checked);
+                icon.classList.toggle("mdi-checkbox-marked", e.target.checked);
+                icon.classList.toggle("primary--text", e.target.checked);
                 options.onchange.call(this, e);
             });
 
@@ -1048,7 +999,7 @@ function onCourtroomJoin() {
             const label = document.createElement("label");
             const select = document.createElement("select");
 
-            container.className = "v-input v-input--dense v-text-field pt-1";
+            container.className = "v-input v-input--dense v-text-field";
             container.style.flex = "0 0 auto";
             inputControl.className = "v-input__control";
             inputSlot.className = "v-input__slot";
@@ -1094,7 +1045,7 @@ function onCourtroomJoin() {
         };
 
         ui.extraSettings_warnOnExit = new createInputCheckbox({
-            value: scriptSetting.warn_on_exit,
+            checked: scriptSetting.warn_on_exit,
             label: "Confirm on exit",
             onchange: e => {
                 setSetting("warn_on_exit", e.target.checked);
@@ -1102,7 +1053,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rememberUsername = new createInputCheckbox({
-            value: scriptSetting.remember_username,
+            checked: scriptSetting.remember_username,
             label: "Remember username",
             onchange: e => {
                 setSetting("remember_username", e.target.checked);
@@ -1110,7 +1061,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_showConsole = new createInputCheckbox({
-            value: scriptSetting.show_console,
+            checked: scriptSetting.show_console,
             label: "Show console",
             onchange: e => {
                 const value = e.target.checked;
@@ -1120,7 +1071,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_adjustChatTextWithWheel = new createInputCheckbox({
-            value: scriptSetting.adjust_chat_text_with_wheel,
+            checked: scriptSetting.adjust_chat_text_with_wheel,
             label: "Scroll to resize chat",
             onchange: e => {
                 const value = e.target.checked;
@@ -1134,7 +1085,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
-            value: scriptSetting.chat_hover_tooltip,
+            checked: scriptSetting.chat_hover_tooltip,
             label: "Chat tooltips",
             onchange: e => {
                 const value = e.target.checked;
@@ -1148,7 +1099,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_disableKeyboardShortcuts = new createInputCheckbox({
-            value: scriptSetting.disable_keyboard_shortcuts,
+            checked: scriptSetting.disable_keyboard_shortcuts,
             label: "Disable WASD hotkeys",
             onchange: e => {
                 const value = e.target.checked;
@@ -1164,7 +1115,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteEvid = new createInputCheckbox({
-            value: scriptSetting.evid_roulette,
+            checked: scriptSetting.evid_roulette,
             label: "EVD roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1176,7 +1127,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteSound = new createInputCheckbox({
-            value: scriptSetting.sound_roulette,
+            checked: scriptSetting.sound_roulette,
             label: "SND roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1187,7 +1138,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteMusic = new createInputCheckbox({
-            value: scriptSetting.music_roulette,
+            checked: scriptSetting.music_roulette,
             label: "MUS roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1198,8 +1149,8 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
-            value: scriptSetting.evid_roulette_as_icon,
-            label: "small",
+            checked: scriptSetting.evid_roulette_as_icon,
+            label: "Icon",
             title: "Smaller evidence in the corner",
             display: scriptSetting.evid_roulette,
             onchange: e => {
@@ -1208,8 +1159,8 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteEvidMax = new createInputText({
-            label: "max",
             value: scriptSetting.evid_roulette_max,
+            label: "max",
             type: "number",
             display: scriptSetting.evid_roulette,
             onfocusout: e => {
@@ -1225,8 +1176,8 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteSoundMax = new createInputText({
-            label: "max",
             value: scriptSetting.sound_roulette_max,
+            label: "max",
             type: "number",
             display: scriptSetting.sound_roulette,
             onfocusout: e => {
@@ -1242,8 +1193,8 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteMusicMax = new createInputText({
-            label: "max",
             value: scriptSetting.music_roulette_max,
+            label: "max",
             type: "number",
             display: scriptSetting.music_roulette,
             onfocusout: e => {
@@ -1292,10 +1243,10 @@ function onCourtroomJoin() {
         ui.extraSettings_rowButtons.className = "row mt-4 no-gutters";
         ui.extraSettings_rowButtonsCol = document.createElement("div");
         ui.extraSettings_rowButtonsCol.setAttributes({
-            className: "col col-12 d-flex",
+            className: "col col-12 d-flex align-center",
             style: {
                 flexWrap: "wrap",
-                gap: "12px"
+                gap: "12px 5px"
             }
         });
 
@@ -1325,10 +1276,10 @@ function onCourtroomJoin() {
         ui.extraSettings_rowRoulettes.className = "row mt-4 no-gutters";
         ui.extraSettings_rowRoulettesCol = document.createElement("div");
         ui.extraSettings_rowRoulettesCol.setAttributes({
-            className: "col col-12 d-flex",
+            className: "col col-12 d-flex align-center",
             style: {
                 flexWrap: "wrap",
-                gap: "12px"
+                gap: "12px 15px"
             }
         });
 
@@ -1363,10 +1314,9 @@ function onCourtroomJoin() {
 
         const rouletteEvidContainer = document.createElement("div");
         rouletteEvidContainer.setAttributes({
-            className: "d-flex",
+            className: "d-flex align-center",
             style: {
-                gap: "0px 10px",
-                alignItems: "center"
+                gap: "0px 4px"
             }
         });
         const rouletteSoundContainer = rouletteEvidContainer.cloneNode();
@@ -1374,8 +1324,8 @@ function onCourtroomJoin() {
 
         rouletteEvidContainer.append(
             ui.extraSettings_rouletteEvid,
+            ui.extraSettings_rouletteEvidMax,
             ui.extraSettings_rouletteEvidAsIcon,
-            ui.extraSettings_rouletteEvidMax
         );
 
         rouletteSoundContainer.append(
