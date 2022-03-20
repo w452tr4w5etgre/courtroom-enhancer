@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.724
+// @version      0.725
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -466,7 +466,6 @@ function onCourtroomJoin() {
                     if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
                         fileHost = fileHostFallbackAudio;
                     }
-                    console.log(this);
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name) || "file";
                 } else {
