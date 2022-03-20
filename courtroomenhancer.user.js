@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.719
+// @version      0.720
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1366,7 +1366,7 @@ function onCourtroomJoin() {
             }
         });
 
-        function rouletteClick(command, icon) {
+        function rouletteClick(command, max, icon) {
             if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
@@ -1381,7 +1381,9 @@ function onCourtroomJoin() {
             title: "Show a random piece of evidence",
             display: scriptSetting.evid_roulette,
             icon: "dice-multiple",
-            onclick: rouletteClick.bind(this, "[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * scriptSetting.evid_roulette_max) + "]", "image")
+            onclick: e => {
+                rouletteClick("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * scriptSetting.evid_roulette_max) + "]", "image");
+            }
         });
 
         ui.customButtons_soundRouletteButton = new createButton({
@@ -1389,7 +1391,9 @@ function onCourtroomJoin() {
             title: "Play a random sound",
             display: scriptSetting.sound_roulette,
             icon: "dice-multiple",
-            onclick: rouletteClick.bind(this, "[#bgs" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "volume-medium")
+            onclick: e => {
+                rouletteClick("[#bgs" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "volume-medium");
+            }
         });
 
         ui.customButtons_musicRouletteButton = new createButton({
@@ -1397,7 +1401,9 @@ function onCourtroomJoin() {
             title: "Play a random song",
             display: scriptSetting.music_roulette,
             icon: "dice-multiple",
-            onclick: rouletteClick.bind(this, "[#bgm" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "music-note")
+            onclick: e => {
+                rouletteClick("[#bgm" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "music-note");
+            }
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
