@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.711
+// @version      0.712
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -209,7 +209,6 @@ function onCourtroomJoin() {
         on_myAssetsListChange: function(changes, observer) {
             const node = this.element;
             for (const change of changes) {
-                var musicFilePicker, soundFilePicker;
                 for (const addedNode of change.addedNodes) {
                     const activeTab = node.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
                     const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab)-1];
@@ -221,7 +220,7 @@ function onCourtroomJoin() {
                         case "Popups":
                             break;
                         case "Music":
-                            musicFilePicker = ui.Uploader.filePicker(uploaderResponse => {
+                            ui.musicFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
                                 inputName.value = uploaderResponse.filename;
@@ -229,10 +228,10 @@ function onCourtroomJoin() {
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
                             }, {label: "music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
-                            activeWindow.querySelector("div.v-card__actions").prepend(musicFilePicker);
+                            activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
                             break;
                         case "Sounds":
-                            soundFilePicker = ui.Uploader.filePicker(uploaderResponse => {
+                            ui.soundFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
                                 inputName.value = uploaderResponse.filename;
@@ -240,7 +239,7 @@ function onCourtroomJoin() {
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
                             }, {label: "sound", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6});
-                            activeWindow.querySelector("div.v-card__actions").prepend(soundFilePicker);
+                            activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
                             break;
                     }
                 }
@@ -349,14 +348,6 @@ function onCourtroomJoin() {
                 setTimeout(f => {ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight;}, 250);
             }
         }, true);
-
-        ui.evidence_formBottomRow_container = document.createElement("div");
-        ui.evidence_formBottomRow_container.className = "d-flex justify-space-between";
-        ui.evidence_formBottomRow_container.style.width = "100%";
-        ui.evidence_formBottomRow_container.style.alignItems = "center";
-        ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
-        ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_buttonsColumn);
-        ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_container);
 
         // Add evidence sources
 
@@ -583,10 +574,10 @@ function onCourtroomJoin() {
                             }
                         });
                         if (file instanceof File) {
-                            this.upload(file, uploadCallbackSuccess, uploadError);
+                            ui.Uploader.upload(file, uploadCallbackSuccess, uploadError);
                         } else if (file instanceof DataTransferItem && file.kind == "string") {
                             file.getAsString(url => {
-                                this.upload(url, uploadCallbackSuccess, uploadError);
+                                ui.Uploader.upload(url, uploadCallbackSuccess, uploadError);
                             });
                         } else {
                             throw new Error("Invalid file");
@@ -613,163 +604,175 @@ function onCourtroomJoin() {
             }
         };
 
-        const evidenceUploaders = function() {
-            ui.evidence_formBottomRow_uploaderColumn = document.createElement("div");
-            ui.evidence_formBottomRow_uploaderColumn.setAttributes({
-                className: "d-flex justify-center",
-                style: {
-                    gap: "8px",
-                    flex: "2 1 auto",
-                }
-            });
-
-            const evidenceImageUploader = ui.Uploader.filePicker(res => {
-                ui.evidence_formFields[0].value = res.filename.substr(0, 20);
-                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                ui.evidence_formFields[1].value = res.url;
-                ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-            }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
-
-            evidenceImageUploader.setAttributes({
-                style: {
-                    alignSelf: "flex-end",
-                    height: "36px"
-                }
-            });
-
-            // Upload by gelbooru tags
-            const gelbooruUploader = document.createElement("div");
-            gelbooruUploader.setAttributes({
-                className: "d-flex",
-                style: {
-                    alignItems: "center"
-                }
-            });
-
-            const gelbooruIcon = document.createElement("img");
-            gelbooruIcon.setAttributes({
-                src: "https://gelbooru.com/favicon.png",
-                title: "Gelbooru",
-                className: "v-icon v-icon--left",
-                style: {
-                    cursor: "pointer"
-                }
-            });
-
-            const gelbooruTagsContainer = document.createElement("div");
-            gelbooruTagsContainer.setAttributes({
-                style: {
-                    display: "none",
-                    gap: "5px"
-                }
-            });
-
-            const gelbooruInputTags = document.createElement("input");
-            gelbooruInputTags.setAttributes({
-                maxLength: "255",
-                placeholder: "Ex: blue_sky cloud 1girl",
-                style: {
-                    borderBottom: "1px solid white",
-                    color: "white"
-                }
-            });
-
-            const gelbooruBtnSend = document.createElement("div");
-            gelbooruBtnSend.setAttributes({
-                className: "mdi mdi-send",
-                style: {cursor: "pointer"}
-            });
-
-            gelbooruTagsContainer.append(gelbooruInputTags, gelbooruBtnSend);
-            gelbooruUploader.append(gelbooruIcon, gelbooruTagsContainer);
-
-            gelbooruIcon.addEventListener("click", e => {
-                var state = gelbooruTagsContainer.classList.toggle("d-flex");
-                gelbooruTagsContainer.classList.toggle("d-none");
-                evidenceImageUploader.classList.toggle("d-flex");
-                evidenceImageUploader.classList.toggle("d-none");
-                if (state) {
-                    gelbooruInputTags.focus();
-                }
-            });
-
-            gelbooruInputTags.addEventListener("keydown", e => {
-                if (e.target.value && (e.keyCode == 13 || e.key == "Enter")) {
-                    gelbooruBtnSend.click();
-                }
-            });
-
-            gelbooruBtnSend.addEventListener("click", e => {
-                var tags = gelbooruInputTags.value;
-                if (!tags || tags.length === 0) { gelbooruInputTags.focus(); return; }
-                gelbooruInputTags.value = "Uploading...";
-                gelbooruInputTags.style.color = "grey";
-                gelbooruInputTags.disabled = true;
-
-                CrossOrigin({
-                    url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
-                    method: "GET",
-                    onload: getterResponse => {
-                        try {
-                            if (getterResponse.readyState == 4 && getterResponse.status == 200) {
-                                var responseJSON = JSON.parse(getterResponse.responseText);
-                                if (!responseJSON.post) {
-                                    throw new Error("No results");
-                                }
-                                ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
-                                    ui.evidence_formFields[0].value = responseJSON.post[0].id;
-                                    ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                                    ui.evidence_formFields[1].value = uploaderResponse.url;
-                                    ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                                    gelbooruInputTags.value = "";
-                                    gelbooruInputTags.style.color = "white";
-                                    gelbooruInputTags.disabled = false;
-                                    gelbooruIcon.click();
-                                    setTimeout(f => {ui.evidence_addButton.click()}, 500);
-                                }, uploaderError => {
-                                    ui.Logger.log(uploaderError);
-                                });
-                            }
-                        } catch(e) {
-                            gelbooruInputTags.value = e.toString();
-                            gelbooruInputTags.style.color = "white";
-                            gelbooruInputTags.disabled = false;
-                            gelbooruInputTags.addEventListener("focus", e => {
-                                e.target.value = "";
-                            }, {once: true});
-                        }
+        const createEvidenceUploaders = {
+            init: function() {
+                const container = document.createElement("div");
+                container.setAttributes({
+                    className: "d-flex justify-center",
+                    style: {
+                        gap: "8px",
+                        flex: "2 1 auto",
                     }
                 });
-            });
 
-            ui.evidence_formBottomRow_uploaderColumn.append(evidenceImageUploader, gelbooruUploader);
+                const evidenceImageUploader = new ui.Uploader.filePicker(res => {
+                    ui.evidence_formFields[0].value = res.filename.substr(0, 20);
+                    ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                    ui.evidence_formFields[1].value = res.url;
+                    ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                }, {label: "image", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6});
 
-            ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_uploaderColumn);
-        }();
+                evidenceImageUploader.setAttributes({
+                    style: {
+                        alignSelf: "flex-end",
+                        height: "36px"
+                    }
+                });
+
+                // Upload by gelbooru tags
+                const gelbooruUploader = document.createElement("div");
+                gelbooruUploader.setAttributes({
+                    className: "d-flex",
+                    style: {
+                        alignItems: "center"
+                    }
+                });
+
+                const gelbooruIcon = document.createElement("img");
+                gelbooruIcon.setAttributes({
+                    src: "https://gelbooru.com/favicon.png",
+                    title: "Gelbooru",
+                    className: "v-icon v-icon--left",
+                    style: {
+                        cursor: "pointer"
+                    }
+                });
+
+                const gelbooruTagsContainer = document.createElement("div");
+                gelbooruTagsContainer.setAttributes({
+                    style: {
+                        display: "none",
+                        gap: "5px"
+                    }
+                });
+
+                const gelbooruInputTags = document.createElement("input");
+                gelbooruInputTags.setAttributes({
+                    maxLength: "255",
+                    placeholder: "Ex: blue_sky cloud 1girl",
+                    style: {
+                        borderBottom: "1px solid white",
+                        color: "white"
+                    }
+                });
+
+                const gelbooruBtnSend = document.createElement("div");
+                gelbooruBtnSend.setAttributes({
+                    className: "mdi mdi-send",
+                    style: {cursor: "pointer"}
+                });
+
+                gelbooruTagsContainer.append(gelbooruInputTags, gelbooruBtnSend);
+                gelbooruUploader.append(gelbooruIcon, gelbooruTagsContainer);
+
+                gelbooruIcon.addEventListener("click", e => {
+                    var state = gelbooruTagsContainer.classList.toggle("d-flex");
+                    gelbooruTagsContainer.classList.toggle("d-none");
+                    evidenceImageUploader.classList.toggle("d-flex");
+                    evidenceImageUploader.classList.toggle("d-none");
+                    if (state) {
+                        gelbooruInputTags.focus();
+                    }
+                });
+
+                gelbooruInputTags.addEventListener("keydown", e => {
+                    if (e.target.value && (e.keyCode == 13 || e.key == "Enter")) {
+                        gelbooruBtnSend.click();
+                    }
+                });
+
+                gelbooruBtnSend.addEventListener("click", e => {
+                    var tags = gelbooruInputTags.value;
+                    if (!tags || tags.length === 0) { gelbooruInputTags.focus(); return; }
+                    gelbooruInputTags.value = "Uploading...";
+                    gelbooruInputTags.style.color = "grey";
+                    gelbooruInputTags.disabled = true;
+
+                    CrossOrigin({
+                        url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
+                        method: "GET",
+                        onload: getterResponse => {
+                            try {
+                                if (getterResponse.readyState == 4 && getterResponse.status == 200) {
+                                    var responseJSON = JSON.parse(getterResponse.responseText);
+                                    if (!responseJSON.post) {
+                                        throw new Error("No results");
+                                    }
+                                    ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
+                                        ui.evidence_formFields[0].value = responseJSON.post[0].id;
+                                        ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+                                        ui.evidence_formFields[1].value = uploaderResponse.url;
+                                        ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                                        gelbooruInputTags.value = "";
+                                        gelbooruInputTags.style.color = "white";
+                                        gelbooruInputTags.disabled = false;
+                                        gelbooruIcon.click();
+                                        setTimeout(f => {ui.evidence_addButton.click()}, 500);
+                                    }, uploaderError => {
+                                        ui.Logger.log(uploaderError);
+                                    });
+                                }
+                            } catch(e) {
+                                gelbooruInputTags.value = e.toString();
+                                gelbooruInputTags.style.color = "white";
+                                gelbooruInputTags.disabled = false;
+                                gelbooruInputTags.addEventListener("focus", e => {
+                                    e.target.value = "";
+                                }, {once: true});
+                            }
+                        }
+                    });
+                });
+
+                container.append(evidenceImageUploader, gelbooruUploader);
+
+                return container;
+            }
+        };
+
+        ui.evidence_evidenceUploaders = createEvidenceUploaders.init();
+        ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_buttonsColumn);
+        ui.evidence_formBottomRow.append(ui.evidence_evidenceUploaders);
+        ui.evidence_formBottomRow.classList.remove("pb-1");
+        ui.evidence_formBottomRow.classList.add("align-center", "pb-2");
+        ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
 
         // Show evidence count
-        const evidenceCounter = function() {
-            ui.evidence_formBottomRow_counterColumn = document.createElement("div");
-            ui.evidence_formBottomRow_counterColumn.className = "d-flex";
-            ui.evidence_formBottomRow_counterText = document.createElement("div");
-
-            ui.evidence_formBottomRow_counterText.updateCount = function() {
+        const evidenceCounter = {
+            updateCount: function() {
                 const evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
                 if (evidCount == evidMax) {
-                    this.className = "mdi mdi-alert error--text";
+                    this.text.className = "mdi mdi-alert error--text";
                 } else if (evidCount / evidMax > 0.9) {
-                    this.className = "warning--text";
+                    this.text.className = "warning--text";
                 } else {
-                    this.className = "success--text";
+                    this.text.className = "success--text";
                 }
-                this.textContent = evidCount + " / " + evidMax;
-            };
+                this.text.textContent = evidCount + " / " + evidMax;
+            },
+            init: function() {
+                this.container = document.createElement("div");
+                this.text = document.createElement("div");
+                this.container.className = "d-flex";
+                this.container.append(this.text);
+                this.updateCount();
+                return this.container;
+            }
+        };
 
-            ui.evidence_formBottomRow_counterColumn.append(ui.evidence_formBottomRow_counterText);
-            ui.evidence_formBottomRow_container.append(ui.evidence_formBottomRow_counterColumn);
-            ui.evidence_formBottomRow_counterText.updateCount();
-        }();
-
+        ui.evidence_evidenceCounter = evidenceCounter.init();
+        evidenceCounter.updateCount(20);
+        ui.evidence_formBottomRow.append(ui.evidence_evidenceCounter);
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function(node) {
@@ -819,7 +822,7 @@ function onCourtroomJoin() {
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
         function on_evidenceListChange(changes, observer) {
-            ui.evidence_formBottomRow_counterText.updateCount();
+            evidenceCounter.updateCount();
             for (const change of changes) {
                 for (const node of change.addedNodes) {
                     ui.evidence_list.fixEvidenceItem(node);
@@ -1018,7 +1021,7 @@ function onCourtroomJoin() {
             return container;
         };
 
-        ui.extraSettings_warnOnExit = createInputCheckbox({
+        ui.extraSettings_warnOnExit = new createInputCheckbox({
             value: scriptSetting.warn_on_exit,
             label: "Confirm on exit",
             onchange: e => {
@@ -1026,7 +1029,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rememberUsername = createInputCheckbox({
+        ui.extraSettings_rememberUsername = new createInputCheckbox({
             value: scriptSetting.remember_username,
             label: "Remember username",
             onchange: e => {
@@ -1034,7 +1037,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_showConsole = createInputCheckbox({
+        ui.extraSettings_showConsole = new createInputCheckbox({
             value: scriptSetting.show_console,
             label: "Show console",
             onchange: e => {
@@ -1044,7 +1047,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_adjustChatTextWithWheel = createInputCheckbox({
+        ui.extraSettings_adjustChatTextWithWheel = new createInputCheckbox({
             value: scriptSetting.adjust_chat_text_with_wheel,
             label: "Scroll to resize chat",
             onchange: e => {
@@ -1058,7 +1061,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_chatHoverTooltip = createInputCheckbox({
+        ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
             value: scriptSetting.chat_hover_tooltip,
             label: "Chat tooltips",
             onchange: e => {
@@ -1072,7 +1075,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_disableKeyboardShortcuts = createInputCheckbox({
+        ui.extraSettings_disableKeyboardShortcuts = new createInputCheckbox({
             value: scriptSetting.disable_keyboard_shortcuts,
             label: "Disable WASD hotkeys",
             onchange: e => {
@@ -1088,7 +1091,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteEvid = createInputCheckbox({
+        ui.extraSettings_rouletteEvid = new createInputCheckbox({
             value: scriptSetting.evid_roulette,
             label: "EVD roulette",
             onchange: e => {
@@ -1100,7 +1103,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteSound = createInputCheckbox({
+        ui.extraSettings_rouletteSound = new createInputCheckbox({
             value: scriptSetting.sound_roulette,
             label: "SND roulette",
             onchange: e => {
@@ -1111,7 +1114,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteMusic = createInputCheckbox({
+        ui.extraSettings_rouletteMusic = new createInputCheckbox({
             value: scriptSetting.music_roulette,
             label: "MUS roulette",
             onchange: e => {
@@ -1122,7 +1125,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteEvidAsIcon = createInputCheckbox({
+        ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
             value: scriptSetting.evid_roulette_as_icon,
             label: "small",
             onchange: e => {
@@ -1130,7 +1133,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteEvidMax = createInputText({
+        ui.extraSettings_rouletteEvidMax = new createInputText({
             label: "max",
             value: scriptSetting.evid_roulette_max,
             type: "number",
@@ -1146,7 +1149,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteSoundMax = createInputText({
+        ui.extraSettings_rouletteSoundMax = new createInputText({
             label: "max",
             value: scriptSetting.sound_roulette_max,
             type: "number",
@@ -1162,7 +1165,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteMusicMax = createInputText({
+        ui.extraSettings_rouletteMusicMax = new createInputText({
             label: "max",
             value: scriptSetting.music_roulette_max,
             type: "number",
@@ -1215,7 +1218,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_fileHostSelector = createInputSelect({
+        ui.extraSettings_fileHostSelector = new createInputSelect({
             label: "File host",
             values: Object.fromEntries(Object.entries(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name])),
             selectedValue: scriptSetting.file_host,
