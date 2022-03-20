@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.723
+// @version      0.724
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -379,30 +379,30 @@ function onCourtroomJoin() {
                     urlFromResponse: response => {
                         return response.toString();
                     }
-                }
-            },
-            lolisafe: {
-                method: "POST",
-                formatDataFile: data => {
-                    return {
-                        headers: {},
-                        data: ui.Uploader.parseForm({"files[]": data})
-                    }
                 },
-                formatDataUrl: data => {
-                    return {
-                        headers: {"Content-type": "application/x-www-form-urlencoded"},
-                        data: ui.Uploader.parseParams({"urls[]": data})
-                    }
-                },
-                urlFromResponse: response => {
-                    const responseJSON = JSON.parse(response);
-                    if (!responseJSON.success) {
-                        throw new Error("Server returned " + responseJSON.description);
-                    }
-                    for (const file of responseJSON.files) {
-                        if (file.url) {
-                            return file.url;
+                lolisafe: {
+                    method: "POST",
+                    formatDataFile: data => {
+                        return {
+                            headers: {},
+                            data: ui.Uploader.parseForm({"files[]": data})
+                        }
+                    },
+                    formatDataUrl: data => {
+                        return {
+                            headers: {"Content-type": "application/x-www-form-urlencoded"},
+                            data: ui.Uploader.parseParams({"urls[]": data})
+                        }
+                    },
+                    urlFromResponse: response => {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error("Server returned " + responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
                         }
                     }
                 }
@@ -466,6 +466,7 @@ function onCourtroomJoin() {
                     if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
                         fileHost = fileHostFallbackAudio;
                     }
+                    console.log(this);
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name) || "file";
                 } else {
