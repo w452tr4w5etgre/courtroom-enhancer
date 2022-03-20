@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.718
+// @version      0.719
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1411,7 +1411,7 @@ function onCourtroomJoin() {
                 title: "Stop all sounds that are currently playing (only for you)",
                 icon: "volume-variant-off",
                 backgroundColor: "teal",
-                onclick: unsafeWindow.Howler.stop.bind(this)
+                onclick: unsafeWindow.Howler.stop.bind()
             });
 
             ui.customButton_getCurMusicUrl = new createButton({
