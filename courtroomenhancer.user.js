@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.722
+// @version      0.723
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -379,30 +379,30 @@ function onCourtroomJoin() {
                     urlFromResponse: response => {
                         return response.toString();
                     }
+                }
+            },
+            lolisafe: {
+                method: "POST",
+                formatDataFile: data => {
+                    return {
+                        headers: {},
+                        data: ui.Uploader.parseForm({"files[]": data})
+                    }
                 },
-                lolisafe: {
-                    method: "POST",
-                    formatDataFile: data => {
-                        return {
-                            headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
-                        }
-                    },
-                    formatDataUrl: data => {
-                        return {
-                            headers: {"Content-type": "application/x-www-form-urlencoded"},
-                            data: ui.Uploader.parseParams({"urls[]": data})
-                        }
-                    },
-                    urlFromResponse: response => {
-                        const responseJSON = JSON.parse(response);
-                        if (!responseJSON.success) {
-                            throw new Error(responseJSON.description);
-                        }
-                        for (const file of responseJSON.files) {
-                            if (file.url) {
-                                return file.url;
-                            }
+                formatDataUrl: data => {
+                    return {
+                        headers: {"Content-type": "application/x-www-form-urlencoded"},
+                        data: ui.Uploader.parseParams({"urls[]": data})
+                    }
+                },
+                urlFromResponse: response => {
+                    const responseJSON = JSON.parse(response);
+                    if (!responseJSON.success) {
+                        throw new Error("Server returned " + responseJSON.description);
+                    }
+                    for (const file of responseJSON.files) {
+                        if (file.url) {
+                            return file.url;
                         }
                     }
                 }
@@ -479,7 +479,10 @@ function onCourtroomJoin() {
                     onload: response => {
                         if (response.readyState == 4 && response.status == 200 || response.status == 400) {
                             try {
-                                callbackSuccess({url: this.hostApis[this.fileHosts[fileHost].api].urlFromResponse(response.responseText), filename: filename});
+                                callbackSuccess({
+                                    url: new URL(this.hostApis[this.fileHosts[fileHost].api].urlFromResponse(response.responseText)).href,
+                                    filename: filename
+                                });
                             } catch (e) {
                                 callbackError(e.toString());
                             }
