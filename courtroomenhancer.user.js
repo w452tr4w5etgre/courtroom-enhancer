@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.725
+// @version      0.726
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,9 +32,9 @@ var initSettings = function() {
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 486000),
-        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 41700),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137000),
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 486700),
+        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 42100),
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 137800),
         "file_host": getSetting("file_host", "catbox")
     };
 }();
@@ -1412,7 +1412,7 @@ function onCourtroomJoin() {
             display: scriptSetting.sound_roulette,
             icon: "dice-multiple",
             onclick: e => {
-                rouletteClick("[#bgs" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "volume-medium");
+                rouletteClick("[#bgs" + Math.floor(Math.random() * scriptSetting.sound_roulette_max) + "]", "volume-medium");
             }
         });
 
