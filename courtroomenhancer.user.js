@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.726
+// @version      0.727
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1373,7 +1373,7 @@ function onCourtroomJoin() {
     // Create additional buttons container below the right panels
     var addRightFrameExtraButtons = function() {
         ui.customButtonsContainer = ui.rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
-        ui.customButtonsContainer.className = "mx-0 mx-md-4 mt-4 rounded-0";
+        ui.customButtonsContainer.className = "mx-2 mt-4";
 
         ui.customButtons_rows = []
 
@@ -1657,20 +1657,19 @@ function onCourtroomJoin() {
                 fontSize: "13px",
                 lineHeight: "14px",
                 color: "rgb(211, 207, 201)",
-                transition: "opacity 0.15s ease-in-out 0.25s"
+                transition: "opacity 0.15s ease-in-out 0.25s, top 0.2s",
+                zIndex: "2"
             }
         });
 
-        ui.chatLog_chat.append(ui.chatLog_customTooltip);
+        ui.app.append(ui.chatLog_customTooltip);
 
         ui.chatLog_customTooltip.reposition = function(node) {
             let top = 0;
-            top = node.parentNode.offsetTop;
-            if (top + this.offsetHeight > Math.min(ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight, Math.max(ui.chatLog_chat.offsetHeight, ui.chatLog_chat.scrollHeight))) {
-                top = Math.min(ui.chatLog_chatList.lastChild.offsetTop + ui.chatLog_chatList.lastChild.offsetHeight, Math.max(ui.chatLog_chat.offsetHeight, ui.chatLog_chat.scrollHeight)) - this.offsetHeight;
-            }
+            console.log(node);
+            top = node.getBoundingClientRect().y + (node.offsetHeight/2) - (this.offsetHeight / 2);
             if (top < 0) {
-                top = Math.max(0, ui.chatLog_chatList.firstChild.offsetTop);
+                top = 0;
             }
             this.style.top = top + "px"
         }
