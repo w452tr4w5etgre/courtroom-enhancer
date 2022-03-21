@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.728
+// @version      0.729
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1647,7 +1647,7 @@ function onCourtroomJoin() {
                 right: "20px",
                 padding: "4px",
                 maxWidth: "360px",
-                maxHeight: "360px",
+                maxHeight: "90%",
                 overflow: "auto",
                 background: "rgba(24, 24, 24, 0.95)",
                 boxShadow: "2px 2px 6px #121212",
@@ -1657,7 +1657,7 @@ function onCourtroomJoin() {
                 fontSize: "13px",
                 lineHeight: "14px",
                 color: "rgb(211, 207, 201)",
-                transition: "opacity 0.15s ease-in-out 0.25s, top 0.2s",
+                transition: "opacity 0.15s ease-in-out 0.25s, top 0s",
                 zIndex: "2"
             }
         });
@@ -1666,9 +1666,11 @@ function onCourtroomJoin() {
 
         ui.chatLog_customTooltip.reposition = function(node) {
             let top = 0;
-            top = node.getBoundingClientRect().y + (node.offsetHeight/2) - (this.offsetHeight / 2);
-            if (top < 0) {
-                top = 0;
+            top = node.getBoundingClientRect().y + (node.offsetHeight / 2) - (this.offsetHeight / 2);
+            if (top < 20) {
+                top = 20;
+            } else if (top + this.offsetHeight > this.parentNode.offsetHeight) {
+                top = this.parentNode.offsetHeight - this.offsetHeight - 20;
             }
             this.style.top = top + "px"
         }
