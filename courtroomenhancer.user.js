@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.727
+// @version      0.728
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1666,7 +1666,6 @@ function onCourtroomJoin() {
 
         ui.chatLog_customTooltip.reposition = function(node) {
             let top = 0;
-            console.log(node);
             top = node.getBoundingClientRect().y + (node.offsetHeight/2) - (this.offsetHeight / 2);
             if (top < 0) {
                 top = 0;
