@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.732
+// @version      0.733
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1647,7 +1647,6 @@ function onCourtroomJoin() {
         init() {
             this.tooltipElement = document.createElement("div");
             this.tooltipElement.setAttributes({
-                id: "customTooltip",
                 style: {
                     visibility: "hidden",
                     opacity: "0",
@@ -1679,9 +1678,24 @@ function onCourtroomJoin() {
 
             if (scriptSetting.chat_hover_tooltip) {
                 ui.chatLog_chat.addEventListener("mouseover", this.onChatListMouseOver, false);
-                this.tooltipElement.addEventListener("mouseenter", e => {e.target.style.opacity = "1";});
-                this.tooltipElement.addEventListener("mouseleave", this.onChatItemMouseLeave.bind(this), {capture:false});
             }
+            this.tooltipElement.addEventListener("mouseenter", e => {e.target.style.opacity = "1";});
+            this.tooltipElement.addEventListener("mouseleave", this.onChatItemMouseLeave.bind(this), {capture:false});
+            this.tooltipElement.addEventListener("transitioncancel", e => {
+                if (e.target.style.opacity == "0") {
+                    e.target.style.visibility = "hidden";
+                }
+            });
+            this.tooltipElement.addEventListener("transitionend", e => {
+                if (e.target.style.opacity == "0") {
+                    e.target.style.visibility = "hidden";
+                    this.tooltipElement.querySelectorAll("audio, video").forEach(f => {f.pause();});
+                    this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => {f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');});
+                    this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                    this.chatItem.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                }
+            });
+
             return this.tooltipElement;
         },
 
@@ -1893,16 +1907,6 @@ function onCourtroomJoin() {
             if (this.tooltipElement.contains(e.toElement)) {
                 return;
             }
-
-            this.tooltipElement.addEventListener("transitionend", e => {
-                if (e.target.style.opacity == 0) {
-                    e.target.style.visibility = "hidden";
-                    this.tooltipElement.querySelectorAll("audio, video").forEach(f => {f.pause();});
-                    this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => {f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');});
-                    this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
-                    this.chatItem.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
-                }
-            }, {once:true});
             this.tooltipElement.style.opacity = "0";
         }
     }
