@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.734
+// @version      0.735
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -262,10 +262,20 @@ function onCourtroomJoin() {
                         dialogCard.childNodes[1].className == "d-flex mx-auto" &&
                         (dialogCard.childNodes[2] instanceof Comment || (dialogCard.childNodes[2] instanceof HTMLDivElement && dialogCard.childNodes[2].classList.contains("subtitle-1")))) {
                         const img = dialogCard.childNodes[1];
-                        img.style.cursor = "pointer";
+                        img.style.cursor = "zoom-in";
                         img.style.maxWidth = "100%";
                         img.style.maxHeight = "80vh";
-                        img.addEventListener("click", e => {closeButton.click();});
+                        img.addEventListener("click", e => {
+                            if (e.target.style.cursor == "zoom-out") {
+                                e.target.style.maxWidth = "100%";
+                                e.target.style.maxHeight = "80vh";
+                                e.target.style.cursor = "zoom-in";
+                            } else {
+                                e.target.style.maxWidth = "";
+                                e.target.style.maxHeight = "";
+                                e.target.style.cursor = "zoom-out";
+                            }
+                        });
                     } else {
                         const dialogTitle = node.querySelector("header.v-sheet > div.v-toolbar__content > div.v-toolbar__title").textContent.trim();
                         switch (dialogTitle) {
@@ -1400,7 +1410,7 @@ function onCourtroomJoin() {
     // Create additional buttons container below the right panels
     var addRightFrameExtraButtons = function() {
         ui.customButtonsContainer = ui.rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
-        ui.customButtonsContainer.className = "mx-2 mt-4";
+        ui.customButtonsContainer.className = "mx-3 mt-4";
 
         ui.customButtons_rows = []
 
