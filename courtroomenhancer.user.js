@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.736
+// @version      0.737
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -369,48 +369,48 @@ function onCourtroomJoin() {
         // Add evidence sources
 
         ui.Uploader = {
-            parseForm: function(data) {
+            parseForm(data) {
                 const form = new FormData();
                 Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
                 return form;
             },
-            parseParams: function(data) {
+            parseParams(data) {
                 return Object.entries(data).map(([key, val]) => `${key}=${val}`).join('&');
             },
             hostApis: {
                 catbox: {
                     method: "POST",
-                    formatDataFile: data => {
+                    formatDataFile(data) {
                         return {
                             headers: {},
                             data: ui.Uploader.parseForm({reqtype: "fileupload", fileToUpload: data})
                         }
                     },
-                    formatDataUrl: data => {
+                    formatDataUrl(data) {
                         return {
                             headers: {},
                             data: ui.Uploader.parseForm({reqtype: "urlupload", url: data})
                         }
                     },
-                    urlFromResponse: response => {
+                    urlFromResponse(response) {
                         return response.toString();
                     }
                 },
                 lolisafe: {
                     method: "POST",
-                    formatDataFile: data => {
+                    formatDataFile(data) {
                         return {
                             headers: {},
                             data: ui.Uploader.parseForm({"files[]": data})
                         }
                     },
-                    formatDataUrl: data => {
+                    formatDataUrl(data) {
                         return {
                             headers: {"Content-type": "application/x-www-form-urlencoded"},
                             data: ui.Uploader.parseParams({"urls[]": data})
                         }
                     },
-                    urlFromResponse: response => {
+                    urlFromResponse(response) {
                         const responseJSON = JSON.parse(response);
                         if (!responseJSON.success) {
                             throw new Error("Server returned " + responseJSON.description);
@@ -428,43 +428,43 @@ function onCourtroomJoin() {
                     name: "catbox.moe",
                     url: "https://catbox.moe/user/api.php",
                     api: "catbox",
-                    supported: {audio: true, urls: true}
+                    supported: {audio: true, urls: true, m4a: true}
                 },
                 uguuse: {
                     name: "uguu.se",
                     url: "https://uguu.se/upload.php",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false}
+                    supported: {audio: true, urls: false, m4a: true}
                 },
                 pomflainla: {
                     name: "pomf.lain.la",
                     url: "https://pomf.lain.la/upload.php",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false}
+                    supported: {audio: true, urls: false, m4a: true}
                 },
                 zzht: {
                     name: "zz.ht",
                     url: "https://zz.ht/api/upload",
                     api: "lolisafe",
-                    supported: {audio: true, urls: true}
+                    supported: {audio: true, urls: true, m4a: false}
                 },
                 imoutokawaii: {
                     name: "imouto.kawaii.su",
                     url: "https://imouto.kawaii.su/api/upload",
                     api: "lolisafe",
-                    supported: {audio: false, urls: true}
+                    supported: {audio: false, urls: true, m4a: false}
                 },
                 takemetospace: {
                     name: "take-me-to.space",
                     url: "https://take-me-to.space/api/upload",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false}
+                    supported: {audio: true, urls: false, m4a: false}
                 }
             },
 
             upload: function (file, callbackSuccess, callbackError) {
-                const fileHostFallback = "zzht", fileHostFallbackAudio = "zzht", fileHostFallbackUrls = "imoutokawaii";
-                var dataToUpload, filename, fileHost = (Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : fileHostFallback);
+                const hostFallback = {base: "zzht", audio: "zzht", urls: "imoutokawaii", m4a: "uguuse"};
+                var dataToUpload, filename, fileHost = (Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : hostFallback.base);
 
                 if (typeof file === "string") { // Argument passed is an URL
                     let url = new URL(file);
@@ -474,16 +474,20 @@ function onCourtroomJoin() {
                             break;
                     }
                     if (this.fileHosts[fileHost].supported.urls === false) {
-                        fileHost = fileHostFallbackUrls;
+                        fileHost = hostFallback.urls;
                     }
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataUrl(url.href);
-                    filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, '')) || "file";
+                    filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, ''));
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
+                    console.log(file.type);
                     if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
-                        fileHost = fileHostFallbackAudio;
+                        fileHost = hostFallback.audio;
+                    }
+                    if (file.type == "audio/x-m4a" && this.fileHosts[fileHost].supported.m4a === false) { // fix for broken m4a support
+                        fileHost = hostFallback.m4a;
                     }
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
-                    filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name) || "file";
+                    filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
                     throw new Error("Invalid data");
                 }
@@ -497,7 +501,7 @@ function onCourtroomJoin() {
                             try {
                                 callbackSuccess({
                                     url: new URL(this.hostApis[this.fileHosts[fileHost].api].urlFromResponse(response.responseText)).href,
-                                    filename: filename
+                                    filename: filename || "file"
                                 });
                             } catch (e) {
                                 callbackError(e.toString());
@@ -872,20 +876,32 @@ function onCourtroomJoin() {
             const divActions = divCard.querySelector("div.v-card__actions");
             const buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
 
-            buttonEye.style.display = "none";
 
-            divActions.setAttributes({
-                style: {
-                    backgroundColor: "rgb(40, 40, 40)",
-                    boxShadow: "black 0px 3px 10px 0px",
-                    opacity: "0",
-                    visibility: "hidden",
-                    position: "absolute",
-                    width: "100%",
-                    height: "34px",
-                    transition: "opacity 0.1s ease-in-out 0s"
-                }
+            divCard.addEventListener("mouseenter", e => {
+                const image = e.target.querySelector("div.v-image__image");
+                image.classList.add("v-image__image--contain");
+                image.classList.remove("v-image__image--cover");
+
+                divActions.style.visibility = "visible";
+                divActions.style.opacity = "1";
             });
+            divCard.addEventListener("mouseleave", e => {
+                const image = e.target.querySelector("div.v-image__image");
+                image.classList.remove("v-image__image--contain");
+                image.classList.add("v-image__image--cover");
+
+                divActions.style.visibility = "hidden";
+                divActions.style.opacity = "0";
+            });
+
+            divImage.style.cursor = "pointer";
+            divImage.style.height = "200px";
+            divImage.addEventListener("click", e => {
+                if (divActions.contains(e.target)) {
+                    return;
+                }
+                buttonEye.click();
+            }, true);
 
             divTitle.setAttributes({
                 style: {
@@ -902,35 +918,21 @@ function onCourtroomJoin() {
                     textOverflow: "ellipsis",
                     padding: "6px"
                 }});
-
             divSubtitle.insertAdjacentElement("beforebegin", divActions);
 
-            divImage.style.cursor = "pointer";
-            divImage.style.height = "200px";
-            divImage.addEventListener("click", e => {
-                if (divActions.contains(e.target)) {
-                    return;
+            divActions.setAttributes({
+                style: {
+                    backgroundColor: "rgb(40, 40, 40)",
+                    opacity: "0",
+                    visibility: "hidden",
+                    position: "absolute",
+                    width: "100%",
+                    height: "34px",
+                    transition: "opacity 0.1s ease-in-out 0s"
                 }
-                buttonEye.click();
-            }, true);
-
-            divCard.addEventListener("mouseenter", e => {
-                const image = e.target.querySelector("div.v-image__image");
-                image.classList.add("v-image__image--contain");
-                image.classList.remove("v-image__image--cover");
-
-                divActions.style.visibility = "visible";
-                divActions.style.opacity = "1";
             });
 
-            divCard.addEventListener("mouseleave", e => {
-                const image = e.target.querySelector("div.v-image__image");
-                image.classList.remove("v-image__image--contain");
-                image.classList.add("v-image__image--cover");
-
-                divActions.style.visibility = "hidden";
-                divActions.style.opacity = "0";
-            });
+            buttonEye.style.display = "none";
         };
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
