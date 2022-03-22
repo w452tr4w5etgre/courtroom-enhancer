@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.739
+// @version      0.740
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1812,9 +1812,10 @@ function onCourtroomJoin() {
             youtube(url) {
                 const youtubeEmbed = document.createElement("iframe");
                 const key = (url.searchParams.get("v") || url.pathname.substr(url.pathname.lastIndexOf("/")));
+                const timeStart = (url.searchParams.get("t") ? url.searchParams.get("t").replace(/(\d)s/g,"$1") : "");
                 if (!key) {return;}
                 youtubeEmbed.setAttributes({
-                    src: "https://www.youtube.com/embed/" + key + "?enablejsapi=1&start=" + url.searchParams.get("t").replace(/(\d)s/g,"$1"),
+                    src: "https://www.youtube.com/embed/" + key + "?enablejsapi=1&start=" + timeStart,
                     loop: "true",
                     width: "320",
                     height: "180",
