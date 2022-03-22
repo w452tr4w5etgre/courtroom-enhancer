@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.737
+// @version      0.738
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -479,7 +479,6 @@ function onCourtroomJoin() {
                     dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataUrl(url.href);
                     filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, ''));
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
-                    console.log(file.type);
                     if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
                         fileHost = hostFallback.audio;
                     }
@@ -1675,6 +1674,7 @@ function onCourtroomJoin() {
     // Chat hover tooltips
     const chatTooltip = {
         init() {
+            this.chat = {};
             this.tooltipElement = document.createElement("div");
             this.tooltipElement.setAttributes({
                 style: {
@@ -1696,8 +1696,8 @@ function onCourtroomJoin() {
                     border: "1px solid rgb(62, 67, 70)",
                     borderRadius: "3px",
                     wordBreak: "break-all",
-                    fontSize: "13px",
-                    lineHeight: "14px",
+                    fontSize: "15px",
+                    lineHeight: "15px",
                     color: "rgb(211, 207, 201)",
                     transition: "opacity 0.15s ease-in-out 0.25s, top 0s",
                     zIndex: "2"
@@ -1722,7 +1722,7 @@ function onCourtroomJoin() {
                     this.tooltipElement.querySelectorAll("audio, video").forEach(f => {f.pause();});
                     this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => {f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');});
                     this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
-                    this.chatItem.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                    this.chat.element.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
                 }
             });
 
@@ -1731,13 +1731,11 @@ function onCourtroomJoin() {
 
         reposition() {
             let top = 0;
-            const node = this.chatItem;
+            if (!this.tooltipElement || !this.chat.element) {return;}
 
-            if (!this.tooltipElement || !node) {return;}
-
-            top = node.getBoundingClientRect().y + (node.offsetHeight / 2) - (this.tooltipElement.offsetHeight / 2);
-            if (top < 20) {
-                top = 20;
+            top = this.chat.element.getBoundingClientRect().y + (this.chat.element.offsetHeight / 2) - (this.tooltipElement.offsetHeight / 2);
+            if (top < ui.chatLog_chat.getBoundingClientRect().y) {
+                top = ui.chatLog_chat.getBoundingClientRect().y;
             } else if (top + this.tooltipElement.offsetHeight > this.tooltipElement.parentNode.offsetHeight) {
                 top = this.parentNode.offsetHeight - this.tooltipElement.offsetHeight - 20;
             }
@@ -1745,13 +1743,30 @@ function onCourtroomJoin() {
         },
 
         embedFiles: {
+            link(url) {
+                const a = document.createElement("a");
+                a.setAttributes({
+                    href: url.href,
+                    textContent: url.href,
+                    target: "_blank",
+                    rel: "noreferrer",
+                    style: {display: "inline-block", fontSize: "14px"}
+                });
+                const i = document.createElement("i");
+                i.setAttributes({
+                    className: "mdi mdi-open-in-new",
+                    style: {marginLeft: "2px", fontSize: "12px"}
+                });
+                a.append(i);
+                return a;
+            },
             image(url) {
                 const img = document.createElement("img");
                 img.setAttributes({
                     src: url.href,
                     alt: url.href,
                     referrerPolicy: "no-referrer",
-                    style: {maxWidth: "280px", maxHeight: "300px", display: "none"}
+                    style: {maxWidth: "280px", maxHeight: "300px"}
                 });
 
                 img.addEventListener("load", e => {
@@ -1760,6 +1775,7 @@ function onCourtroomJoin() {
                 });
 
                 img.addEventListener("error", e => {
+                    this.className = "";
                     img.style.display = "none";
                     this.reposition();
                 });
@@ -1796,8 +1812,10 @@ function onCourtroomJoin() {
             },
             youtube(url) {
                 const youtubeEmbed = document.createElement("iframe");
+                const key = (url.searchParams.get("v") || url.pathname.substr(url.pathname.lastIndexOf("/")));
+                if (!key) {return;}
                 youtubeEmbed.setAttributes({
-                    src: "https://www.youtube.com/embed/" + (url.searchParams.get("v") || url.pathname.substr(url.pathname.lastIndexOf("/"))) + "?enablejsapi=1&start=" + url.searchParams.get("t"),
+                    src: "https://www.youtube.com/embed/" + key + "?enablejsapi=1&start=" + url.searchParams.get("t").replace(/(\d)s/g,"$1"),
                     loop: "true",
                     width: "320",
                     height: "180",
@@ -1842,45 +1860,21 @@ function onCourtroomJoin() {
             }
         },
 
-        chatItemPopulate() {
-            // Make sure the chat element is not a system message
-            const chatItemIcon = this.chatItem.previousSibling.firstChild.firstChild;
-            if (!chatItemIcon.classList.contains("mdi-account-tie") &&
-                !chatItemIcon.classList.contains("mdi-crown") &&
-                !chatItemIcon.classList.contains("mdi-account")) {
-                return;
-            }
-
-            const chatName = this.chatItem.firstChild.textContent;
-            const chatText = this.chatItem.lastChild.textContent;
-
-            const matchedElements = [];
-
-            var urlMatches = chatText.split(/\s+/).map(word => {
+        extractUrls(text) {
+            return text.split(/\s+/).map(word => {
                 try {
                     return new URL(word);
                 } catch(e) {
                     return null;
                 }
             }).filter(Boolean);
+        },
 
-            urlMatches.forEach(url => {
-                const a = document.createElement("a");
-                a.setAttributes({
-                    href: url.href,
-                    textContent: url.href,
-                    target: "_blank",
-                    rel: "noreferrer",
-                    style: {display: "inline-block", fontSize: "14px"}
-                });
-                const i = document.createElement("i");
-                i.setAttributes({
-                    className: "mdi mdi-open-in-new",
-                    style: {marginLeft: "2px", fontSize: "12px"}
-                });
-                a.append(i);
-                matchedElements.push(a);
+        chatItemPopulate(chat) {
+            const matchedElements = [];
 
+            this.extractUrls(chat.text).forEach(url => {
+                matchedElements.push(this.embedFiles.link.call(this, url));
                 const extension = url.pathname.substring(url.pathname.lastIndexOf('.') + 1);
                 if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
                     matchedElements.push(this.embedFiles.image.call(this, url));
@@ -1891,45 +1885,59 @@ function onCourtroomJoin() {
                 } else if (["youtu.be", "www.youtube.com", "youtube.com"].includes(url.hostname)) {
                     matchedElements.push(this.embedFiles.youtube.call(this, url));
                 }
-
             });
 
-            if (matchedElements.length) {
-                this.tooltipElement.innerHTML = chatName + ":&nbsp;";
-                matchedElements.forEach(f => {this.tooltipElement.append(f)});
-                this.reposition();
-                this.tooltipElement.setAttributes({
-                    style: {
-                        visibility: "visible",
-                        opacity: "1"
-                    }
-                });
-                this.chatItem.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
-                this.lastItem = this.chatItem;
+            if (!matchedElements.length) {
+                return;
             }
+
+            this.chat = chat;
+            this.tooltipElement.innerHTML = this.chat.name + ":&nbsp;";
+            matchedElements.forEach(f => {this.tooltipElement.append(f)});
+            this.reposition();
+            this.tooltipElement.setAttributes({
+                style: {
+                    visibility: "visible",
+                    opacity: "1"
+                }
+            });
+            this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
         },
 
         onChatListMouseOver(e) {
-            const closest = e.target.closest("div.v-list-item__content");
-            if (!closest) {
+            const chat = {
+                element: e.target.closest("div.v-list-item__content")
+            };
+            if (!chat.element) {
                 return;
             }
-            this.chatItem = closest;
+            if (["mdi-account-tie", "mdi-crown", "mdi-account"].filter(element => chat.element.previousSibling.firstChild.firstChild.classList.contains(element)).length == 0) {
+                return;
+            }
 
-            if (this.lastItem) {
-                if (this.chatItem === this.lastItem) {
+            chat.name = chat.element.firstChild.textContent;
+            chat.text = chat.element.lastChild.textContent;
+
+            if (this.chat.element) {
+                if (chat.text === this.chat.text) {
                     if (this.tooltipElement.style.opacity == "0") { // Mouse left and re-entered the same item when it was hidden
-                        this.chatItem.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
                         this.tooltipElement.style.visibility = "visible";
                         this.tooltipElement.style.opacity = "1";
+                        this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                        this.chat = chat;
+                        this.reposition();
                     }
                     return;
                 } else { // Mouse left and entered a different item
-                    this.lastItem.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                    this.tooltipElement.style.opacity = "0";
                 }
             }
 
-            this.chatItemPopulate();
+            if (!chat.text.match(/http/)) {
+                return;
+            }
+
+            this.chatItemPopulate(chat);
         },
 
         onChatItemMouseLeave(e) {
