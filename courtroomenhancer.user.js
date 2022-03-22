@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.735
+// @version      0.736
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -262,18 +262,22 @@ function onCourtroomJoin() {
                         dialogCard.childNodes[1].className == "d-flex mx-auto" &&
                         (dialogCard.childNodes[2] instanceof Comment || (dialogCard.childNodes[2] instanceof HTMLDivElement && dialogCard.childNodes[2].classList.contains("subtitle-1")))) {
                         const img = dialogCard.childNodes[1];
-                        img.style.cursor = "zoom-in";
                         img.style.maxWidth = "100%";
                         img.style.maxHeight = "80vh";
-                        img.addEventListener("click", e => {
-                            if (e.target.style.cursor == "zoom-out") {
-                                e.target.style.maxWidth = "100%";
-                                e.target.style.maxHeight = "80vh";
-                                e.target.style.cursor = "zoom-in";
-                            } else {
-                                e.target.style.maxWidth = "";
-                                e.target.style.maxHeight = "";
-                                e.target.style.cursor = "zoom-out";
+                        img.addEventListener("load", e => {
+                            if (img.naturalHeight > img.height || img.naturalWidth > img.width) {
+                                img.style.cursor = "zoom-in";
+                                img.addEventListener("click", e => {
+                                    if (e.target.style.cursor == "zoom-out") {
+                                        e.target.style.maxWidth = "100%";
+                                        e.target.style.maxHeight = "80vh";
+                                        e.target.style.cursor = "zoom-in";
+                                    } else {
+                                        e.target.style.maxWidth = "";
+                                        e.target.style.maxHeight = "";
+                                        e.target.style.cursor = "zoom-out";
+                                    }
+                                });
                             }
                         });
                     } else {
@@ -912,7 +916,6 @@ function onCourtroomJoin() {
 
             divCard.addEventListener("mouseenter", e => {
                 const image = e.target.querySelector("div.v-image__image");
-                console.log(e.target);
                 image.classList.add("v-image__image--contain");
                 image.classList.remove("v-image__image--cover");
 
@@ -1784,7 +1787,6 @@ function onCourtroomJoin() {
                 });
 
                 video.addEventListener("error", e => {
-                    console.log("error.this",this);
                     video.style.display = "none";
                     this.reposition();
                 });
