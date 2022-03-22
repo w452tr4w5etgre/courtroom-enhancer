@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.740
+// @version      0.741
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -910,7 +910,6 @@ function onCourtroomJoin() {
             });
 
             divSubtitle.setAttributes({
-                textContent: divSubtitle.textContent.trim().replace(/^Added by /, ""),
                 style: {
                     whiteSpace: "nowrap",
                     overflow: "hidden",
