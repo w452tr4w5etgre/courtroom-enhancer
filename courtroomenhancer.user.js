@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.733
+// @version      0.734
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -858,7 +858,6 @@ function onCourtroomJoin() {
             const divActions = divCard.querySelector("div.v-card__actions");
             const buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
 
-            divSubtitle.style.padding = "8px";
             buttonEye.style.display = "none";
 
             divActions.setAttributes({
@@ -869,10 +868,26 @@ function onCourtroomJoin() {
                     visibility: "hidden",
                     position: "absolute",
                     width: "100%",
-                    height: "38px",
+                    height: "34px",
                     transition: "opacity 0.1s ease-in-out 0s"
                 }
             });
+
+            divTitle.setAttributes({
+                style: {
+                    textShadow: "2px 1px #000000",
+                    padding: "4px"
+                }
+            });
+
+            divSubtitle.setAttributes({
+                textContent: divSubtitle.textContent.trim().replace(/^Added by /, ""),
+                style: {
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    padding: "6px"
+                }});
 
             divSubtitle.insertAdjacentElement("beforebegin", divActions);
 
