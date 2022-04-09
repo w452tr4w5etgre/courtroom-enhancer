@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.741
+// @version      0.742
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -52,7 +52,7 @@ function checkJoinBoxReady(changes, observer) {
 
     for (const change of changes) {
         for (const node of change.addedNodes) {
-            if (node instanceof HTMLDivElement && node.classList.contains("v-dialog__content--active") && node.querySelector("div.v-card__title > span.headline").textContent.trim() === "Join Courtroom") {
+            if (node instanceof HTMLDivElement && node.classList.contains("v-dialog__content--active") && node.querySelector("div.v-card__title > span.headline").innerText === "Join Courtroom") {
                 if (ui.joinBox_container = node.querySelector("div.v-dialog > div.v-card")) {
                     ui.joinBox_usernameInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:first-of-type > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
                     ui.joinBox_passwordInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:nth-of-type(2) > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
@@ -133,24 +133,24 @@ function onCourtroomJoin() {
         ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content")
         if (ui.rightFrame_toolbarTabs) {
             for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
-                switch (toolbarTab.textContent.trim()) {
-                    case "Chat Log":
+                switch (toolbarTab.textContent.trim().toUpperCase()) {
+                    case "CHAT LOG":
                         ui.rightFrame_toolbarTabChatLog = toolbarTab;
                         break;
-                    case "Evidence":
+                    case "EVIDENCE":
                         ui.rightFrame_toolbarTabEvidence = toolbarTab;
                         break;
-                    case "Backgrounds":
+                    case "BACKGROUNDS":
                         ui.rightFrame_toolbarTabBackgrounds = toolbarTab;
                         break;
-                    case "Settings":
+                    case "SETTINGS":
                         ui.rightFrame_toolbarTabSettings = toolbarTab;
                         break;
-                    case "Admin":
+                    case "ADMIN":
                         ui.rightFrame_toolbarTabAdmin = toolbarTab;
                         break;
                     default:
-                        console.error("Tab not found: " + toolbarTab.textContent);
+                        console.log("Toolbar tab not found: " + toolbarTab.innerText);
                 }
             }
         }
@@ -212,14 +212,14 @@ function onCourtroomJoin() {
                 for (const addedNode of change.addedNodes) {
                     const activeTab = node.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
                     const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab)-1];
-                    switch (activeTab.firstChild.firstChild.textContent.trim()) {
-                        case "Backgrounds":
+                    switch (activeTab.firstChild.firstChild.textContent.trim().toUpperCase()) {
+                        case "BACKGROUNDS":
                             break;
-                        case "Characters":
+                        case "CHARACTERS":
                             break;
-                        case "Popups":
+                        case "POPUPS":
                             break;
-                        case "Music":
+                        case "MUSIC":
                             ui.musicFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
@@ -230,7 +230,7 @@ function onCourtroomJoin() {
                             }, {label: "music", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
                             break;
-                        case "Sounds":
+                        case "SOUNDS":
                             ui.soundFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
                                 const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
                                 const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
@@ -241,6 +241,8 @@ function onCourtroomJoin() {
                             }, {label: "sound", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
                             break;
+                        default:
+                            console.log("My Assets tab not found: " + activeTab.firstChild.firstChild.textContent);
                     }
                 }
             }
@@ -281,15 +283,15 @@ function onCourtroomJoin() {
                             }
                         });
                     } else {
-                        const dialogTitle = node.querySelector("header.v-sheet > div.v-toolbar__content > div.v-toolbar__title").textContent.trim();
+                        const dialogTitle = node.querySelector("header.v-sheet > div.v-toolbar__content > div.v-toolbar__title").textContent.trim().toUpperCase();
                         switch (dialogTitle) {
-                            case "Pairing":
+                            case "PAIRING":
                                 break;
-                            case "Change Character":
+                            case "CHANGE CHARACTER":
                                 break;
-                            case "Manage Character":
+                            case "MANAGE CHARACTER":
                                 break;
-                            case "My Assets":
+                            case "MY ASSETS":
                                 myAssetsWatcher.on_myAssetsAdded(node);
                                 break;
                         }
@@ -377,8 +379,8 @@ function onCourtroomJoin() {
             parseParams(data) {
                 return Object.entries(data).map(([key, val]) => `${key}=${val}`).join('&');
             },
-            hostApis: {
-                catbox: {
+            hostApis: new Map([
+                ["catbox", {
                     method: "POST",
                     formatDataFile(data) {
                         return {
@@ -395,8 +397,8 @@ function onCourtroomJoin() {
                     urlFromResponse(response) {
                         return response.toString();
                     }
-                },
-                lolisafe: {
+                }],
+                ["lolisafe", {
                     method: "POST",
                     formatDataFile(data) {
                         return {
@@ -421,50 +423,50 @@ function onCourtroomJoin() {
                             }
                         }
                     }
-                }
-            },
-            fileHosts: {
-                catboxmoe: {
+                }]
+                ]),
+            fileHosts: new Map([
+                ["catboxmoe", {
                     name: "catbox.moe",
                     url: "https://catbox.moe/user/api.php",
                     api: "catbox",
-                    supported: {audio: true, urls: true, m4a: true}
-                },
-                uguuse: {
+                    supported: new Map([["audio", true], ["urls", true], ["m4a", true]])
+                }],
+                ["uguuse", {
                     name: "uguu.se",
                     url: "https://uguu.se/upload.php",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false, m4a: true}
-                },
-                pomflainla: {
+                    supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
+                }],
+                ["pomflainla", {
                     name: "pomf.lain.la",
                     url: "https://pomf.lain.la/upload.php",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false, m4a: true}
-                },
-                zzht: {
+                    supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
+                }],
+                ["zzht", {
                     name: "zz.ht",
                     url: "https://zz.ht/api/upload",
                     api: "lolisafe",
-                    supported: {audio: true, urls: true, m4a: false}
-                },
-                imoutokawaii: {
+                    supported: new Map([["audio", true], ["urls", true], ["m4a", false]])
+                }],
+                ["imoutokawaii", {
                     name: "imouto.kawaii.su",
                     url: "https://imouto.kawaii.su/api/upload",
                     api: "lolisafe",
-                    supported: {audio: false, urls: true, m4a: false}
-                },
-                takemetospace: {
+                    supported: new Map([["audio", false], ["urls", true], ["m4a", false]])
+                }],
+                ["takemetospace", {
                     name: "take-me-to.space",
                     url: "https://take-me-to.space/api/upload",
                     api: "lolisafe",
-                    supported: {audio: true, urls: false, m4a: false}
-                }
-            },
+                    supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
+                }]
+            ]),
 
             upload: function (file, callbackSuccess, callbackError) {
-                const hostFallback = {base: "zzht", audio: "zzht", urls: "imoutokawaii", m4a: "uguuse"};
-                var dataToUpload, filename, fileHost = (Object.keys(this.fileHosts).includes(scriptSetting.file_host) ? scriptSetting.file_host : hostFallback.base);
+                const hostFallback = new Map([["base", "zzht"], ["audio", "zzht"], ["urls", "imoutokawaii"], ["m4a", "uguuse"]]);
+                var dataToUpload, filename, fileHost = (this.fileHosts.has(scriptSetting.file_host) ? scriptSetting.file_host : hostFallback.get("base"));
 
                 if (typeof file === "string") { // Argument passed is an URL
                     let url = new URL(file);
@@ -473,33 +475,33 @@ function onCourtroomJoin() {
                             url.href = url.origin + url.pathname + "." + (url.searchParams.get("format") || "jpg") + "?name=" + (url.searchParams.get("name") || "orig");
                             break;
                     }
-                    if (this.fileHosts[fileHost].supported.urls === false) {
-                        fileHost = hostFallback.urls;
+                    if (this.fileHosts.get(fileHost).supported.get("urls") === false) {
+                        fileHost = hostFallback.get("urls");
                     }
-                    dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataUrl(url.href);
+                    dataToUpload = this.hostApis.get(this.fileHosts.get(fileHost).api).formatDataUrl(url.href);
                     filename = ((url.pathname.substring(0, url.pathname.lastIndexOf('.')) || url.pathname).replace(/^.*[\\\/]/, ''));
                 } else if (typeof file === "object" && file instanceof File) { // Argument is a file
-                    if (file.type.match("^audio/") && this.fileHosts[fileHost].supported.audio === false) {
-                        fileHost = hostFallback.audio;
+                    if (file.type.match("^audio/") && this.fileHosts.get(fileHost).supported.get("audio") === false) {
+                        fileHost = hostFallback.get("audio");
                     }
-                    if (file.type == "audio/x-m4a" && this.fileHosts[fileHost].supported.m4a === false) { // fix for broken m4a support
-                        fileHost = hostFallback.m4a;
+                    if (file.type == "audio/x-m4a" && this.fileHosts.get(fileHost).supported.get("m4a") === false) { // fix for broken m4a support
+                        fileHost = hostFallback.get("m4a");
                     }
-                    dataToUpload = this.hostApis[this.fileHosts[fileHost].api].formatDataFile(file);
+                    dataToUpload = this.hostApis.get(this.fileHosts.get(fileHost).api).formatDataFile(file);
                     filename = (file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
                 } else {
                     throw new Error("Invalid data");
                 }
                 CrossOrigin({
-                    url: this.fileHosts[fileHost].url,
-                    method: this.hostApis[this.fileHosts[fileHost].api].method,
+                    url: this.fileHosts.get(fileHost).url,
+                    method: this.hostApis.get(this.fileHosts.get(fileHost).api).method,
                     headers: dataToUpload.headers,
                     data: dataToUpload.data,
                     onload: response => {
                         if (response.readyState == 4 && response.status == 200 || response.status == 400) {
                             try {
                                 callbackSuccess({
-                                    url: new URL(this.hostApis[this.fileHosts[fileHost].api].urlFromResponse(response.responseText)).href,
+                                    url: new URL(this.hostApis.get(this.fileHosts.get(fileHost).api).urlFromResponse(response.responseText)).href,
                                     filename: filename || "file"
                                 });
                             } catch (e) {
@@ -575,7 +577,7 @@ function onCourtroomJoin() {
 
                 const elemIcon = document.createElement("i");
                 elemIcon.className = "v-icon v-icon--left mdi mdi-" + this.icon;
-                elemContainer.append(elemIcon);
+                elemContainer.appendChild(elemIcon);
                 elemIcon.after(document.createTextNode("Upload " + this.label));
 
                 const elemFile = document.createElement("input");
@@ -833,8 +835,7 @@ function onCourtroomJoin() {
         };
 
         ui.evidence_evidenceUploaders = createEvidenceUploaders.init();
-        ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_buttonsColumn);
-        ui.evidence_formBottomRow.append(ui.evidence_evidenceUploaders);
+        ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_buttonsColumn, ui.evidence_evidenceUploaders);
         ui.evidence_formBottomRow.classList.remove("pb-1");
         ui.evidence_formBottomRow.classList.add("align-center", "pb-2");
         ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
@@ -856,7 +857,7 @@ function onCourtroomJoin() {
                 this.container = document.createElement("div");
                 this.text = document.createElement("div");
                 this.container.className = "d-flex";
-                this.container.append(this.text);
+                this.container.appendChild(this.text);
                 this.updateCount();
                 return this.container;
             }
@@ -864,7 +865,7 @@ function onCourtroomJoin() {
 
         ui.evidence_evidenceCounter = evidenceCounter.init();
         evidenceCounter.updateCount(20);
-        ui.evidence_formBottomRow.append(ui.evidence_evidenceCounter);
+        ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function(node) {
@@ -971,10 +972,10 @@ function onCourtroomJoin() {
                 type: "checkbox"
             });
             input.setAttribute("role", "checkbox");
-            container.append(inputControl);
-            inputControl.append(inputSlot);
-            inputSlot.append(selectSlot, label);
-            selectSlot.append(icon, input);
+            container.appendChild(inputControl);
+            inputControl.appendChild(inputSlot);
+            inputSlot.appendChild(selectSlot, label);
+            selectSlot.appendChild(icon, input);
 
             if (options.display === false) {
                 container.style.display = "none";
@@ -1022,11 +1023,10 @@ function onCourtroomJoin() {
                 style: {color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px"}
             });
 
-            container.append(inputControl);
-            inputControl.append(inputSlot);
-            inputSlot.append(selectSlot);
-            selectSlot.append(label);
-            selectSlot.append(input);
+            container.appendChild(inputControl);
+            inputControl.appendChild(inputSlot);
+            inputSlot.appendChild(selectSlot);
+            selectSlot.append(label, input);
 
             if (options.display === false) {
                 container.style.display = "none";
@@ -1076,23 +1076,22 @@ function onCourtroomJoin() {
                 style: {color: "white", backgroundColor: "#1e1e1e"}
             });
 
-            container.append(inputControl);
-            inputControl.append(inputSlot);
-            inputSlot.append(selectSlot);
-            selectSlot.append(label);
-            selectSlot.append(select);
+            container.appendChild(inputControl);
+            inputControl.appendChild(inputSlot);
+            inputSlot.appendChild(selectSlot);
+            selectSlot.append(label, select);
 
             if (options.display === false) {
                 container.style.display = "none";
             }
 
             label.textContent = options.label;
-            Object.entries(options.values).forEach(([key, value]) => {
+            options.values.forEach(([key, value]) => {
                 const option = document.createElement("option");
                 option.value = key;
                 option.textContent = value;
-                option.selected = (key == options.selectedValue);
-                select.append(option);
+                option.selected = (key === options.selectedValue);
+                select.appendChild(option);
             });
 
             select.addEventListener("change", e => {
@@ -1310,10 +1309,10 @@ function onCourtroomJoin() {
 
         ui.extraSettings_fileHostSelector = new createInputSelect({
             label: "File host",
-            values: Object.fromEntries(Object.entries(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name])),
+            values: Array.from(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
             selectedValue: scriptSetting.file_host,
             onchange: e => {
-                if (Object.keys(ui.Uploader.fileHosts).includes(e.target.value)) {
+                if (ui.Uploader.fileHosts.has(e.target.value)) {
                     setSetting("file_host", e.target.value);
                 }
             }
@@ -1407,7 +1406,7 @@ function onCourtroomJoin() {
         });
 
         // Add the <hr> separator after the last row
-        ui.settings_afterSeparator.insertAdjacentElement("beforebegin",settings_separator.cloneNode());
+        ui.settings_afterSeparator.insertAdjacentElement("beforebegin", settings_separator.cloneNode());
     }();
 
     // Create additional buttons container below the right panels
@@ -1546,7 +1545,7 @@ function onCourtroomJoin() {
                     ui.Logger.clear();
                 });
 
-                elemContainer.append(elemShowLogButton);
+                elemContainer.appendChild(elemShowLogButton);
 
                 const elemItems = document.createElement("div");
                 elemItems.setAttributes({
@@ -1567,7 +1566,7 @@ function onCourtroomJoin() {
                     }
                 });
 
-                elemContainer.append(elemItems);
+                elemContainer.appendChild(elemItems);
 
                 this.elemContainer = elemContainer;
                 this.elemItems = elemItems;
@@ -1595,7 +1594,7 @@ function onCourtroomJoin() {
                     if (entry.icon) {
                         icon = document.createElement("i");
                         icon.classList.add("mdi","mr-1", "mdi-" + entry.icon);
-                        item.append(icon);
+                        item.appendChild(icon);
                     }
                     item.setAttributes({
                         style: {
@@ -1609,7 +1608,7 @@ function onCourtroomJoin() {
                             textOverflow: "ellipsis"
                         }
                     });
-                    item.append(document.createTextNode(entry.text));
+                    item.append(entry.text);
 
                     item.addEventListener("mouseenter", e => {
                         e.target.style.overflow = "visible";
@@ -1642,13 +1641,13 @@ function onCourtroomJoin() {
         }
 
         ui.customButtons_rowLogLogger = ui.Logger.init();
-        ui.customButtons_rowLog.append(ui.customButtons_rowLogLogger);
+        ui.customButtons_rowLog.appendChild(ui.customButtons_rowLogLogger);
 
         ui.customButtons_rows.push(ui.customButtons_rowLog);
 
         // Attach each rows to the custom buttons container
         ui.customButtons_rows.forEach(row => {
-            ui.customButtonsContainer.append(row);
+            ui.customButtonsContainer.appendChild(row);
         });
     }();
 
@@ -1756,7 +1755,7 @@ function onCourtroomJoin() {
                     className: "mdi mdi-open-in-new",
                     style: {marginLeft: "2px", fontSize: "12px"}
                 });
-                a.append(i);
+                a.appendChild(i);
                 return a;
             },
             image(url) {
@@ -1785,7 +1784,7 @@ function onCourtroomJoin() {
                     rel: "noreferrer",
                     style: {display: "inline-block"}
                 });
-                a.append(img);
+                a.appendChild(img);
                 return a;
             },
             video(url) {
@@ -1811,8 +1810,12 @@ function onCourtroomJoin() {
             youtube(url) {
                 const youtubeEmbed = document.createElement("iframe");
                 const key = (url.searchParams.get("v") || url.pathname.substr(url.pathname.lastIndexOf("/")));
-                const timeStart = (url.searchParams.get("t") ? url.searchParams.get("t").replace(/(\d)s/g,"$1") : "");
                 if (!key) {return;}
+                var timeStart = url.searchParams.get("t") || url.searchParams.get("start") || 0;
+                if (timeStart && !/^\d+$/.test(timeStart)) { // convert 2m5s to 125
+                    timeStart = timeStart.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
+                    timeStart = 3600 * (timeStart[1]||0) + 60 * (timeStart[2]||0) + 1 * (timeStart[3]||0);
+                }
                 youtubeEmbed.setAttributes({
                     src: "https://www.youtube.com/embed/" + key + "?enablejsapi=1&start=" + timeStart,
                     loop: "true",
@@ -1892,7 +1895,7 @@ function onCourtroomJoin() {
 
             this.chat = chat;
             this.tooltipElement.innerHTML = this.chat.name + ":&nbsp;";
-            matchedElements.forEach(f => {this.tooltipElement.append(f)});
+            matchedElements.forEach(f => {this.tooltipElement.appendChild(f)});
             this.reposition();
             this.tooltipElement.setAttributes({
                 style: {
@@ -1948,7 +1951,7 @@ function onCourtroomJoin() {
     }
 
     ui.chatTooltip = chatTooltip.init();
-    ui.app.append(ui.chatTooltip);
+    ui.app.appendChild(ui.chatTooltip);
 
     // Restore right click functionality to courtroom container
     ui.courtroom_container.addEventListener("contextmenu", e => {
