@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.742
+// @version      0.743
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -974,8 +974,8 @@ function onCourtroomJoin() {
             input.setAttribute("role", "checkbox");
             container.appendChild(inputControl);
             inputControl.appendChild(inputSlot);
-            inputSlot.appendChild(selectSlot, label);
-            selectSlot.appendChild(icon, input);
+            inputSlot.append(selectSlot, label);
+            selectSlot.append(icon, input);
 
             if (options.display === false) {
                 container.style.display = "none";
