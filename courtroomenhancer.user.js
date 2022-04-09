@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.744
+// @version      0.745
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -35,7 +35,8 @@ const initSettings = function() {
         "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 497000),
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 142500),
         "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 44000),
-        "file_host": getSetting("file_host", "catbox")
+        "file_host": getSetting("file_host", "catbox"),
+        "textbox_style": getSetting("textbox_style")
     };
 }();
 
@@ -424,7 +425,7 @@ function onCourtroomJoin() {
                         }
                     }
                 }]
-                ]),
+            ]),
             fileHosts: new Map([
                 ["catboxmoe", {
                     name: "catbox.moe",
@@ -946,6 +947,23 @@ function onCourtroomJoin() {
     }();
 
     // Add setting options under the Settings tab
+    ui.StylePicker = {
+        styleSheet: (function() {var style = document.createElement("style"); document.head.appendChild(style); return style;})(),
+        customStyles: new Set([
+            {key: "persona4gold", name: "Persona 4 Golden", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/XOpfX.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;top:76.5%!important;left:5%!important;width:85%!important;height:20%!important;letter-spacing:.5px}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;color:#151515!important;top:70.8%;left:3.8%!important;text-align:start}"},
+            {key: "finalfantasy7", name: "Final Fantasy 7", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https:\/\/z.zz.fo\/ZAF9I.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;font-size:16px;top:76.2%!important;left:12%!important;width:77.5%!important;height:15.4%!important;line-height:33px;word-spacing:2px;letter-spacing:1px}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;top:68.7%!important;left:-27.5%!important;-webkit-text-stroke:unset;text-stroke:unset}"},
+            {key: "persona2", name: "Persona 2", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/HXYhd.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;top:78.5%!important;left:8%!important;width:80%!important;height:20.5%!important;line-height:26px;color:#ff5151!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif;font-size:20px!important;left:6%!important;top:72.5%!important;text-align:start;letter-spacing:unset!important;color:#9cfc04!important;-webkit-text-stroke:unset;text-stroke:unset}"}
+        ]),
+        changeStyle: function(key) {
+            const selectedStyle = Array.from(this.customStyles).find(s=>s.key === key);
+            if (selectedStyle) {
+                this.styleSheet.innerHTML = selectedStyle.css;
+            } else {
+                this.styleSheet.innerHTML = "";
+            }
+        }
+    }
+
     var enhanceSettingsTab = function() {
         const createInputCheckbox = function(options) {
             const container = document.createElement("div");
@@ -1307,6 +1325,16 @@ function onCourtroomJoin() {
             }
         });
 
+        ui.extraSettings_textboxStyleSelector = new createInputSelect({
+            label: "Textbox Style",
+            values: [["","Default"]].concat(Array.from(ui.StylePicker.customStyles).map(style => [style.key,style.name])),
+            selectedValue: scriptSetting.textbox_style,
+            onchange: e => {
+                ui.StylePicker.changeStyle(e.target.value);
+                setSetting("textbox_style", e.target.value);
+            }
+        });
+
         ui.extraSettings_fileHostSelector = new createInputSelect({
             label: "File host",
             values: Array.from(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
@@ -1323,6 +1351,7 @@ function onCourtroomJoin() {
                                               ui.extraSettings_rememberUsername,
                                               ui.extraSettings_showConsole,
                                               ui.extraSettings_adjustChatTextWithWheel,
+                                              ui.extraSettings_textboxStyleSelector,
                                               ui.extraSettings_chatHoverTooltip,
                                               ui.extraSettings_disableKeyboardShortcuts,
                                               ui.extraSettings_fileHostSelector);
@@ -1970,6 +1999,8 @@ function onCourtroomJoin() {
         ui.settings_keyboardShortcutsWS.style.display = "none";
         ui.settings_keyboardShortcutsAD.style.display = "none";
     }
+
+    ui.StylePicker.changeStyle(scriptSetting.textbox_style);
 
 }
 
