@@ -1,0 +1,100 @@
+<html>
+<head>
+<style>
+* {
+  margin: 0;
+}
+
+div {
+  margin: 5px 0px;
+}
+
+input,
+textarea {
+  min-height: 20px;
+  vertical-align: middle;
+}
+
+textarea {
+  width: 95%;
+  min-height: 8em;
+  margin: auto;
+}
+
+#container {
+  margin: auto;
+  width: 90%;
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+fieldset {
+  width: 40%;
+  padding: auto;
+}
+
+</style>
+</head>
+<body>
+<div id="container">
+  <fieldset>
+    <legend>
+      Input
+    </legend>
+
+    <div>
+      <input id="id" type="text" placeholder="Unique ID">
+    </div>
+
+    <div>
+      <input id="name" type="text" placeholder="Display name">
+      <input id="optionColor" type="color" value="#FFFFFF" placeholder="Color">
+    </div>
+
+    <div>
+      <textarea id="css" placeholder="Your CSS here"></textarea>
+    </div>
+    <button id="generate">
+      Generate
+    </button>
+  </fieldset>
+  <fieldset>
+    <legend>
+      Output
+    </legend>
+    <div>
+
+      <textarea id="output" placeholder="Code"></textarea>
+
+    </div>
+    <button id="unpack">
+      Unpack
+    </button>
+  </fieldset>
+</div>
+<script>
+document.querySelector("#generate").addEventListener("click", e => {
+  const output = [document.querySelector("#id").value, {
+    name: document.querySelector("#name").value,
+    optionColor: document.querySelector("#optionColor").value,
+    css: document.querySelector("#css").value
+  }];
+  document.querySelector("#output").value = JSON.stringify(output);
+})
+
+document.querySelector("#unpack").addEventListener("click", e => {
+  try {
+    const object = JSON.parse(document.querySelector("#output").value);
+    document.querySelector("#id").value = object[0]
+    document.querySelector("#name").value = object[1].name
+    document.querySelector("#optionColor").value = object[1].optionColor
+    document.querySelector("#css").value = object[1].css
+  } catch (error) {
+    console.log(error);
+  }
+})
+
+</script>
+</body>
+</html>
