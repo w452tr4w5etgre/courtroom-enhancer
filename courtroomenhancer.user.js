@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.746
+// @version      0.747
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -36,7 +36,8 @@ const initSettings = function() {
         "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 142500),
         "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 44000),
         "file_host": getSetting("file_host", "catbox"),
-        "textbox_style": getSetting("textbox_style")
+        "textbox_style": getSetting("textbox_style", "none"),
+        "custom_styles": getSetting("custom_styles")
     };
 }();
 
@@ -946,24 +947,33 @@ function onCourtroomJoin() {
         }
     }();
 
-    // Add setting options under the Settings tab
+    // CSS injector to change textbox style
     ui.StylePicker = {
         styleSheet: (function() {var style = document.createElement("style"); document.head.appendChild(style); return style;})(),
-        customStyles: new Set([
-            {key: "persona4gold", name: "Persona 4 Golden", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/XOpfX.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;top:76.5%!important;left:5%!important;width:85%!important;height:20%!important;padding-top:5px;}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;color:#151515!important;top:70.8%;left:3.8%!important;text-align:start}"},
-            {key: "finalfantasy7", name: "Final Fantasy 7", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https:\/\/z.zz.fo\/ZAF9I.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;font-size:16px;top:76.2%!important;left:12%!important;width:77.5%!important;height:15.4%!important;line-height:33px;word-spacing:2px;letter-spacing:1px}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;top:68.7%!important;left:-27.5%!important;-webkit-text-stroke:unset;text-stroke:unset}"},
-            {key: "persona2", name: "Persona 2", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:unset!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/HXYhd.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;top:78.5%!important;left:8%!important;width:80%!important;height:20.5%!important;line-height:26px;color:#ff5151!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif;font-size:20px!important;left:6%!important;top:72.5%!important;text-align:start;letter-spacing:unset!important;color:#9cfc04!important;-webkit-text-stroke:unset;text-stroke:unset}"}
+        customStyles: new Map([
+            ["persona4golden", {name: "Persona 4 Golden", optionColor: "#ff9c19", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:normal!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/XOpfX.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;top:76.5%!important;left:5%!important;width:85%!important;height:20%!important;padding-top:5px;}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;font-size:1em;color:#151515!important;top:70.8%;left:3.8%!important;text-align:start}"}],
+            ["finalfantasy7", {name: "Final Fantasy 7", optionColor: "#0e0ec0", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:normal!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https:\/\/z.zz.fo\/ZAF9I.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;font-size:16px;top:76.2%!important;left:12%!important;width:77.5%!important;height:15.4%!important;line-height:33px;word-spacing:2px;letter-spacing:1px}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"Determination Sans\",Roboto,sans-serif!important;top:68.7%!important;left:-27.5%!important;-webkit-text-stroke:unset;text-stroke:unset}"}],
+            ["persona2", {name: "Persona 2", optionColor: "#bb0608", css: "div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box{height:100%;width:100%;letter-spacing:normal!important}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>img.name-plate-img{opacity:1!important;content:url(\"https://z.zz.fo/HXYhd.png\")}div.courtroom>div:nth-of-type(5)>div[style]>div.chat-box>div.chat-box-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif!important;top:78.5%!important;left:8%!important;width:80%!important;height:20.5%!important;line-height:26px;color:#ff5151!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate{width:100%!important;height:100%;top:0;left:0}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>img{display:none!important}div.courtroom>div:nth-of-type(5)>div[style]>div.name-plate>div.name-plate-text{font-family:\"P4G Vector\",\"P4G\",Roboto,sans-serif;font-size:20px!important;left:6%!important;top:72.5%!important;text-align:start;letter-spacing:unset!important;color:#9cfc04!important;-webkit-text-stroke:unset;text-stroke:unset}"}]
         ]),
         changeStyle: function(key) {
-            const selectedStyle = Array.from(this.customStyles).find(s=>s.key === key);
-            if (selectedStyle) {
-                this.styleSheet.innerHTML = selectedStyle.css;
+            if (this.customStyles.has(key)) {
+                this.styleSheet.innerHTML = this.customStyles.get(key).css;
             } else {
                 this.styleSheet.innerHTML = "";
             }
+        },
+        import: function(toImport) {
+            if (!toImport[1].name || !toImport[1].css) {return false;}
+            this.customStyles.set(toImport[0], toImport[1]);
+            return true;
         }
     }
+    ui.StylePicker.baseStyles = Array.from(ui.StylePicker.customStyles.keys());
+    if (Array.isArray(scriptSetting.custom_styles)) {
+        scriptSetting.custom_styles.forEach(customStyle => {ui.StylePicker.import(customStyle)});
+    }
 
+    // Add setting options under the Settings tab
     var enhanceSettingsTab = function() {
         const createInputCheckbox = function(options) {
             const container = document.createElement("div");
@@ -1104,11 +1114,37 @@ function onCourtroomJoin() {
             }
 
             label.textContent = options.label;
-            options.values.forEach(([key, value]) => {
-                const option = document.createElement("option");
-                option.value = key;
-                option.textContent = value;
-                option.selected = (key === options.selectedValue);
+
+            const parseOptions = function(values) {
+                if (!values.some(value => {return Array.isArray(value);})) { // If NONE of the values are an array
+                    values = [values].map(([key,text,color]) => {var j = {}; j.key=key;j.text=text;j.color=color; return j;})[0];
+                    if (!values) {return false;}
+
+                    const option = document.createElement("option");
+                    option.setAttributes({
+                        value: values.key,
+                        textContent: values.text,
+                        selected: (values.key === options.selectedValue)
+                    });
+
+                    if (values.color) option.style.color = values.color;
+                    return option;
+                } else {
+                    values = [values].map(([label,elements]) => {var j = {}; j.label=label;j.elements=elements; return j;})[0];
+                    if (!values) {return false;}
+
+                    const optGroup = document.createElement("optgroup");
+                    optGroup.label = values.label;
+                    values.elements.forEach(value => {
+                        var option = parseOptions(value);
+                        optGroup.appendChild(option);
+                    });
+                    return optGroup;
+                }
+            }
+
+            options.values.forEach(value => {
+                const option = parseOptions(value);
                 select.appendChild(option);
             });
 
@@ -1326,12 +1362,98 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_textboxStyleSelector = new createInputSelect({
-            label: "Textbox Style",
-            values: [["","Default"]].concat(Array.from(ui.StylePicker.customStyles).map(style => [style.key,style.name])),
+            label: "Inject CSS",
+            values: [
+                ["Styles", [
+                    ["none", "None", "lightgrey"]
+                ].concat(Array.from(ui.StylePicker.customStyles).map(([k, v]) => [k, v.name, v.optionColor]))
+                ],
+                ["Manage", [
+                    ["import", "Import...", "lightgrey"],
+                    ["remove", "Remove style...", "lightgrey"],
+                    ["help", "Help", "lightgrey"]
+                ]]
+            ],
             selectedValue: scriptSetting.textbox_style,
             onchange: e => {
-                ui.StylePicker.changeStyle(e.target.value);
-                setSetting("textbox_style", e.target.value);
+                const selected = e.target.value;
+                if (selected === "import") {
+                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    const input = prompt("Paste your code here");
+                    if (!input) {return;}
+                    var toImport = JSON.parse(input);
+                    if (!Array.isArray(toImport[0])) {toImport = [toImport]};
+
+                    toImport.forEach(thisStyle => {
+                        if (["none", "import", "remove"].includes(thisStyle[0])) {return;} // Don't allow reserved names
+                        if (ui.StylePicker.import(thisStyle)) {
+                            var option;
+                            if (Array.from(e.target.options).some(option => {return option.value == thisStyle[0]})) { // Check if we are overwriting an existing option or adding a new one
+                                option = Array.from(e.target.options).find(option => {return option.value == thisStyle[0]})
+                                option.textContent = thisStyle[1].name;
+                                option.style.color = thisStyle[1].optionColor;
+                            } else {
+                                option = document.createElement("option");
+                                e.target.querySelector("optgroup[label='Styles']").appendChild(option);
+                            }
+                            option.value = thisStyle[0];
+                            option.textContent = thisStyle[1].name;
+                            option.style.color = thisStyle[1].optionColor;
+
+                            if (thisStyle[0] === scriptSetting.textbox_style) {
+                                e.target.dispatchEvent(new Event("change")); // Force change when updating the current active style
+                            }
+                        };
+                    });
+
+                    const toSave = JSON.stringify(
+                        Array.from(ui.StylePicker.customStyles).filter(
+                            ([k,v]) => {return !ui.StylePicker.baseStyles.includes(k);}
+                        )
+                    );
+                    if (!toSave) {return;}
+                    setSetting("custom_styles", toSave);
+
+                    return e.preventDefault();
+                } else if (selected === "remove") {
+                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    const input = prompt("Type a style ID or name to delete");
+                    if (!input) {return;}
+                    var key;
+                    if (ui.StylePicker.customStyles.has(input)) {
+                        key = input;
+                    } else {
+                        key = Array.from(ui.StylePicker.customStyles).find(s => {return s[1].name === input})?.[0];
+                    }
+
+                    if (!key || !ui.StylePicker.customStyles.has(key)) {return;}
+                    if (["none", "import", "remove"].concat(ui.StylePicker.baseStyles).includes(input)) {return;}
+
+                    ui.StylePicker.customStyles.delete(key);
+                    e.target.options.remove(Array.from(e.target.options).indexOf(Array.from(e.target.options).find(option => {return option.value == key})));
+
+                    const toSave = JSON.stringify(
+                        Array.from(ui.StylePicker.customStyles).filter(
+                            ([k,v]) => {return !ui.StylePicker.baseStyles.includes(k);}
+                        )
+                    );
+                    if (!toSave) {return;}
+                    setSetting("custom_styles", toSave);
+
+                    if (key === scriptSetting.textbox_style) {
+                        e.target.dispatchEvent(new Event("change")); // Force change when deleting the current style
+                    }
+
+                    return e.preventDefault();
+                } else if (selected === "help") {
+                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    console.log(scriptSetting.textbox_style);
+                    window.open("https://rentry.co/n2g92", '_blank');
+                    return e.preventDefault();
+                } else if (selected === "none" || ui.StylePicker.customStyles.has(selected)) { // Selected a style
+                    ui.StylePicker.changeStyle(selected);
+                    setSetting("textbox_style", selected);
+                }
             }
         });
 
