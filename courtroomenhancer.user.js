@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.751
+// @version      0.752
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -196,50 +196,63 @@ function onCourtroomJoin() {
             this.element = node;
             this.observer = new MutationObserver(this.on_myAssetsListChange.bind(this))
             this.observer.observe(tabsContainer, { childList: true });
+            this.myAssets_DoChanges(node.querySelector("div.v-window-item--active"));
         },
         on_myAssetsListChange(changes, observer) {
-            const node = this.element;
             for (const change of changes) {
                 for (const addedNode of change.addedNodes) {
-                    const activeTab = node.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
-                    const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab) - 1];
-                    switch (activeTab.firstChild.firstChild.textContent.trim().toUpperCase()) {
-                        case "BACKGROUNDS":
-                            break;
-                        case "CHARACTERS":
-                            break;
-                        case "POPUPS":
-                            break;
-                        case "MUSIC":
-                            ui.musicFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
-                                const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
-                                const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                                inputName.value = uploaderResponse.filename;
-                                inputName.dispatchEvent(new Event("input"));
-                                inputURL.value = uploaderResponse.url;
-                                inputURL.dispatchEvent(new Event("input"));
-                            }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
-                            activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
-                            break;
-                        case "SOUNDS":
-                            ui.soundFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
-                                const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
-                                const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                                inputName.value = uploaderResponse.filename;
-                                inputName.dispatchEvent(new Event("input"));
-                                inputURL.value = uploaderResponse.url;
-                                inputURL.dispatchEvent(new Event("input"));
-                            }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
-                            activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
-                            break;
-                        default:
-                            console.log("My Assets tab not found: " + activeTab.firstChild.firstChild.textContent);
-                    }
+                    console.log(addedNode);
+                    this.myAssets_DoChanges(addedNode);
                 }
             }
         },
         on_myAssetsRemoved(node) {
             this.observer.disconnect();
+        },
+        myAssets_DoChanges(node) {
+            const activeTab = this.element.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
+            const activeWindow = node.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab) - 1];
+            switch (activeTab.firstChild.firstChild.textContent.trim().toUpperCase()) {
+                case "BACKGROUNDS":
+                    ui.backgroundsFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
+                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
+                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
+                        inputName.value = uploaderResponse.filename;
+                        inputName.dispatchEvent(new Event("input"));
+                        inputURL.value = uploaderResponse.url;
+                        inputURL.dispatchEvent(new Event("input"));
+                    }, { label: "bg", icon: "image", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 4e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
+                    activeWindow.querySelector("div.v-card__actions").prepend(ui.backgroundsFilePicker);
+                    break;
+                case "CHARACTERS":
+                    break;
+                case "POPUPS":
+                    break;
+                case "MUSIC":
+                    ui.musicFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
+                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
+                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
+                        inputName.value = uploaderResponse.filename;
+                        inputName.dispatchEvent(new Event("input"));
+                        inputURL.value = uploaderResponse.url;
+                        inputURL.dispatchEvent(new Event("input"));
+                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
+                    activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
+                    break;
+                case "SOUNDS":
+                    ui.soundFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
+                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
+                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
+                        inputName.value = uploaderResponse.filename;
+                        inputName.dispatchEvent(new Event("input"));
+                        inputURL.value = uploaderResponse.url;
+                        inputURL.dispatchEvent(new Event("input"));
+                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
+                    activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
+                    break;
+                default:
+                    console.log("My Assets tab not found: " + activeTab.firstChild.firstChild.textContent);
+            }
         }
     };
 
@@ -250,6 +263,7 @@ function onCourtroomJoin() {
                 if (node.classList.contains("v-dialog__content")) {
                     const closeButton = node.querySelector("header.v-sheet.v-toolbar > div.v-toolbar__content > div.v-toolbar__items > button.v-btn:last-of-type");
                     const dialogCard = node.querySelector("div.v-dialog > div.v-card");
+                    // Check if the pop up is an image (Evidence)
                     if (dialogCard.childNodes.length == 3 &&
                         dialogCard.childNodes[1] instanceof HTMLImageElement &&
                         dialogCard.childNodes[1].className == "d-flex mx-auto" &&
@@ -274,13 +288,61 @@ function onCourtroomJoin() {
                             }
                         });
                     } else {
-                        const dialogTitle = node.querySelector("header.v-sheet > div.v-toolbar__content > div.v-toolbar__title").textContent.trim().toUpperCase();
+                        const toolbarContent = node.querySelector("header.v-sheet > div.v-toolbar__content");
+                        const dialogTitle = toolbarContent.querySelector("div.v-toolbar__title").textContent.trim().toUpperCase();
                         switch (dialogTitle) {
                             case "PAIRING":
                                 break;
                             case "CHANGE CHARACTER":
                                 break;
                             case "MANAGE CHARACTER":
+                                // Add an uploader at the top of the Manage Character window
+                                const characterHelperURL = document.createElement("input")
+                                characterHelperURL.setAttributes({
+                                    type: "text",
+                                    maxLength: "255",
+                                    title: "URL",
+                                    readonly: true,
+                                    style: {
+                                        backgroundColor: "white",
+                                        color: "black",
+                                        height: "1vw",
+                                        fontSize: "8pt",
+                                        border: "1px solid black",
+                                        minWidth: "140px",
+                                        maxWidth: "100%",
+                                        display: "none",
+                                        flexBasis: "100"
+                                    }
+                                });
+                                characterHelperURL.addEventListener("click", e => { e.target.select(); })
+
+                                const characterHelper_Uploader = new ui.Uploader.filePicker(res => {
+                                    if (characterHelperURL.style.display === "none") {
+                                        characterHelperURL.style.display = "block";
+                                    }
+                                    characterHelperURL.value = res.url;
+                                }, { label: "file", icon: "image-size-select-large", acceptedhtml: "*", acceptedregex: ".*", maxsize: 2e7, pastetargets: characterHelperURL });
+                                characterHelper_Uploader.style.flexBasis = "100";
+                                characterHelper_Uploader.style.borderColor = "#83ffff";
+
+                                characterHelper = document.createElement("div");
+                                characterHelper.setAttributes({
+                                    className: "v-toolbar__items",
+                                    style: {
+                                        flexWrap: "wrap",
+                                        alignItems: "center",
+                                        alignContent: "center",
+                                        justifyContent: "center",
+                                        maxWidth: "150px"
+                                    }
+                                });
+
+                                characterHelper.append(characterHelper_Uploader, characterHelperURL);
+
+                                const spacer = document.createElement("div");
+                                spacer.className = "spacer";
+                                toolbarContent.querySelector("div.spacer").after(characterHelper, spacer);
                                 break;
                             case "MY ASSETS":
                                 myAssetsWatcher.on_myAssetsAdded(node);
@@ -1375,9 +1437,9 @@ function onCourtroomJoin() {
         ui.extraSettings_fixEvidenceUploaderButton = new createButton({
             label: "Fix Evidence Tab",
             icon: "image-broken-variant",
-            title:"Reset the evidence tab when it's broken after evidence is turned off and on",
+            title: "Reset the evidence tab when it's broken after evidence is turned off and on",
             onclick: () => {
-                if (document.contains(ui.evidence_evidenceUploaders) || ui.evidence_container.textContent == "You cannot add evidence in this courtroom.") {return;}
+                if (document.contains(ui.evidence_evidenceUploaders) || ui.evidence_container.textContent == "You cannot add evidence in this courtroom.") { return; }
                 ui.enhanceEvidenceTab();
             }
         });
