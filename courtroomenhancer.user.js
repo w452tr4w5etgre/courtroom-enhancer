@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.750
+// @version      0.751
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -20,7 +20,7 @@
 
 var scriptSetting = {};
 
-const initSettings = function() {
+const initSettings = function () {
     scriptSetting = {
         "warn_on_exit": getSetting("warn_on_exit", true),
         "remember_username": getSetting("remember_username", true),
@@ -43,9 +43,9 @@ const initSettings = function() {
 
 let storedUsername = getStoredUsername();
 
-const ui = {"app": document.querySelector("div#app")};
+const ui = { "app": document.querySelector("div#app") };
 
-(new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
+(new MutationObserver(checkJoinBoxReady)).observe(document, { childList: true, subtree: true });
 
 function checkJoinBoxReady(changes, observer) {
     if (typeof ui.app === "undefined" || !ui.app) {
@@ -115,7 +115,7 @@ function onCourtroomJoin() {
         if (!ui.leftFrame_joinRoomButton) {
             ui.leftFrame_joinRoomButton = ui.leftFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
             ui.leftFrame_joinRoomButton.addEventListener("click", f => {
-                (new MutationObserver(checkJoinBoxReady)).observe(document, {childList: true, subtree: true});
+                (new MutationObserver(checkJoinBoxReady)).observe(document, { childList: true, subtree: true });
             }, true);
         }
         return;
@@ -131,7 +131,7 @@ function onCourtroomJoin() {
     ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
     ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
 
-    ui.rightFrame_toolbarGetTabs = function() {
+    ui.rightFrame_toolbarGetTabs = function () {
         ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content")
         if (ui.rightFrame_toolbarTabs) {
             for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
@@ -163,14 +163,6 @@ function onCourtroomJoin() {
     ui.chatLog_chatList = ui.chatLog_chat.querySelector("div.v-list");
     ui.chatLog_textField = ui.chatLog_container.querySelector("div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]");
 
-    ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
-    ui.evidence_form = ui.evidence_container.querySelector("div > form");
-    ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
-    ui.evidence_formBottomRow = ui.evidence_form.lastChild;
-    ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-    ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.mr-2.v-btn.success");
-    ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
-
     ui.settings_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)");
     ui.settings_usernameChangeInput = ui.settings_container.querySelector("div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]");
     ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
@@ -182,7 +174,7 @@ function onCourtroomJoin() {
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
     // Handle username changes and update the stored username
-    const on_usernameChange = function(name) {
+    const on_usernameChange = function (name) {
         // Delay check
         setStoredUsername(name);
     };
@@ -197,23 +189,20 @@ function onCourtroomJoin() {
         }
     });
 
-    ui.evidence_list.style.maxHeight = "70vh";
-    ui.evidence_list.style.scrollBehavior = "smooth";
-
     // Look for Dialog windows
     const myAssetsWatcher = {
         on_myAssetsAdded(node) {
             const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
             this.element = node;
             this.observer = new MutationObserver(this.on_myAssetsListChange.bind(this))
-            this.observer.observe(tabsContainer, {childList: true});
+            this.observer.observe(tabsContainer, { childList: true });
         },
         on_myAssetsListChange(changes, observer) {
             const node = this.element;
             for (const change of changes) {
                 for (const addedNode of change.addedNodes) {
                     const activeTab = node.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
-                    const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab)-1];
+                    const activeWindow = addedNode.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab) - 1];
                     switch (activeTab.firstChild.firstChild.textContent.trim().toUpperCase()) {
                         case "BACKGROUNDS":
                             break;
@@ -229,7 +218,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "music", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
+                            }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
                             break;
                         case "SOUNDS":
@@ -240,7 +229,7 @@ function onCourtroomJoin() {
                                 inputName.dispatchEvent(new Event("input"));
                                 inputURL.value = uploaderResponse.url;
                                 inputURL.dispatchEvent(new Event("input"));
-                            }, {label: "sound", icon: "file-music", acceptedhtml:"audio/*", acceptedregex:"^audio/", maxsize: 25e6, pastetargets:activeWindow.querySelectorAll("input[type=text]")});
+                            }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
                             activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
                             break;
                         default:
@@ -254,7 +243,7 @@ function onCourtroomJoin() {
         }
     };
 
-    (new MutationObserver(on_appNodeListChange)).observe(ui.app, {childList: true});
+    (new MutationObserver(on_appNodeListChange)).observe(ui.app, { childList: true });
     function on_appNodeListChange(changes, observer) {
         for (const change of changes) {
             for (const node of change.addedNodes) {
@@ -308,7 +297,7 @@ function onCourtroomJoin() {
         }
     }
 
-    const createButton = function(options) {
+    const createButton = function (options) {
         const container = document.createElement("div");
         const button = document.createElement("button");
 
@@ -348,7 +337,18 @@ function onCourtroomJoin() {
     }
 
     // Evidence tab enhancements
-    const enhanceEvidenceTab = function() {
+    ui.enhanceEvidenceTab = function () {
+        ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
+        ui.evidence_form = ui.evidence_container.querySelector("div > form");
+        ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
+        ui.evidence_formBottomRow = ui.evidence_form.lastChild;
+        ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
+        ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.mr-2.v-btn.success");
+        ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
+
+        ui.evidence_list.style.maxHeight = "70vh";
+        ui.evidence_list.style.scrollBehavior = "smooth";
+
         // Pressing the Enter key on the form fields clicks the "Add" button
         ui.evidence_formFields.forEach(f => {
             f.addEventListener("keydown", e => {
@@ -366,7 +366,7 @@ function onCourtroomJoin() {
             }
             e.target.blur();
             if (ui.evidence_list.childElementCount) {
-                setTimeout(f => {ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight;}, 250);
+                setTimeout(f => { ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight; }, 250);
             }
         }, true);
 
@@ -387,13 +387,13 @@ function onCourtroomJoin() {
                     formatDataFile(data) {
                         return {
                             headers: {},
-                            data: ui.Uploader.parseForm({reqtype: "fileupload", fileToUpload: data})
+                            data: ui.Uploader.parseForm({ reqtype: "fileupload", fileToUpload: data })
                         }
                     },
                     formatDataUrl(data) {
                         return {
                             headers: {},
-                            data: ui.Uploader.parseForm({reqtype: "urlupload", url: data})
+                            data: ui.Uploader.parseForm({ reqtype: "urlupload", url: data })
                         }
                     },
                     urlFromResponse(response) {
@@ -405,13 +405,13 @@ function onCourtroomJoin() {
                     formatDataFile(data) {
                         return {
                             headers: {},
-                            data: ui.Uploader.parseForm({"files[]": data})
+                            data: ui.Uploader.parseForm({ "files[]": data })
                         }
                     },
                     formatDataUrl(data) {
                         return {
-                            headers: {"Content-type": "application/x-www-form-urlencoded"},
-                            data: ui.Uploader.parseParams({"urls[]": data})
+                            headers: { "Content-type": "application/x-www-form-urlencoded" },
+                            data: ui.Uploader.parseParams({ "urls[]": data })
                         }
                     },
                     urlFromResponse(response) {
@@ -525,18 +525,18 @@ function onCourtroomJoin() {
                 });
             },
 
-            filePicker: function(callback, options) {
+            filePicker: function (callback, options) {
                 this.label = options.label || "image";
                 this.icon = options.icon || "image-size-select-large";
                 this.acceptedhtml = options.acceptedhtml || "image/*";
                 this.acceptedregex = options.acceptedregex || "^image/";
                 this.maxsize = options.maxsize || 2e6;
 
-                const resetElem = (function() {
+                const resetElem = (function () {
                     elemContainer.setAttributes({
                         title: "",
-                        firstChild: {className: "v-icon v-icon--left mdi mdi-" + this.icon},
-                        lastChild: {textContent: "Upload " + this.label},
+                        firstChild: { className: "v-icon v-icon--left mdi mdi-" + this.icon },
+                        lastChild: { textContent: "Upload " + this.label },
                         style: {
                             borderColor: "teal",
                             pointerEvents: "auto",
@@ -545,11 +545,11 @@ function onCourtroomJoin() {
                     });
                 }).bind(this);
 
-                const uploadError = function(errorText) {
+                const uploadError = function (errorText) {
                     elemContainer.setAttributes({
                         title: errorText,
-                        firstChild: {className: "v-icon v-icon--left mdi mdi-alert"},
-                        lastChild: {textContent: errorText.substr(0, 100)},
+                        firstChild: { className: "v-icon v-icon--left mdi mdi-alert" },
+                        lastChild: { textContent: errorText.substr(0, 100) },
                         style: {
                             borderColor: "red",
                             pointerEvents: "auto",
@@ -560,7 +560,7 @@ function onCourtroomJoin() {
                     ui.Logger.log(errorText);
                 }
 
-                const uploadCallbackSuccess = function() {
+                const uploadCallbackSuccess = function () {
                     resetElem();
                     callback.apply(this, arguments);
                 };
@@ -586,14 +586,14 @@ function onCourtroomJoin() {
                 elemFile.setAttributes({
                     type: "file",
                     accept: this.acceptedhtml,
-                    style: {opacity: 0}
+                    style: { opacity: 0 }
                 });
 
                 elemContainer.addEventListener("click", e => {
                     elemFile.click();
                 });
 
-                const uploaderElementEvent = function(e) {
+                const uploaderElementEvent = function (e) {
                     try {
                         var dataList, file;
                         if (e instanceof Event && e.type === "change" && e.target.files instanceof FileList && e.target.files.length > 0) {
@@ -646,8 +646,8 @@ function onCourtroomJoin() {
                         }
 
                         elemContainer.setAttributes({
-                            firstChild: {className: "v-icon v-icon--left mdi mdi-progress-upload"},
-                            lastChild: {textContent: "Uploading"},
+                            firstChild: { className: "v-icon v-icon--left mdi mdi-progress-upload" },
+                            lastChild: { textContent: "Uploading" },
                             style: {
                                 borderColor: "yellow",
                                 pointerEvents: "none",
@@ -682,9 +682,9 @@ function onCourtroomJoin() {
 
                 if (options.pastetargets) {
                     if (options.pastetargets instanceof Node) {
-                        options.pastetargets.addEventListener("paste", e =>{ uploaderElementEvent.bind(this, e)});
+                        options.pastetargets.addEventListener("paste", e => { uploaderElementEvent.bind(this, e) });
                     } else if (options.pastetargets instanceof NodeList) {
-                        options.pastetargets.forEach(f => {f.addEventListener("paste", e => { uploaderElementEvent.call(this, e);});})
+                        options.pastetargets.forEach(f => { f.addEventListener("paste", e => { uploaderElementEvent.call(this, e); }); })
                     }
                 }
 
@@ -692,8 +692,9 @@ function onCourtroomJoin() {
             }
         };
 
+
         const createEvidenceUploaders = {
-            init: function() {
+            init: function () {
                 const container = document.createElement("div");
                 container.setAttributes({
                     className: "d-flex justify-center",
@@ -708,7 +709,7 @@ function onCourtroomJoin() {
                     ui.evidence_formFields[0].dispatchEvent(new Event("input"));
                     ui.evidence_formFields[1].value = res.url;
                     ui.evidence_formFields[1].dispatchEvent(new Event("input"));
-                }, {label: "image", icon: "image-size-select-large", acceptedhtml:"image/*", acceptedregex:"^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields});
+                }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                 evidenceImageUploader.setAttributes({
                     style: {
@@ -757,7 +758,7 @@ function onCourtroomJoin() {
                 const gelbooruBtnSend = document.createElement("div");
                 gelbooruBtnSend.setAttributes({
                     className: "mdi mdi-send",
-                    style: {cursor: "pointer"}
+                    style: { cursor: "pointer" }
                 });
 
                 gelbooruTagsContainer.append(gelbooruInputTags, gelbooruBtnSend);
@@ -779,14 +780,14 @@ function onCourtroomJoin() {
                     }
                 });
 
-                const gelbooruUploaderError = function(error = "Error") {
+                const gelbooruUploaderError = function (error = "Error") {
                     const errorText = (error instanceof Error || typeof error === "string") ? error.toString() : (error.responseText || "Error");
                     gelbooruInputTags.value = errorText;
                     gelbooruInputTags.style.color = "white";
                     gelbooruInputTags.disabled = false;
                     gelbooruInputTags.addEventListener("focus", e => {
                         e.target.value = "";
-                    }, {once: true});
+                    }, { once: true });
                     ui.Logger.log(errorText);
                 }
 
@@ -816,13 +817,13 @@ function onCourtroomJoin() {
                                             gelbooruInputTags.style.color = "white";
                                             gelbooruInputTags.disabled = false;
                                             gelbooruIcon.click();
-                                            setTimeout(f => {ui.evidence_addButton.click()}, 500);
+                                            setTimeout(f => { ui.evidence_addButton.click() }, 500);
                                         } catch (e) {
                                             throw (e);
                                         }
                                     }, gelbooruUploaderError);
                                 }
-                            } catch(e) {
+                            } catch (e) {
                                 gelbooruUploaderError(e);
                             }
                         },
@@ -844,7 +845,7 @@ function onCourtroomJoin() {
 
         // Show evidence count
         const evidenceCounter = {
-            updateCount: function() {
+            updateCount: function () {
                 const evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
                 if (evidCount == evidMax) {
                     this.text.className = "mdi mdi-alert error--text";
@@ -855,7 +856,7 @@ function onCourtroomJoin() {
                 }
                 this.text.textContent = evidCount + " / " + evidMax;
             },
-            init: function() {
+            init: function () {
                 this.container = document.createElement("div");
                 this.text = document.createElement("div");
                 this.container.className = "d-flex";
@@ -870,7 +871,7 @@ function onCourtroomJoin() {
         ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
 
         // Adjust evidence items
-        ui.evidence_list.fixEvidenceItem = function(node) {
+        ui.evidence_list.fixEvidenceItem = function (node) {
             const divCard = node.firstChild;
             const divImage = divCard.querySelector("div.v-image");
             const divTitle = divCard.querySelector("div.v-card__title");
@@ -918,7 +919,8 @@ function onCourtroomJoin() {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     padding: "6px"
-                }});
+                }
+            });
             divSubtitle.insertAdjacentElement("beforebegin", divActions);
 
             divActions.setAttributes({
@@ -936,7 +938,7 @@ function onCourtroomJoin() {
             buttonEye.style.display = "none";
         };
 
-        (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, {childList: true});
+        (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, { childList: true });
         function on_evidenceListChange(changes, observer) {
             evidenceCounter.updateCount();
             for (const change of changes) {
@@ -945,11 +947,13 @@ function onCourtroomJoin() {
                 }
             }
         }
-    }();
+    };
+
+    ui.enhanceEvidenceTab();
 
     // CSS injector to change textbox style
     ui.StylePicker = {
-        styleSheet: (function() {var style = document.createElement("style"); document.head.appendChild(style); return style;})(),
+        styleSheet: (function () { var style = document.createElement("style"); document.head.appendChild(style); return style; })(),
         customStyles: new Map([
             ["persona4golden", {
                 "name": "Persona 4 Golden",
@@ -977,27 +981,27 @@ function onCourtroomJoin() {
                 "css": "div.courtroom > div:nth-of-type(5) > div[style] > div.chat-box {height: 100%;width: 100%;letter-spacing: normal!important;}div.courtroom > div:nth-of-type(5) > div[style] > div.chat-box > img.name-plate-img {opacity: 1!important;content: url(\"https://z.zz.fo/XSCEi.gif\") }div.courtroom > div:nth-of-type(5) > div[style] > div.name-plate {width: 100%!important;height: 100%;top: 0;left: 0 }div.courtroom > div:nth-of-type(5) > div[style] > div.name-plate > img {display: none!important }div.courtroom > div:nth-of-type(5) > div[style] > div.name-plate > div.name-plate-text {font-family: Gothic, \"Song Light\", \"Friz Quadrata\", \"Times New Roman\", sans-serif!important;font-size: 1.2em !important;width: auto !important;color: #c49917!important;top: 72% !important;left: 18%!important;text-align: start;}div.courtroom > div:nth-of-type(5) > div[style] > div.chat-box > div.chat-box-text {font-family: Gothic, \"Song Light\", \"Friz Quadrata\", \"Times New Roman\", sans-serif!important;font-size: 1.2em !important;top: 77%!important;left: 18%!important;width: 80%!important;height: 19%!important;}"
             }]
         ]),
-        changeStyle: function(key) {
+        changeStyle: function (key) {
             if (this.customStyles.has(key)) {
                 this.styleSheet.innerHTML = this.customStyles.get(key).css;
             } else {
                 this.styleSheet.innerHTML = "";
             }
         },
-        import: function(toImport) {
-            if (!toImport[1].name || !toImport[1].css) {return false;}
+        import: function (toImport) {
+            if (!toImport[1].name || !toImport[1].css) { return false; }
             this.customStyles.set(toImport[0], toImport[1]);
             return true;
         }
     }
     ui.StylePicker.baseStyles = Array.from(ui.StylePicker.customStyles.keys());
     if (Array.isArray(scriptSetting.custom_styles)) {
-        scriptSetting.custom_styles.forEach(customStyle => {ui.StylePicker.import(customStyle)});
+        scriptSetting.custom_styles.forEach(customStyle => { ui.StylePicker.import(customStyle) });
     }
 
     // Add setting options under the Settings tab
-    var enhanceSettingsTab = function() {
-        const createInputCheckbox = function(options) {
+    var enhanceSettingsTab = function () {
+        const createInputCheckbox = function (options) {
             const container = document.createElement("div");
             const inputControl = document.createElement("div");
             const inputSlot = document.createElement("div");
@@ -1047,7 +1051,7 @@ function onCourtroomJoin() {
             return container;
         }
 
-        const createInputText = function(options) {
+        const createInputText = function (options) {
             const container = document.createElement("div");
             const inputControl = document.createElement("div");
             const inputSlot = document.createElement("div");
@@ -1070,7 +1074,7 @@ function onCourtroomJoin() {
             input.setAttributes({
                 className: "v-select__selections pa-0 mr-0",
                 type: options.type,
-                style: {color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px"}
+                style: { color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px" }
             });
 
             container.appendChild(inputControl);
@@ -1085,8 +1089,8 @@ function onCourtroomJoin() {
             label.textContent = options.label;
             input.value = options.value;
 
-            input.addEventListener("focus", function(e) {
-                container.classList.add("v-input--is-focused","primary--text");
+            input.addEventListener("focus", function (e) {
+                container.classList.add("v-input--is-focused", "primary--text");
                 label.classList.add("primary--text");
             });
 
@@ -1099,7 +1103,7 @@ function onCourtroomJoin() {
             return container;
         }
 
-        const createInputSelect = function(options) {
+        const createInputSelect = function (options) {
             const container = document.createElement("div");
             const inputControl = document.createElement("div");
             const inputSlot = document.createElement("div");
@@ -1123,7 +1127,7 @@ function onCourtroomJoin() {
             });
             select.setAttributes({
                 className: "v-select__selections",
-                style: {color: "white", backgroundColor: "#1e1e1e"}
+                style: { color: "white", backgroundColor: "#1e1e1e" }
             });
 
             container.appendChild(inputControl);
@@ -1137,10 +1141,10 @@ function onCourtroomJoin() {
 
             label.textContent = options.label;
 
-            const parseOptions = function(values) {
-                if (!values.some(value => {return Array.isArray(value);})) { // If NONE of the values are an array
-                    values = [values].map(([key,text,color]) => {var j = {}; j.key=key;j.text=text;j.color=color; return j;})[0];
-                    if (!values) {return false;}
+            const parseOptions = function (values) {
+                if (!values.some(value => { return Array.isArray(value); })) { // If NONE of the values are an array
+                    values = [values].map(([key, text, color]) => { var j = {}; j.key = key; j.text = text; j.color = color; return j; })[0];
+                    if (!values) { return false; }
 
                     const option = document.createElement("option");
                     option.setAttributes({
@@ -1152,8 +1156,8 @@ function onCourtroomJoin() {
                     if (values.color) option.style.color = values.color;
                     return option;
                 } else {
-                    values = [values].map(([label,elements]) => {var j = {}; j.label=label;j.elements=elements; return j;})[0];
-                    if (!values) {return false;}
+                    values = [values].map(([label, elements]) => { var j = {}; j.label = label; j.elements = elements; return j; })[0];
+                    if (!values) { return false; }
 
                     const optGroup = document.createElement("optgroup");
                     optGroup.label = values.label;
@@ -1368,7 +1372,23 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rowHeader.appendChild(ui.extraSettings_resetButton);
+        ui.extraSettings_fixEvidenceUploaderButton = new createButton({
+            label: "Fix Evidence Tab",
+            icon: "image-broken-variant",
+            title:"Reset the evidence tab when it's broken after evidence is turned off and on",
+            onclick: () => {
+                if (document.contains(ui.evidence_evidenceUploaders) || ui.evidence_container.textContent == "You cannot add evidence in this courtroom.") {return;}
+                ui.enhanceEvidenceTab();
+            }
+        });
+        ui.extraSettings_fixEvidenceUploaderButton.classList.add("d-inline-block", "ml-2");
+        ui.extraSettings_fixEvidenceUploaderButton.firstChild.setAttributes({
+            style: {
+                backgroundColor: "rgb(94 63 52)"
+            }
+        });
+
+        ui.extraSettings_rowHeader.append(ui.extraSettings_resetButton, ui.extraSettings_fixEvidenceUploaderButton);
         extraSettings_rows.push(ui.extraSettings_rowHeader);
 
         // Row 2 - Buttons
@@ -1402,16 +1422,16 @@ function onCourtroomJoin() {
                 if (selected === "import") {
                     e.target.value = scriptSetting.textbox_style; //Reset select to original value
                     const input = prompt("Paste your code here");
-                    if (!input) {return;}
+                    if (!input) { return; }
                     var toImport = JSON.parse(input);
-                    if (!Array.isArray(toImport[0])) {toImport = [toImport]};
+                    if (!Array.isArray(toImport[0])) { toImport = [toImport] };
 
                     toImport.forEach(thisStyle => {
-                        if (["none", "import", "remove"].includes(thisStyle[0])) {return;} // Don't allow reserved names
+                        if (["none", "import", "remove"].includes(thisStyle[0])) { return; } // Don't allow reserved names
                         if (ui.StylePicker.import(thisStyle)) {
                             var option;
-                            if (Array.from(e.target.options).some(option => {return option.value == thisStyle[0]})) { // Check if we are overwriting an existing option or adding a new one
-                                option = Array.from(e.target.options).find(option => {return option.value == thisStyle[0]})
+                            if (Array.from(e.target.options).some(option => { return option.value == thisStyle[0] })) { // Check if we are overwriting an existing option or adding a new one
+                                option = Array.from(e.target.options).find(option => { return option.value == thisStyle[0] })
                                 option.textContent = thisStyle[1].name;
                                 option.style.color = thisStyle[1].optionColor;
                             } else {
@@ -1430,36 +1450,36 @@ function onCourtroomJoin() {
 
                     const toSave = JSON.stringify(
                         Array.from(ui.StylePicker.customStyles).filter(
-                            ([k,v]) => {return !ui.StylePicker.baseStyles.includes(k);}
+                            ([k, v]) => { return !ui.StylePicker.baseStyles.includes(k); }
                         )
                     );
-                    if (!toSave) {return;}
+                    if (!toSave) { return; }
                     setSetting("custom_styles", toSave);
 
                     return e.preventDefault();
                 } else if (selected === "remove") {
                     e.target.value = scriptSetting.textbox_style; //Reset select to original value
                     const input = prompt("Type a style ID or name to delete");
-                    if (!input) {return;}
+                    if (!input) { return; }
                     var key;
                     if (ui.StylePicker.customStyles.has(input)) {
                         key = input;
                     } else {
-                        key = Array.from(ui.StylePicker.customStyles).find(s => {return s[1].name === input})?.[0];
+                        key = Array.from(ui.StylePicker.customStyles).find(s => { return s[1].name === input })?.[0];
                     }
 
-                    if (!key || !ui.StylePicker.customStyles.has(key)) {return;}
-                    if (["none", "import", "remove"].concat(ui.StylePicker.baseStyles).includes(input)) {return;}
+                    if (!key || !ui.StylePicker.customStyles.has(key)) { return; }
+                    if (["none", "import", "remove"].concat(ui.StylePicker.baseStyles).includes(input)) { return; }
 
                     ui.StylePicker.customStyles.delete(key);
-                    e.target.options.remove(Array.from(e.target.options).indexOf(Array.from(e.target.options).find(option => {return option.value == key})));
+                    e.target.options.remove(Array.from(e.target.options).indexOf(Array.from(e.target.options).find(option => { return option.value == key })));
 
                     const toSave = JSON.stringify(
                         Array.from(ui.StylePicker.customStyles).filter(
-                            ([k,v]) => {return !ui.StylePicker.baseStyles.includes(k);}
+                            ([k, v]) => { return !ui.StylePicker.baseStyles.includes(k); }
                         )
                     );
-                    if (!toSave) {return;}
+                    if (!toSave) { return; }
                     setSetting("custom_styles", toSave);
 
                     if (key === scriptSetting.textbox_style) {
@@ -1492,13 +1512,13 @@ function onCourtroomJoin() {
 
         ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
         ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
-                                              ui.extraSettings_rememberUsername,
-                                              ui.extraSettings_showConsole,
-                                              ui.extraSettings_adjustChatTextWithWheel,
-                                              ui.extraSettings_textboxStyleSelector,
-                                              ui.extraSettings_chatHoverTooltip,
-                                              ui.extraSettings_disableKeyboardShortcuts,
-                                              ui.extraSettings_fileHostSelector);
+            ui.extraSettings_rememberUsername,
+            ui.extraSettings_showConsole,
+            ui.extraSettings_adjustChatTextWithWheel,
+            ui.extraSettings_textboxStyleSelector,
+            ui.extraSettings_chatHoverTooltip,
+            ui.extraSettings_disableKeyboardShortcuts,
+            ui.extraSettings_fileHostSelector);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
@@ -1583,7 +1603,7 @@ function onCourtroomJoin() {
     }();
 
     // Create additional buttons container below the right panels
-    var addRightFrameExtraButtons = function() {
+    var addRightFrameExtraButtons = function () {
         ui.customButtonsContainer = ui.rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
         ui.customButtonsContainer.className = "mx-3 mt-4";
 
@@ -1639,8 +1659,8 @@ function onCourtroomJoin() {
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
-                                           ui.customButtons_soundRouletteButton,
-                                           ui.customButtons_musicRouletteButton);
+            ui.customButtons_soundRouletteButton,
+            ui.customButtons_musicRouletteButton);
 
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
@@ -1671,7 +1691,7 @@ function onCourtroomJoin() {
             });
 
             ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                                               ui.customButton_getCurMusicUrl);
+                ui.customButton_getCurMusicUrl);
 
             ui.customButtons_rows.push(ui.customButtons_rowButtons);
         }
@@ -1704,17 +1724,17 @@ function onCourtroomJoin() {
                     }
                 });
 
-                elemShowLogButton.addEventListener("mouseover", e=>{
+                elemShowLogButton.addEventListener("mouseover", e => {
                     e.target.classList.remove("mdi-console");
                     e.target.classList.add("mdi-close-circle");
                 });
 
-                elemShowLogButton.addEventListener("mouseout", e=>{
+                elemShowLogButton.addEventListener("mouseout", e => {
                     e.target.classList.remove("mdi-close-circle");
                     e.target.classList.add("mdi-console");
                 });
 
-                elemShowLogButton.addEventListener("click", e=>{
+                elemShowLogButton.addEventListener("click", e => {
                     ui.Logger.clear();
                 });
 
@@ -1745,7 +1765,7 @@ function onCourtroomJoin() {
                 this.elemItems = elemItems;
                 return elemContainer;
             },
-            log: function(text, icon = null) {
+            log: function (text, icon = null) {
                 let duplicate;
                 if (duplicate = this.entries.find(line => line.text == text)) {
                     this.entries.splice(this.entries.indexOf(duplicate), 1);
@@ -1766,7 +1786,7 @@ function onCourtroomJoin() {
                     const item = document.createElement("span")
                     if (entry.icon) {
                         icon = document.createElement("i");
-                        icon.classList.add("mdi","mr-1", "mdi-" + entry.icon);
+                        icon.classList.add("mdi", "mr-1", "mdi-" + entry.icon);
                         item.appendChild(icon);
                     }
                     item.setAttributes({
@@ -1825,7 +1845,7 @@ function onCourtroomJoin() {
     }();
 
     // Adjust chatbox text size with mouse wheel
-    const on_chatBoxTextWheel = function(e) {
+    const on_chatBoxTextWheel = function (e) {
         if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBoxText === "undefined") {
             ui.courtroom_chatBoxText = ui.courtroom_container.querySelector("div.chat-box-text");
             ui.courtroom_chatBoxText.style.lineHeight = "1.3";
@@ -1880,8 +1900,8 @@ function onCourtroomJoin() {
             if (scriptSetting.chat_hover_tooltip) {
                 ui.chatLog_chat.addEventListener("mouseover", this.onChatListMouseOver, false);
             }
-            this.tooltipElement.addEventListener("mouseenter", e => {e.target.style.opacity = "1";});
-            this.tooltipElement.addEventListener("mouseleave", this.onChatItemMouseLeave.bind(this), {capture:false});
+            this.tooltipElement.addEventListener("mouseenter", e => { e.target.style.opacity = "1"; });
+            this.tooltipElement.addEventListener("mouseleave", this.onChatItemMouseLeave.bind(this), { capture: false });
             this.tooltipElement.addEventListener("transitioncancel", e => {
                 if (e.target.style.opacity == "0") {
                     e.target.style.visibility = "hidden";
@@ -1890,10 +1910,10 @@ function onCourtroomJoin() {
             this.tooltipElement.addEventListener("transitionend", e => {
                 if (e.target.style.opacity == "0") {
                     e.target.style.visibility = "hidden";
-                    this.tooltipElement.querySelectorAll("audio, video").forEach(f => {f.pause();});
-                    this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => {f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');});
-                    this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
-                    this.chat.element.removeEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                    this.tooltipElement.querySelectorAll("audio, video").forEach(f => { f.pause(); });
+                    this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => { f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); });
+                    this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
+                    this.chat.element.removeEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
                 }
             });
 
@@ -1902,7 +1922,7 @@ function onCourtroomJoin() {
 
         reposition() {
             let top = 0;
-            if (!this.tooltipElement || !this.chat.element) {return;}
+            if (!this.tooltipElement || !this.chat.element) { return; }
 
             top = this.chat.element.getBoundingClientRect().y + (this.chat.element.offsetHeight / 2) - (this.tooltipElement.offsetHeight / 2);
             if (top < ui.chatLog_chat.getBoundingClientRect().y) {
@@ -1921,12 +1941,12 @@ function onCourtroomJoin() {
                     textContent: url.href,
                     target: "_blank",
                     rel: "noreferrer",
-                    style: {display: "inline-block", fontSize: "14px"}
+                    style: { display: "inline-block", fontSize: "14px" }
                 });
                 const i = document.createElement("i");
                 i.setAttributes({
                     className: "mdi mdi-open-in-new",
-                    style: {marginLeft: "2px", fontSize: "12px"}
+                    style: { marginLeft: "2px", fontSize: "12px" }
                 });
                 a.appendChild(i);
                 return a;
@@ -1937,7 +1957,7 @@ function onCourtroomJoin() {
                     src: url.href,
                     alt: url.href,
                     referrerPolicy: "no-referrer",
-                    style: {maxWidth: "280px", maxHeight: "300px"}
+                    style: { maxWidth: "280px", maxHeight: "300px" }
                 });
 
                 img.addEventListener("load", e => {
@@ -1955,7 +1975,7 @@ function onCourtroomJoin() {
                     href: url.href,
                     target: "_blank",
                     rel: "noreferrer",
-                    style: {display: "inline-block"}
+                    style: { display: "inline-block" }
                 });
                 a.appendChild(img);
                 return a;
@@ -1966,7 +1986,7 @@ function onCourtroomJoin() {
                     src: url.href,
                     loop: "true",
                     controls: "true",
-                    style: {maxWidth: "280px", maxHeight: "300px", display: "none"}
+                    style: { maxWidth: "280px", maxHeight: "300px", display: "none" }
                 });
 
                 video.addEventListener("loadeddata", e => {
@@ -1983,11 +2003,11 @@ function onCourtroomJoin() {
             youtube(url) {
                 const youtubeEmbed = document.createElement("iframe");
                 const key = (url.searchParams.get("v") || url.pathname.substr(url.pathname.lastIndexOf("/")));
-                if (!key) {return;}
+                if (!key) { return; }
                 var timeStart = url.searchParams.get("t") || url.searchParams.get("start") || 0;
                 if (timeStart && !/^\d+$/.test(timeStart)) { // convert 2m5s to 125
                     timeStart = timeStart.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
-                    timeStart = 3600 * (timeStart[1]||0) + 60 * (timeStart[2]||0) + 1 * (timeStart[3]||0);
+                    timeStart = 3600 * (timeStart[1] || 0) + 60 * (timeStart[2] || 0) + 1 * (timeStart[3] || 0);
                 }
                 youtubeEmbed.setAttributes({
                     src: "https://www.youtube.com/embed/" + key + "?enablejsapi=1&start=" + timeStart,
@@ -1997,7 +2017,7 @@ function onCourtroomJoin() {
                     frameborder: "0",
                     allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
                     allowFullscreen: "true",
-                    style: {maxWidth: "320px", maxHeight: "180px", display: "inline-block"}
+                    style: { maxWidth: "320px", maxHeight: "180px", display: "inline-block" }
                 });
 
                 youtubeEmbed.addEventListener("load", e => {
@@ -2017,7 +2037,7 @@ function onCourtroomJoin() {
                 audio.setAttributes({
                     src: url.href,
                     controls: "true",
-                    style: {maxWidth: "280px", maxHeight: "300px", height: "30px", display: "none"}
+                    style: { maxWidth: "280px", maxHeight: "300px", height: "30px", display: "none" }
                 });
 
                 audio.addEventListener("loadedmetadata", e => {
@@ -2039,7 +2059,7 @@ function onCourtroomJoin() {
             return text.split(/\s+/).map(word => {
                 try {
                     return new URL(word);
-                } catch(e) {
+                } catch (e) {
                     return null;
                 }
             }).filter(Boolean);
@@ -2068,7 +2088,7 @@ function onCourtroomJoin() {
 
             this.chat = chat;
             this.tooltipElement.innerHTML = this.chat.name + ":&nbsp;";
-            matchedElements.forEach(f => {this.tooltipElement.appendChild(f)});
+            matchedElements.forEach(f => { this.tooltipElement.appendChild(f) });
             this.reposition();
             this.tooltipElement.setAttributes({
                 style: {
@@ -2076,7 +2096,7 @@ function onCourtroomJoin() {
                     opacity: "1"
                 }
             });
-            this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+            this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
         },
 
         onChatListMouseOver(e) {
@@ -2098,7 +2118,7 @@ function onCourtroomJoin() {
                     if (this.tooltipElement.style.opacity == "0") { // Mouse left and re-entered the same item when it was hidden
                         this.tooltipElement.style.visibility = "visible";
                         this.tooltipElement.style.opacity = "1";
-                        this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, {capture:false});
+                        this.chat.element.addEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
                         this.chat = chat;
                         this.reposition();
                     }
@@ -2132,7 +2152,7 @@ function onCourtroomJoin() {
     }, true);
 
     // Disable WASD shortcuts
-    const disableKeyboardShortcuts = function(e) {
+    const disableKeyboardShortcuts = function (e) {
         if ("wasd".includes(e.srcKey)) {
             e.stopImmediatePropagation()
         }
@@ -2234,7 +2254,7 @@ function storeClear() {
     window.location.reload();
 };
 
-const CrossOrigin = (function() {
+const CrossOrigin = (function () {
     try {
         return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
     } catch (e) {
@@ -2243,4 +2263,4 @@ const CrossOrigin = (function() {
 })();
 
 // Helper function to set multiple element attributes at once
-Element.prototype.setAttributes = function(attr) {var recursiveSet = function(at,set) {for(var prop in at){if(typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null){recursiveSet(at[prop],set[prop]);}else {set[prop] = at[prop];}}};recursiveSet(attr,this);}
+Element.prototype.setAttributes = function (attr) { var recursiveSet = function (at, set) { for (var prop in at) { if (typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null) { recursiveSet(at[prop], set[prop]); } else { set[prop] = at[prop]; } } }; recursiveSet(attr, this); }
