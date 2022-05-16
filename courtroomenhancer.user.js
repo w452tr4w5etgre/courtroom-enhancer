@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.752
+// @version      0.753
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2133,7 +2133,8 @@ function onCourtroomJoin() {
             this.extractUrls(chat.text).forEach(url => {
                 matchedElements.push(this.embedFiles.link.call(this, url));
                 const extension = url.pathname.substring(url.pathname.lastIndexOf('.') + 1);
-                if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
+
+                if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension) || url.host == "pbs.twimg.com") {
                     matchedElements.push(this.embedFiles.image.call(this, url));
                 } else if (["webm", "mp4"].includes(extension)) {
                     matchedElements.push(this.embedFiles.video.call(this, url));
