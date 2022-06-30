@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.759
+// @version      0.760
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1294,10 +1294,7 @@ function onCourtroomJoin() {
                 const value = e.target.checked;
                 setSetting("chat_clickable_links", value);
                 if (value) {
-                    chatHandler.init();
                     chatHandler.chatUpdate();
-                } else {
-                    chatHandler.destroy()
                 }
             }
         });
@@ -1384,8 +1381,7 @@ function onCourtroomJoin() {
             onchange: e => {
                 const value = e.target.checked;
                 setSetting("mute_bgm_buttons", value);
-                ui.customButton_muteBGM.style.display = value ? "flex" : "none";
-                ui.customButton_unmuteBGM.style.display = value ? "flex" : "none";
+                ui.customButton_toggleBGM.style.display = value ? "flex" : "none";
             }
         });
 
@@ -1593,7 +1589,6 @@ function onCourtroomJoin() {
                     return e.preventDefault();
                 } else if (selected === "help") {
                     e.target.value = scriptSetting.textbox_style; //Reset select to original value
-                    console.log(scriptSetting.textbox_style);
                     window.open("https://rentry.co/n2g92", '_blank');
                     return e.preventDefault();
                 } else if (selected === "none" || ui.StylePicker.customStyles.has(selected)) { // Selected a style
@@ -1801,7 +1796,7 @@ function onCourtroomJoin() {
                 onclick: unsafeWindow.Howler.stop.bind()
             });
 
-            ui.customButton_muteBGM = new createButton({
+            ui.customButton_toggleBGM = new createButton({
                 label: "Mute BGM",
                 title: "Mutes the song that's currently playing (only for you)",
                 display: scriptSetting.mute_bgm_buttons,
@@ -1809,23 +1804,22 @@ function onCourtroomJoin() {
                 backgroundColor: "teal",
                 onclick: e => {
                     for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._state == "loaded" && howl._loop) {
-                            howl.volume(0)
-                        }
-                    };
-                }
-            });
-
-            ui.customButton_unmuteBGM = new createButton({
-                label: "Unmute BGM",
-                title: "Unmutes the song that's currently playing (only for you)",
-                display: scriptSetting.mute_bgm_buttons,
-                icon: "volume-high",
-                backgroundColor: "teal",
-                onclick: e => {
-                    for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._state == "loaded" && howl._loop) {
-                            howl.volume(1)
+                        if (howl._loop) {
+                            if (howl._volume == 0.0) {
+                                ui.customButton_toggleBGM.dataset.muted = false;
+                                ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
+                                ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
+                                ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
+                                howl.volume(Math.min(ui.customButton_toggleBGM.dataset.volume, 1.0));
+                            } else {
+                                ui.customButton_toggleBGM.dataset.muted = true;
+                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                                ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
+                                ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
+                                ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
+                                howl.volume(0.0);
+                            }
+                            break;
                         }
                     };
                 }
@@ -1900,16 +1894,10 @@ function onCourtroomJoin() {
             });
 
             ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                                               ui.customButton_muteBGM,
-                                               ui.customButton_unmuteBGM,
-                                               ui.customButton_stopMusic,
-                                               ui.customButton_stopSounds,
-                                               ui.customButton_stopSoundsMusic,
                                                ui.customButton_getCurMusicUrl,
                                                ui.customButton_getCurSoundUrl);
 
-            ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
-                                                 ui.customButton_unmuteBGM,
+            ui.customButtons_musicButtons.append(ui.customButton_toggleBGM,
                                                  ui.customButton_stopMusic,
                                                  ui.customButton_stopSounds,
                                                  ui.customButton_stopSoundsMusic);
@@ -2094,38 +2082,48 @@ function onCourtroomJoin() {
             });
         },
         chatUpdate() {
-            for (let messageNode of ui.chatLog_chatList.children) {
-                const messageIcon = messageNode.querySelector('i');
-                if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
+            if (scriptSetting.chat_clickable_links) {
+                for (let messageNode of ui.chatLog_chatList.children) {
+                    const messageIcon = messageNode.querySelector('i');
+                    if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
 
-                const messageTextDiv = messageNode.querySelector('.chat-text');
-                const html = messageTextDiv.innerHTML;
-                if (html.includes('</a>')) continue;
+                    const messageTextDiv = messageNode.querySelector('div.chat-text');
+                    const html = messageTextDiv.innerHTML;
+                    if (html.includes('</a>')) continue;
 
-                const match = html.match(URL_REGEX);
-                if (match === null) continue;
+                    const match = html.match(URL_REGEX);
+                    if (match === null) continue;
 
-                let url = match[0];
-                if (url.match('http:\/\/') !== null) url = 'https' + url.slice(4);
-                else if (url.match('https:\/\/') === null) url = 'https://' + url;
-                messageTextDiv.innerHTML = html.replaceAll(
-                    URL_REGEX,
-                    '<a target="_blank" href="' + url + '">$1</a>$2',
-                );
+                    let url = match[0];
+                    if (url.match('http:\/\/') !== null) url = 'https' + url.slice(4);
+                    else if (url.match('https:\/\/') === null) url = 'https://' + url;
+                    messageTextDiv.innerHTML = html.replaceAll(
+                        URL_REGEX,
+                        '<a target="_blank" href="' + url + '">$1</a>$2',
+                    );
+                }
+            }
+
+            if (ui.customButton_toggleBGM.dataset.muted && ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
+                for (const howl of unsafeWindow.Howler._howls) {
+                    if (howl._loop) {
+                        ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                        howl.volume(0.0);
+                        break;
+                    }
+                };
             }
         },
         disconnect() {
             this.observer.disconnect();
         },
         destroy() {
-            this.observer.disconnect();
+            this.disconnect();
             this.observer = null;
         }
     }
 
-    if (scriptSetting.chat_clickable_links) {
-        chatHandler.init();
-    }
+    chatHandler.init();
 
     // Chat hover tooltips
     const chatTooltip = {
