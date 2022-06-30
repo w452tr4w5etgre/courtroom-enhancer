@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.756
+// @version      0.757
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -26,6 +26,7 @@ const initSettings = function () {
         "remember_username": getSetting("remember_username", true),
         "show_console": getSetting("show_console", false),
         "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
+        "chat_clickable_links": getSetting("chat_clickable_links", true),
         "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
         "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
         "evid_roulette": getSetting("evid_roulette", false),
@@ -44,6 +45,8 @@ const initSettings = function () {
 }();
 
 let storedUsername = getStoredUsername();
+
+const URL_REGEX = /((?:http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+(?:[\-\.]{1}[a-z0-9]+)*\.[a-z]{1,5}(?::[0-9]{1,5})?(?:\/.*?)?\w)(\W*?(?:\s|$))/gi;
 
 const ui = { "app": document.querySelector("div#app") };
 
@@ -203,7 +206,6 @@ function onCourtroomJoin() {
         on_myAssetsListChange(changes, observer) {
             for (const change of changes) {
                 for (const addedNode of change.addedNodes) {
-                    console.log(addedNode);
                     this.myAssets_DoChanges(addedNode);
                 }
             }
@@ -1285,6 +1287,22 @@ function onCourtroomJoin() {
             }
         });
 
+        ui.extraSettings_chatClickableLinks = new createInputCheckbox({
+            checked: scriptSetting.chat_clickable_links,
+            label: "Chat clickable links",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("chat_clickable_links", value);
+                if (value) {
+                    chatHandler.init();
+                    chatHandler.observe();
+                    chatHandler.chatUpdate();
+                } else {
+                    chatHandler.disconnect()
+                }
+            }
+        });
+
         ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
             checked: scriptSetting.chat_hover_tooltip,
             label: "Chat tooltips",
@@ -1599,13 +1617,14 @@ function onCourtroomJoin() {
 
         ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
         ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
-            ui.extraSettings_rememberUsername,
-            ui.extraSettings_showConsole,
-            ui.extraSettings_adjustChatTextWithWheel,
-            ui.extraSettings_textboxStyleSelector,
-            ui.extraSettings_chatHoverTooltip,
-            ui.extraSettings_disableKeyboardShortcuts,
-            ui.extraSettings_fileHostSelector);
+                                              ui.extraSettings_rememberUsername,
+                                              ui.extraSettings_showConsole,
+                                              ui.extraSettings_adjustChatTextWithWheel,
+                                              ui.extraSettings_textboxStyleSelector,
+                                              ui.extraSettings_chatClickableLinks,
+                                              ui.extraSettings_chatHoverTooltip,
+                                              ui.extraSettings_disableKeyboardShortcuts,
+                                              ui.extraSettings_fileHostSelector);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
@@ -1770,8 +1789,8 @@ function onCourtroomJoin() {
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
-            ui.customButtons_soundRouletteButton,
-            ui.customButtons_musicRouletteButton);
+                                           ui.customButtons_soundRouletteButton,
+                                           ui.customButtons_musicRouletteButton);
 
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
@@ -1882,19 +1901,19 @@ function onCourtroomJoin() {
             });
 
             ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                ui.customButton_muteBGM,
-                ui.customButton_unmuteBGM,
-                ui.customButton_stopMusic,
-                ui.customButton_stopSounds,
-                ui.customButton_stopSoundsMusic,
-                ui.customButton_getCurMusicUrl,
-                ui.customButton_getCurSoundUrl);
+                                               ui.customButton_muteBGM,
+                                               ui.customButton_unmuteBGM,
+                                               ui.customButton_stopMusic,
+                                               ui.customButton_stopSounds,
+                                               ui.customButton_stopSoundsMusic,
+                                               ui.customButton_getCurMusicUrl,
+                                               ui.customButton_getCurSoundUrl);
 
             ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
-                ui.customButton_unmuteBGM,
-                ui.customButton_stopMusic,
-                ui.customButton_stopSounds,
-                ui.customButton_stopSoundsMusic);
+                                                 ui.customButton_unmuteBGM,
+                                                 ui.customButton_stopMusic,
+                                                 ui.customButton_stopSounds,
+                                                 ui.customButton_stopSoundsMusic);
 
             ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
         }
@@ -2064,6 +2083,49 @@ function onCourtroomJoin() {
         f.style.pointerEvents = "none";
     });
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
+
+    // Chat log handler
+    const chatHandler = {
+        init() {
+            this.observer = new MutationObserver(this.chatUpdate);
+        },
+        chatUpdate() {
+            for (let messageNode of ui.chatLog_chatList.children) {
+                const messageIcon = messageNode.querySelector('i');
+                if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
+
+                const messageTextDiv = messageNode.querySelector('.chat-text');
+                const html = messageTextDiv.innerHTML;
+                if (html.includes('</a>')) continue;
+
+                const match = html.match(URL_REGEX);
+                if (match === null) continue;
+
+                let url = match[0];
+                if (url.match('http:\/\/') !== null) url = 'https' + url.slice(4);
+                else if (url.match('https:\/\/') === null) url = 'https://' + url;
+                messageTextDiv.innerHTML = html.replaceAll(
+                    URL_REGEX,
+                    '<a target="_blank" href="' + url + '">$1</a>$2',
+                );
+            }
+        },
+        observe() {
+            this.observer.observe(ui.chatLog_chatList, {
+                childList: true,
+                characterData: true,
+                subtree: true
+            });
+        },
+        disconnect() {
+            this.observer.disconnect();
+        }
+    }
+
+    if (scriptSetting.chat_clickable_links) {
+        chatHandler.init();
+        chatHandler.observe();
+    }
 
     // Chat hover tooltips
     const chatTooltip = {
@@ -2259,6 +2321,15 @@ function onCourtroomJoin() {
         },
 
         extractUrls(text) {
+            return text.match(URL_REGEX).map(word => {
+                try {
+                    return new URL(word);
+                } catch (e) {
+                    return null;
+                }
+            }).filter(Boolean);
+        },
+        extractUrls2(text) {
             return text.split(/\s+/).map(word => {
                 try {
                     return new URL(word);
