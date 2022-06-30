@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.758
+// @version      0.759
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1295,10 +1295,9 @@ function onCourtroomJoin() {
                 setSetting("chat_clickable_links", value);
                 if (value) {
                     chatHandler.init();
-                    chatHandler.observe();
                     chatHandler.chatUpdate();
                 } else {
-                    chatHandler.disconnect()
+                    chatHandler.destroy()
                 }
             }
         });
@@ -2088,6 +2087,11 @@ function onCourtroomJoin() {
     const chatHandler = {
         init() {
             this.observer = new MutationObserver(this.chatUpdate);
+            this.observer.observe(ui.chatLog_chatList, {
+                childList: true,
+                characterData: true,
+                subtree: true
+            });
         },
         chatUpdate() {
             for (let messageNode of ui.chatLog_chatList.children) {
@@ -2110,21 +2114,17 @@ function onCourtroomJoin() {
                 );
             }
         },
-        observe() {
-            this.observer.observe(ui.chatLog_chatList, {
-                childList: true,
-                characterData: true,
-                subtree: true
-            });
-        },
         disconnect() {
             this.observer.disconnect();
+        },
+        destroy() {
+            this.observer.disconnect();
+            this.observer = null;
         }
     }
 
     if (scriptSetting.chat_clickable_links) {
         chatHandler.init();
-        chatHandler.observe();
     }
 
     // Chat hover tooltips
