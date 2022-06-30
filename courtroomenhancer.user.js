@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.753
+// @version      0.756
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -31,10 +31,12 @@ const initSettings = function () {
         "evid_roulette": getSetting("evid_roulette", false),
         "sound_roulette": getSetting("sound_roulette", false),
         "music_roulette": getSetting("music_roulette", false),
+        "global_buttons": getSetting("global_buttons", false),
+        "mute_bgm_buttons": getSetting("mute_bgm_buttons", false),
         "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 497000),
-        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 142500),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 44000),
+        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 550000),
+        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 50000),
+        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 160000),
         "file_host": getSetting("file_host", "catbox"),
         "textbox_style": getSetting("textbox_style", "none"),
         "custom_styles": getSetting("custom_styles")
@@ -1347,6 +1349,29 @@ function onCourtroomJoin() {
             }
         });
 
+        ui.extraSettings_globalButtons = new createInputCheckbox({
+            checked: scriptSetting.global_buttons,
+            label: "Global BGM/SFX Control Buttons",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("global_buttons", value);
+                ui.customButton_stopSounds.style.display = value ? "flex" : "none";
+                ui.customButton_stopMusic.style.display = value ? "flex" : "none";
+                ui.customButton_stopSoundsMusic.style.display = value ? "flex" : "none";
+            }
+        });
+
+        ui.extraSettings_muteBGMButtons = new createInputCheckbox({
+            checked: scriptSetting.mute_bgm_buttons,
+            label: "BGM Control Buttons",
+            onchange: e => {
+                const value = e.target.checked;
+                setSetting("mute_bgm_buttons", value);
+                ui.customButton_muteBGM.style.display = value ? "flex" : "none";
+                ui.customButton_unmuteBGM.style.display = value ? "flex" : "none";
+            }
+        });
+
         ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
             checked: scriptSetting.evid_roulette_as_icon,
             label: "Icon",
@@ -1633,6 +1658,7 @@ function onCourtroomJoin() {
         });
         const rouletteSoundContainer = rouletteEvidContainer.cloneNode();
         const rouletteMusicContainer = rouletteEvidContainer.cloneNode();
+        const musicControlContainer = rouletteEvidContainer.cloneNode();
 
         rouletteEvidContainer.append(
             ui.extraSettings_rouletteEvid,
@@ -1650,7 +1676,12 @@ function onCourtroomJoin() {
             ui.extraSettings_rouletteMusicMax
         );
 
-        ui.extraSettings_rowRoulettes.lastChild.append(rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer);
+        musicControlContainer.append(
+            ui.extraSettings_globalButtons,
+            ui.extraSettings_muteBGMButtons
+        );
+
+        ui.extraSettings_rowRoulettes.lastChild.append(rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer, musicControlContainer);
 
         extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
@@ -1680,6 +1711,15 @@ function onCourtroomJoin() {
             }
         });
 
+        // Music Control buttons row
+        ui.customButtons_musicButtons = document.createElement("div");
+        ui.customButtons_musicButtons.setAttributes({
+            className: "row mt-2 no-gutters",
+            style: {
+                gap: "15px 5px"
+            }
+        });
+
         function rouletteClick(command, max, icon) {
             if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
@@ -1688,6 +1728,15 @@ function onCourtroomJoin() {
             ui.leftFrame_textarea.dispatchEvent(new Event("input"));
             ui.leftFrame_sendButton.click();
             ui.Logger.log(command, icon);
+        }
+
+        function sendMessageClick(command) {
+            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
+                return;
+            }
+            ui.leftFrame_textarea.value = command;
+            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
+            ui.leftFrame_sendButton.click();
         }
 
         ui.customButtons_evidRouletteButton = new createButton({
@@ -1727,11 +1776,74 @@ function onCourtroomJoin() {
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
             ui.customButton_stopAllSounds = new createButton({
-                label: "Shut up SFX and BGM",
+                label: "Shut up BGM/SFX",
                 title: "Stop all sounds that are currently playing (only for you)",
                 icon: "volume-variant-off",
                 backgroundColor: "teal",
                 onclick: unsafeWindow.Howler.stop.bind()
+            });
+
+            ui.customButton_muteBGM = new createButton({
+                label: "Mute BGM",
+                title: "Mutes the song that's currently playing (only for you)",
+                display: scriptSetting.mute_bgm_buttons,
+                icon: "volume-mute",
+                backgroundColor: "teal",
+                onclick: e => {
+                    for (const howl of unsafeWindow.Howler._howls) {
+                        if (howl._state == "loaded" && howl._loop) {
+                            howl.volume(0)
+                        }
+                    };
+                }
+            });
+
+            ui.customButton_unmuteBGM = new createButton({
+                label: "Unmute BGM",
+                title: "Unmutes the song that's currently playing (only for you)",
+                display: scriptSetting.mute_bgm_buttons,
+                icon: "volume-high",
+                backgroundColor: "teal",
+                onclick: e => {
+                    for (const howl of unsafeWindow.Howler._howls) {
+                        if (howl._state == "loaded" && howl._loop) {
+                            howl.volume(1)
+                        }
+                    };
+                }
+            });
+
+            ui.customButton_stopMusic = new createButton({
+                label: "Stop BGM",
+                title: "Stops the song that is currently playing (for everyone)",
+                display: scriptSetting.global_buttons,
+                icon: "volume-variant-off",
+                backgroundColor: "crimson",
+                onclick: e => {
+                    sendMessageClick("[#bgms]");
+                }
+            });
+
+            ui.customButton_stopSounds = new createButton({
+                label: "Stop SFX",
+                title: "Stop all SFX that are currently playing (for everyone)",
+                display: scriptSetting.global_buttons,
+                icon: "volume-variant-off",
+                backgroundColor: "crimson",
+                onclick: e => {
+                    sendMessageClick("[#bgss]");
+                }
+            });
+
+            ui.customButton_stopSoundsMusic = new createButton({
+                label: "Stop BGM/SFX",
+                title: "Stop all sounds that are currently playing (for everyone)",
+                display: scriptSetting.global_buttons,
+                icon: "volume-variant-off",
+                backgroundColor: "crimson",
+                onclick: e => {
+                    sendMessageClick("[#bgms][#bgss]");
+                }
             });
 
             ui.customButton_getCurMusicUrl = new createButton({
@@ -1752,10 +1864,39 @@ function onCourtroomJoin() {
                 }
             });
 
-            ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                ui.customButton_getCurMusicUrl);
+            ui.customButton_getCurSoundUrl = new createButton({
+                label: "SFX URL",
+                title: "Get the URL for the sfx playing now",
+                icon: "link-variant",
+                backgroundColor: "teal",
+                onclick: e => {
+                    for (const howl of unsafeWindow.Howler._howls) {
+                        if (howl._state == "loaded" && howl._onend.length != 0) {
+                            if (!scriptSetting.show_console) {
+                                alert(howl._src);
+                            }
+                            ui.Logger.log(howl._src, "link-variant");
+                        }
+                    };
+                }
+            });
 
-            ui.customButtons_rows.push(ui.customButtons_rowButtons);
+            ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
+                ui.customButton_muteBGM,
+                ui.customButton_unmuteBGM,
+                ui.customButton_stopMusic,
+                ui.customButton_stopSounds,
+                ui.customButton_stopSoundsMusic,
+                ui.customButton_getCurMusicUrl,
+                ui.customButton_getCurSoundUrl);
+
+            ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
+                ui.customButton_unmuteBGM,
+                ui.customButton_stopMusic,
+                ui.customButton_stopSounds,
+                ui.customButton_stopSoundsMusic);
+
+            ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
         }
 
         // Log row
