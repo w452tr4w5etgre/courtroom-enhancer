@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.757
+// @version      0.758
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2322,15 +2322,6 @@ function onCourtroomJoin() {
 
         extractUrls(text) {
             return text.match(URL_REGEX).map(word => {
-                try {
-                    return new URL(word);
-                } catch (e) {
-                    return null;
-                }
-            }).filter(Boolean);
-        },
-        extractUrls2(text) {
-            return text.split(/\s+/).map(word => {
                 try {
                     return new URL(word);
                 } catch (e) {
