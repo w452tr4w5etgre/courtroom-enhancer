@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.760
+// @version      0.761
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1806,13 +1806,13 @@ function onCourtroomJoin() {
                     for (const howl of unsafeWindow.Howler._howls) {
                         if (howl._loop) {
                             if (howl._volume == 0.0) {
-                                ui.customButton_toggleBGM.dataset.muted = false;
+                                ui.customButton_toggleBGM.dataset.muted = "false";
                                 ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
                                 ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
                                 ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
                                 howl.volume(Math.min(ui.customButton_toggleBGM.dataset.volume, 1.0));
                             } else {
-                                ui.customButton_toggleBGM.dataset.muted = true;
+                                ui.customButton_toggleBGM.dataset.muted = "true";
                                 ui.customButton_toggleBGM.dataset.volume = howl._volume;
                                 ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
                                 ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
@@ -1824,6 +1824,7 @@ function onCourtroomJoin() {
                     };
                 }
             });
+            ui.customButton_toggleBGM.dataset.muted = "false";
 
             ui.customButton_stopMusic = new createButton({
                 label: "Stop BGM",
@@ -2104,11 +2105,16 @@ function onCourtroomJoin() {
                 }
             }
 
-            if (ui.customButton_toggleBGM.dataset.muted && ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
+            if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
                 for (const howl of unsafeWindow.Howler._howls) {
                     if (howl._loop) {
-                        ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                        howl.volume(0.0);
+                        if (ui.customButton_toggleBGM.dataset.muted == "true") {
+                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                            howl.volume(0.0);
+                        } else {
+                            ui.customButton_toggleBGM.dataset.muted = "false"
+                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                        }
                         break;
                     }
                 };
