@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.763
+// @version      0.764
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -123,9 +123,8 @@ function checkPageLoaded(changes, observer) {
 function onCourtroomJoin() {
     if (!document.body.contains(ui.app)) ui.app = document.querySelector("div#app");
     ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
-    if (!ui.main) return;
+    if (!ui.main) return console.error("Can't find main wrapper");
 
-    console.log("Main firstChild:", ui.main.firstChild);
     ui.leftFrame_container = ui.main.firstChild.firstChild;
 
     if (ui.spectating) {
@@ -741,9 +740,9 @@ function onCourtroomJoin() {
         ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
         ui.evidence_form = ui.evidence_container.querySelector("div > form");
         ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
-        ui.evidence_formBottomRow = ui.evidence_form.lastChild;
+        ui.evidence_formBottomRow = ui.evidence_form.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-        ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.mr-2.v-btn.success");
+        ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.v-btn.success");
         ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
 
         ui.evidence_list.style.maxHeight = "70vh";
@@ -944,10 +943,11 @@ function onCourtroomJoin() {
         };
 
         ui.evidence_evidenceCounter = evidenceCounter.init();
-        evidenceCounter.updateCount(20);
+        evidenceCounter.updateCount();
         ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
 
         // Adjust evidence items
+        /* TODO
         ui.evidence_list.fixEvidenceItem = function (node) {
             const divCard = node.firstChild;
             const divImage = divCard.querySelector("div.v-image");
@@ -1024,9 +1024,10 @@ function onCourtroomJoin() {
                 }
             }
         }
+        */
     };
 
-    //ui.enhanceEvidenceTab();
+    ui.enhanceEvidenceTab();
 
     // CSS injector to change textbox style
     ui.StylePicker = {
