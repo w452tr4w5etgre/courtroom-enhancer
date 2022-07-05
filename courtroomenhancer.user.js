@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.762
+// @version      0.763
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2111,7 +2111,7 @@ function onCourtroomJoin() {
                     else if (url.match('https:\/\/') === null) url = 'https://' + url;
                     messageTextDiv.innerHTML = html.replaceAll(
                         URL_REGEX,
-                        '<a target="_blank" href="' + url + '">$1</a>$2',
+                        '<a target="_blank" rel="noreferrer" href="' + url + '">$1</a>$2',
                     );
                 }
             }
