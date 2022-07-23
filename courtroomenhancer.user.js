@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.764
+// @version      0.765
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -302,6 +302,11 @@ function onCourtroomJoin() {
                                 });
                             }
                         });
+                    } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type").textContent.trim().toUpperCase() === "COURT RECORD") {
+                        const toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
+                        const cardContent = node.querySelector("div.v-card > div:nth-child(2)");
+                        const buttons = cardContent.firstChild;
+                        ui.courtRecord_checkButton = buttons.querySelector("div:first-child > button");
                     } else {
                         const toolbarContent = node.querySelector("header.v-sheet > div.v-toolbar__content");
                         const dialogTitle = toolbarContent.querySelector("div.v-toolbar__title").textContent.trim().toUpperCase();
@@ -312,7 +317,7 @@ function onCourtroomJoin() {
                                 break;
                             case "MANAGE CHARACTER":
                                 // Add an uploader at the top of the Manage Character window
-                                const characterHelperURL = document.createElement("input")
+                                var characterHelperURL = document.createElement("input")
                                 characterHelperURL.setAttributes({
                                     type: "text",
                                     maxLength: "255",
@@ -332,7 +337,7 @@ function onCourtroomJoin() {
                                 });
                                 characterHelperURL.addEventListener("click", e => { e.target.select(); })
 
-                                const characterHelper_Uploader = new ui.Uploader.filePicker(res => {
+                                var characterHelper_Uploader = new ui.Uploader.filePicker(res => {
                                     if (characterHelperURL.style.display === "none") {
                                         characterHelperURL.style.display = "block";
                                     }
@@ -341,7 +346,7 @@ function onCourtroomJoin() {
                                 characterHelper_Uploader.style.flexBasis = "100";
                                 characterHelper_Uploader.style.borderColor = "#83ffff";
 
-                                characterHelper = document.createElement("div");
+                                var characterHelper = document.createElement("div");
                                 characterHelper.setAttributes({
                                     className: "v-toolbar__items",
                                     style: {
@@ -355,7 +360,7 @@ function onCourtroomJoin() {
 
                                 characterHelper.append(characterHelper_Uploader, characterHelperURL);
 
-                                const spacer = document.createElement("div");
+                                var spacer = document.createElement("div");
                                 spacer.className = "spacer";
                                 toolbarContent.querySelector("div.spacer").after(characterHelper, spacer);
                                 break;
@@ -739,7 +744,13 @@ function onCourtroomJoin() {
     ui.enhanceEvidenceTab = function () {
         ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
         ui.evidence_form = ui.evidence_container.querySelector("div > form");
-        ui.evidence_formFields = ui.evidence_form.querySelectorAll("div:first-of-type input");
+        ui.evidence_formDivs = ui.evidence_form.querySelector("div:first-of-type");
+        ui.evidence_formFields = ui.evidence_formDivs.querySelectorAll("input");
+        ui.evidence_formFieldName = ui.evidence_formFields[0];
+        ui.evidence_formFieldIconURL = ui.evidence_formFields[1];
+        ui.evidence_formFieldCheckURL = ui.evidence_formFields[2];
+        ui.evidence_formFieldDescription = ui.evidence_formDivs.querySelector("textarea");
+
         ui.evidence_formBottomRow = ui.evidence_form.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
         ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.v-btn.success");
@@ -757,11 +768,44 @@ function onCourtroomJoin() {
             });
         });
 
+        console.log(ui.evidence_formFieldDescription);
+
+        // Fix evidence form layout
+        ui.evidence_formFieldDescription.style.height = "50px";
+        for (const [i, node] of ui.evidence_formDivs.childNodes.entries()) {
+            switch (i) {
+                case 0: // Name
+                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+                    node.classList.add("col-sm-4");
+                    break;
+                case 1: // Icon URL
+                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+                    node.classList.add("col-sm-4", "pr-sm-1");
+                    break;
+                case 2: // Check URL
+                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+                    node.classList.add("col-sm-4", "pl-sm-1");
+                    break;
+                case 3: // Empty space
+                    node.classList.add("d-none");
+                    break;
+                case 4: // Description
+                    node.classList.remove("col-12", "my-3");
+                    node.classList.add("pr-sm-1");
+                    break;
+                case 5: // Type
+                    node.classList.remove("col-12");
+                    node.classList.add("col-sm-6", "pl-sm-1");
+                    break;
+            }
+        }
+
+
         // Clicking the "Add" button fills the "Name" tab with a space if it's empty
         ui.evidence_addButton.addEventListener("click", e => {
-            if (ui.evidence_formFields[0].value.length == 0) {
-                ui.evidence_formFields[0].value = String.fromCharCode(32);
-                ui.evidence_formFields[0].dispatchEvent(new Event("input"));
+            if (ui.evidence_formFieldName.value.length == 0) {
+                ui.evidence_formFieldName.value = String.fromCharCode(32);
+                ui.evidence_formFieldName.dispatchEvent(new Event("input"));
             }
             e.target.blur();
             if (ui.evidence_list.childElementCount) {
@@ -781,10 +825,12 @@ function onCourtroomJoin() {
                 });
 
                 const evidenceImageUploader = new ui.Uploader.filePicker(res => {
-                    ui.evidence_formFields[0].value = res.filename.substr(0, 20);
-                    ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                    ui.evidence_formFields[1].value = res.url;
-                    ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                    ui.evidence_formFieldName.value = res.filename.substr(0, 20);
+                    ui.evidence_formFieldName.dispatchEvent(new Event("input"));
+                    ui.evidence_formFieldIconURL.value = res.url;
+                    ui.evidence_formFieldIconURL.dispatchEvent(new Event("input"));
+                    ui.evidence_formFieldCheckURL.value = res.url;
+                    ui.evidence_formFieldCheckURL.dispatchEvent(new Event("input"));
                 }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                 evidenceImageUploader.setAttributes({
@@ -885,10 +931,12 @@ function onCourtroomJoin() {
                                     }
                                     ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                         try {
-                                            ui.evidence_formFields[0].value = responseJSON.post[0].id;
-                                            ui.evidence_formFields[0].dispatchEvent(new Event("input"));
-                                            ui.evidence_formFields[1].value = uploaderResponse.url;
-                                            ui.evidence_formFields[1].dispatchEvent(new Event("input"));
+                                            ui.evidence_formFieldName.value = responseJSON.post[0].id;
+                                            ui.evidence_formFieldName.dispatchEvent(new Event("input"));
+                                            ui.evidence_formFieldIconURL.value = uploaderResponse.url;
+                                            ui.evidence_formFieldIconURL.dispatchEvent(new Event("input"));
+                                            ui.evidence_formFieldCheckURL.value = uploaderResponse.url;
+                                            ui.evidence_formFieldCheckURL.dispatchEvent(new Event("input"));
                                             gelbooruInputTags.value = "";
                                             gelbooruInputTags.style.color = "white";
                                             gelbooruInputTags.disabled = false;
@@ -947,7 +995,6 @@ function onCourtroomJoin() {
         ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
 
         // Adjust evidence items
-        /* TODO
         ui.evidence_list.fixEvidenceItem = function (node) {
             const divCard = node.firstChild;
             const divImage = divCard.querySelector("div.v-image");
@@ -980,7 +1027,14 @@ function onCourtroomJoin() {
                 if (divActions.contains(e.target)) {
                     return;
                 }
+
                 buttonEye.click();
+
+                setTimeout(e => {
+                    if (ui.courtRecord_checkButton?.offsetParent === null) return;
+                    ui.courtRecord_checkButton.click();
+                }, 150);
+
             }, true);
 
             divTitle.setAttributes({
@@ -1015,6 +1069,12 @@ function onCourtroomJoin() {
             buttonEye.style.display = "none";
         };
 
+        if (ui.evidence_list.childElementCount) {
+            for (const node of ui.evidence_list.childNodes) {
+                ui.evidence_list.fixEvidenceItem(node)
+            }
+        }
+
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, { childList: true });
         function on_evidenceListChange(changes, observer) {
             evidenceCounter.updateCount();
@@ -1024,7 +1084,7 @@ function onCourtroomJoin() {
                 }
             }
         }
-        */
+
     };
 
     ui.enhanceEvidenceTab();
