@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.765
+// @version      0.766
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -305,8 +305,10 @@ function onCourtroomJoin() {
                     } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type").textContent.trim().toUpperCase() === "COURT RECORD") {
                         const toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
                         const cardContent = node.querySelector("div.v-card > div:nth-child(2)");
+
                         const buttons = cardContent.firstChild;
                         ui.courtRecord_checkButton = buttons.querySelector("div:first-child > button");
+
                     } else {
                         const toolbarContent = node.querySelector("header.v-sheet > div.v-toolbar__content");
                         const dialogTitle = toolbarContent.querySelector("div.v-toolbar__title").textContent.trim().toUpperCase();
@@ -768,8 +770,6 @@ function onCourtroomJoin() {
             });
         });
 
-        console.log(ui.evidence_formFieldDescription);
-
         // Fix evidence form layout
         ui.evidence_formFieldDescription.style.height = "50px";
         for (const [i, node] of ui.evidence_formDivs.childNodes.entries()) {
@@ -1066,6 +1066,29 @@ function onCourtroomJoin() {
                 }
             });
 
+            // Add "link" button
+            const buttonLink = document.createElement("button");
+            buttonLink.className = "v-btn v-btn--icon v-btn--round theme--dark v-size--default mr-0 ml-1";
+
+            const buttonLinkSpan = document.createElement("span");
+            buttonLinkSpan.className = "v-btn__content";
+            buttonLink.append(buttonLinkSpan);
+
+            const buttonLinkSpanIcon = document.createElement("i");
+            buttonLinkSpanIcon.className = "v-icon notranslate mdi mdi-link theme--dark";
+            buttonLinkSpan.append(buttonLinkSpanIcon);
+
+            buttonEye.insertAdjacentElement("afterend", buttonLink);
+
+            buttonLink.addEventListener("click", e => {
+                if (e.target.disabled) return;
+                var imageUrl = divImage.querySelector("div.v-image__image").style.backgroundImage;
+                imageUrl = imageUrl.substring(4, imageUrl.length-1).replace(/["']/g, "");
+                //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
+                ui.Logger.log(imageUrl);
+            });
+
+            // Hide eye button (clicking on the image itself clicks on the eye)
             buttonEye.style.display = "none";
         };
 
