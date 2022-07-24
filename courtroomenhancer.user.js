@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.766
+// @version      0.767
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1085,7 +1085,7 @@ function onCourtroomJoin() {
                 var imageUrl = divImage.querySelector("div.v-image__image").style.backgroundImage;
                 imageUrl = imageUrl.substring(4, imageUrl.length-1).replace(/["']/g, "");
                 //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
-                ui.Logger.log(imageUrl);
+                ui.Logger.log(imageUrl, "link-variant");
             });
 
             // Hide eye button (clicking on the image itself clicks on the eye)
