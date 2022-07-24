@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.767
+// @version      0.768
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -303,11 +303,11 @@ function onCourtroomJoin() {
                             }
                         });
                     } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type").textContent.trim().toUpperCase() === "COURT RECORD") {
-                        const toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
-                        const cardContent = node.querySelector("div.v-card > div:nth-child(2)");
+                        ui.courtRecord_toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
+                        ui.courtRecord_cardContent = node.querySelector("div.v-card > div:nth-child(2)");
 
-                        const buttons = cardContent.firstChild;
-                        ui.courtRecord_checkButton = buttons.querySelector("div:first-child > button");
+                        ui.courtRecord_buttons = ui.courtRecord_cardContent.firstChild;
+                        ui.courtRecord_checkButton = ui.courtRecord_buttons.querySelector("div:first-child > button");
 
                     } else {
                         const toolbarContent = node.querySelector("header.v-sheet > div.v-toolbar__content");
@@ -1030,10 +1030,17 @@ function onCourtroomJoin() {
 
                 buttonEye.click();
 
-                setTimeout(e => {
+                // Check if the evidence is ready to be checked
+                const checkEvidInterval = setInterval(e => {
+                    // Check if the Check button is visible
                     if (ui.courtRecord_checkButton?.offsetParent === null) return;
+
+                    // Check if the currently loaded thumbnail matches the evidence we want to open
+                    if (ui.courtRecord_cardContent.querySelector(":scope > div:nth-child(2) > div:nth-child(1) > div.v-image > div.v-image__image").style.backgroundImage !== divImage.querySelector(":scope > div.v-image__image").style.backgroundImage) return;
+
                     ui.courtRecord_checkButton.click();
-                }, 150);
+                    clearInterval(checkEvidInterval);
+                }, 50);
 
             }, true);
 
@@ -1082,7 +1089,7 @@ function onCourtroomJoin() {
 
             buttonLink.addEventListener("click", e => {
                 if (e.target.disabled) return;
-                var imageUrl = divImage.querySelector("div.v-image__image").style.backgroundImage;
+                var imageUrl = divImage.querySelector(":scope > div.v-image__image").style.backgroundImage;
                 imageUrl = imageUrl.substring(4, imageUrl.length-1).replace(/["']/g, "");
                 //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
                 ui.Logger.log(imageUrl, "link-variant");
