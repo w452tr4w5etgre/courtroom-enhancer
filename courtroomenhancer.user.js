@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.768
+// @version      0.769
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -302,7 +302,7 @@ function onCourtroomJoin() {
                                 });
                             }
                         });
-                    } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type").textContent.trim().toUpperCase() === "COURT RECORD") {
+                    } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type")?.textContent.trim().toUpperCase() === "COURT RECORD") {
                         ui.courtRecord_toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
                         ui.courtRecord_cardContent = node.querySelector("div.v-card > div:nth-child(2)");
 
