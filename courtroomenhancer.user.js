@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.769
+// @version      0.770
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1906,7 +1906,7 @@ function onCourtroomJoin() {
                 backgroundColor: "teal",
                 onclick: e => {
                     for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._loop) {
+                        if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
                             if (howl._volume == 0.0) {
                                 ui.customButton_toggleBGM.dataset.muted = "false";
                                 ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
@@ -1968,7 +1968,7 @@ function onCourtroomJoin() {
                 backgroundColor: "teal",
                 onclick: e => {
                     for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._state == "loaded" && howl._loop) {
+                        if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
                             if (!scriptSetting.show_console) {
                                 alert(howl._src);
                             }
@@ -2209,7 +2209,7 @@ function onCourtroomJoin() {
 
             if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
                 for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._loop) {
+                    if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
                         if (ui.customButton_toggleBGM.dataset.muted == "true") {
                             ui.customButton_toggleBGM.dataset.volume = howl._volume;
                             howl.volume(0.0);
