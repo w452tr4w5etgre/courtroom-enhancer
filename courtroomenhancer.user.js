@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.772
+// @version      0.773
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -76,22 +76,6 @@ function checkJoinBoxReady(changes, observer) {
                         ui.spectating = false;
                     });
 
-                    // When "Enter" is pressed in the username input box
-                    ui.joinBox_usernameInput.addEventListener("keydown", e => {
-                        if (ui.joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
-                            ui.joinBox_joinButton.click();
-                        }
-                    });
-
-                    // When "Enter" is pressed in the password input box
-                    if (ui.joinBox_passwordInput) {
-                        ui.joinBox_passwordInput.addEventListener("keydown", e => {
-                            if (ui.joinBox_usernameInput.value && (e.keyCode == 13 || e.key == "Enter")) {
-                                ui.joinBox_joinButton.click();
-                            }
-                        });
-                    }
-
                     if (scriptSetting.remember_username) {
                         ui.joinBox_usernameInput.value = storedUsername;
                         ui.joinBox_usernameInput.dispatchEvent(new Event("input"));
@@ -124,6 +108,8 @@ function onCourtroomJoin() {
     if (!document.body.contains(ui.app)) ui.app = document.querySelector("div#app");
     ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
     if (!ui.main) return console.error("Can't find main wrapper");
+
+    const vue = ui.main.__vue__;
 
     ui.leftFrame_container = ui.main.firstChild.firstChild;
 
@@ -1974,10 +1960,21 @@ function onCourtroomJoin() {
                 onclick: e => {
                     for (const howl of unsafeWindow.Howler._howls) {
                         if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
-                            if (!scriptSetting.show_console) {
-                                alert(howl._src);
+                            const bgm_url = howl._src;
+                            let bgm_name;
+
+                            for (const key in vue.$store.state.assets.music.cache) {
+                                if (vue.$store.state.assets.music.cache[key].url === bgm_url) {
+                                    bgm_name = vue.$store.state.assets.music.cache[key].name + " ";
+                                    break;
+                                }
                             }
-                            ui.Logger.log(howl._src, "link-variant");
+
+                            if (!scriptSetting.show_console) {
+                                alert(bgm_name + bgm_url);
+                            }
+
+                            ui.Logger.log(bgm_name + bgm_url, "link-variant");
                             break;
                         }
                     };
