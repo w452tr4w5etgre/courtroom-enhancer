@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.773
+// @version      0.775
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -18,119 +18,86 @@
 // @run-at       document-end
 // ==/UserScript==
 
-var scriptSetting = {};
+'use strict';
 
-const initSettings = function () {
-    scriptSetting = {
-        "warn_on_exit": getSetting("warn_on_exit", true),
-        "remember_username": getSetting("remember_username", true),
-        "show_console": getSetting("show_console", false),
-        "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
-        "chat_clickable_links": getSetting("chat_clickable_links", true),
-        "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
-        "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
-        "evid_roulette": getSetting("evid_roulette", false),
-        "sound_roulette": getSetting("sound_roulette", false),
-        "music_roulette": getSetting("music_roulette", false),
-        "global_buttons": getSetting("global_buttons", false),
-        "mute_bgm_buttons": getSetting("mute_bgm_buttons", false),
-        "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
-        "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 550000),
-        "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 50000),
-        "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 160000),
-        "file_host": getSetting("file_host", "catbox"),
-        "textbox_style": getSetting("textbox_style", "none"),
-        "custom_styles": getSetting("custom_styles")
-    };
-}();
+const _CE_ = {};
 
-let storedUsername = getStoredUsername();
+_CE_.options = {
+    "warn_on_exit": getSetting("warn_on_exit", true),
+    "remember_username": getSetting("remember_username", true),
+    "show_console": getSetting("show_console", false),
+    "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
+    "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
+    "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
+    "evid_roulette": getSetting("evid_roulette", false),
+    "sound_roulette": getSetting("sound_roulette", false),
+    "music_roulette": getSetting("music_roulette", false),
+    "global_buttons": getSetting("global_buttons", false),
+    "mute_bgm_buttons": getSetting("mute_bgm_buttons", false),
+    "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
+    "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 577000),
+    "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 53000),
+    "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 172000),
+    "file_host": getSetting("file_host", "catbox"),
+    "textbox_style": getSetting("textbox_style", "none"),
+    "custom_styles": getSetting("custom_styles")
+};
 
-const URL_REGEX = /((?:http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+(?:[\-\.]{1}[a-z0-9]+)*\.[a-z]{1,5}(?::[0-9]{1,5})?(?:\/.*?)?\w)(\W*?(?:\s|$))/gi;
+const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gi;
 
 const ui = { "app": document.querySelector("div#app") };
 
-(new MutationObserver(checkJoinBoxReady)).observe(document, { childList: true, subtree: true });
+(new MutationObserver(checkVueLoaded)).observe(document, { childList: true, subtree: true });
 
-function checkJoinBoxReady(changes, observer) {
-    if (typeof ui.app === "undefined" || !ui.app) {
-        ui.app = document.querySelector("div#app");
-    }
-
-    for (const change of changes) {
-        for (const node of change.addedNodes) {
-            if (node instanceof HTMLDivElement && node.classList.contains("v-dialog__content--active") && node.querySelector("div.v-card__title > span.headline").innerText === "Join Courtroom") {
-                if (ui.joinBox_container = node.querySelector("div.v-dialog > div.v-card")) {
-                    ui.joinBox_usernameInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:first-of-type > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
-                    ui.joinBox_passwordInput = ui.joinBox_container.querySelector("form > div.v-card__text > div.row:nth-of-type(2) > div.col > div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input");
-                    ui.joinBox_spectateButton = ui.joinBox_container.querySelector("form > div.v-card__actions > button:first-of-type");
-                    ui.joinBox_joinButton = ui.joinBox_container.querySelector("form > div.v-card__actions > button:last-of-type");
-
-                    // When "Spectate" button is clicked
-                    ui.joinBox_spectateButton.addEventListener("click", e => {
-                        ui.spectating = true;
-                    });
-
-                    // When "Join" button is clicked
-                    ui.joinBox_joinButton.addEventListener("click", e => {
-                        ui.spectating = false;
-                    });
-
-                    if (scriptSetting.remember_username) {
-                        ui.joinBox_usernameInput.value = storedUsername;
-                        ui.joinBox_usernameInput.dispatchEvent(new Event("input"));
-                    }
-                }
-            }
-        }
-
-        for (const node of change.removedNodes) {
-            if (ui.joinBox_container && node === ui.joinBox_container.parentNode.parentNode) {
-                observer.disconnect();
-                if (scriptSetting.remember_username) {
-                    setStoredUsername(ui.joinBox_usernameInput.value);
-                }
-                (new MutationObserver(checkPageLoaded)).observe(document, { childList: true, subtree: true });
-            }
-        }
-    }
-}
-
-function checkPageLoaded(changes, observer) {
+function checkVueLoaded(_changes, observer) {
     if (!document.body.contains(ui.app)) ui.app = document.querySelector("div#app");
     ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
-    if (!ui.main) return;
+    if (!ui.main || !ui.main.__vue__) return;
     observer.disconnect();
-    onCourtroomJoin();
+    onVueLoaded();
+}
+
+function onVueLoaded() {
+    _CE_.vue = ui.main.__vue__;
+    _CE_.socket = _CE_.vue.$socket;
+
+    _CE_.vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
+
+    // when join courtroom window popups
+    _CE_.vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", s => {
+        if (!s) { return; }
+    })
+
+    // remember username
+    if (_CE_.options.remember_username) {
+        _CE_.vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
+        _CE_.vue.$watch("$store.state.courtroom.user.username", username => {
+            storeSet("courtroom_username", String(username));
+        });
+    }
+
+    // remember chat color
+    _CE_.vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
+    _CE_.vue.$watch("$store.state.courtroom.color", color => {
+        storeSet("courtroom_chat_color", String(color));
+    });
+
+    // this.$store.state.courtroom.frame.text
+
 }
 
 function onCourtroomJoin() {
-    if (!document.body.contains(ui.app)) ui.app = document.querySelector("div#app");
-    ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
-    if (!ui.main) return console.error("Can't find main wrapper");
+    ui.leftFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag == "CourtLeftPanel"; }).$el;
 
-    const vue = ui.main.__vue__;
+    ui.leftFrame_textEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag == "courtTextEditor"; }).$el;
 
-    ui.leftFrame_container = ui.main.firstChild.firstChild;
-
-    if (ui.spectating) {
-        if (!ui.leftFrame_joinRoomButton) {
-            ui.leftFrame_joinRoomButton = ui.leftFrame_container.querySelector("div > div:last-of-type > div.text-right > button");
-            ui.leftFrame_joinRoomButton.addEventListener("click", f => {
-                (new MutationObserver(checkJoinBoxReady)).observe(document, { childList: true, subtree: true });
-            }, true);
-        }
-        return;
-    }
-
-    ui.leftFrame_textarea = ui.leftFrame_container.querySelector("div textarea.frameTextarea");
     ui.leftFrame_sendButton = ui.leftFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div.pl-1 > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
-    ui.leftFrame_currentChar = ui.leftFrame_container.querySelector("div > div:nth-child(2) > div.col-sm-3.col-2 > div");
 
     ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
     ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
 
-    ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
+    //ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
+    ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag == "CourtRightPanel"; }).$el;
     ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
 
     ui.rightFrame_toolbarGetTabs = function () {
@@ -174,22 +141,6 @@ function onCourtroomJoin() {
     ui.settings_keyboardShortcutsAD = ui.settings_keyboardShortcutsWS.nextSibling;
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
-
-    // Handle username changes and update the stored username
-    const on_usernameChange = function (name) {
-        // Delay check
-        setStoredUsername(name);
-    };
-
-    ui.settings_usernameChangeInput.addEventListener("blur", e => {
-        on_usernameChange(e.target.value);
-    }, true);
-
-    ui.settings_usernameChangeInput.addEventListener("keydown", e => {
-        if (e.keyCode == 13 || e.key == "Enter") {
-            on_usernameChange(e.target.value);
-        }
-    });
 
     // Look for Dialog windows
     const myAssetsWatcher = {
@@ -482,12 +433,6 @@ function onCourtroomJoin() {
                 api: "lolisafe",
                 supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
             }],
-            ["zzht", {
-                name: "zz.ht",
-                url: "https://zz.ht/api/upload",
-                api: "lolisafe",
-                supported: new Map([["audio", true], ["urls", true], ["m4a", false]])
-            }],
             ["imoutokawaii", {
                 name: "imouto.kawaii.su",
                 url: "https://imouto.kawaii.su/api/upload",
@@ -503,8 +448,8 @@ function onCourtroomJoin() {
         ]),
 
         upload: function (file, callbackSuccess, callbackError) {
-            const hostFallback = new Map([["base", "zzht"], ["audio", "zzht"], ["urls", "imoutokawaii"], ["m4a", "uguuse"]]);
-            var dataToUpload, filename, fileHost = (this.fileHosts.has(scriptSetting.file_host) ? scriptSetting.file_host : hostFallback.get("base"));
+            const hostFallback = new Map([["base", "catbox"], ["audio", "catbox"], ["urls", "imoutokawaii"], ["m4a", "uguuse"]]);
+            var dataToUpload, filename, fileHost = (this.fileHosts.has(_CE_.options.file_host) ? _CE_.options.file_host : hostFallback.get("base"));
 
             if (typeof file === "string") { // Argument passed is an URL
                 let url = new URL(file);
@@ -730,6 +675,12 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     ui.enhanceEvidenceTab = function () {
+        if (!_CE_.vue.$store.getters["courtroom/addEvidencePermission"] || ui.enhanceEvidenceTab.permission === true) {
+            ui.enhanceEvidenceTab.permission = false;
+            return;
+        }
+        ui.enhanceEvidenceTab.permission = true;
+
         ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
         ui.evidence_form = ui.evidence_container.querySelector("div > form");
         ui.evidence_formDivs = ui.evidence_form.querySelector("div:first-of-type");
@@ -1076,7 +1027,7 @@ function onCourtroomJoin() {
             buttonLink.addEventListener("click", e => {
                 if (e.target.disabled) return;
                 var imageUrl = divImage.querySelector(":scope > div.v-image__image").style.backgroundImage;
-                imageUrl = imageUrl.substring(4, imageUrl.length-1).replace(/["']/g, "");
+                imageUrl = imageUrl.substring(4, imageUrl.length - 1).replace(/["']/g, "");
                 //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
                 ui.Logger.log(imageUrl, "link-variant");
             });
@@ -1104,6 +1055,9 @@ function onCourtroomJoin() {
     };
 
     ui.enhanceEvidenceTab();
+    _CE_.vue.$watch("$store.state.courtroom.room.permissions.addEvidence", () => {
+        ui.enhanceEvidenceTab();
+    });
 
     // CSS injector to change textbox style
     ui.StylePicker = {
@@ -1149,8 +1103,8 @@ function onCourtroomJoin() {
         }
     }
     ui.StylePicker.baseStyles = Array.from(ui.StylePicker.customStyles.keys());
-    if (Array.isArray(scriptSetting.custom_styles)) {
-        scriptSetting.custom_styles.forEach(customStyle => { ui.StylePicker.import(customStyle) });
+    if (Array.isArray(_CE_.options.custom_styles)) {
+        _CE_.options.custom_styles.forEach(customStyle => { ui.StylePicker.import(customStyle) });
     }
 
     // Add setting options under the Settings tab
@@ -1336,7 +1290,7 @@ function onCourtroomJoin() {
         };
 
         ui.extraSettings_warnOnExit = new createInputCheckbox({
-            checked: scriptSetting.warn_on_exit,
+            checked: _CE_.options.warn_on_exit,
             label: "Confirm on exit",
             onchange: e => {
                 setSetting("warn_on_exit", e.target.checked);
@@ -1344,7 +1298,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rememberUsername = new createInputCheckbox({
-            checked: scriptSetting.remember_username,
+            checked: _CE_.options.remember_username,
             label: "Remember username",
             onchange: e => {
                 setSetting("remember_username", e.target.checked);
@@ -1352,7 +1306,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_showConsole = new createInputCheckbox({
-            checked: scriptSetting.show_console,
+            checked: _CE_.options.show_console,
             label: "Show console",
             onchange: e => {
                 const value = e.target.checked;
@@ -1362,7 +1316,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_adjustChatTextWithWheel = new createInputCheckbox({
-            checked: scriptSetting.adjust_chat_text_with_wheel,
+            checked: _CE_.options.adjust_chat_text_with_wheel,
             label: "Scroll to resize chat",
             onchange: e => {
                 const value = e.target.checked;
@@ -1375,20 +1329,8 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_chatClickableLinks = new createInputCheckbox({
-            checked: scriptSetting.chat_clickable_links,
-            label: "Chat clickable links",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("chat_clickable_links", value);
-                if (value) {
-                    chatHandler.chatUpdate();
-                }
-            }
-        });
-
         ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
-            checked: scriptSetting.chat_hover_tooltip,
+            checked: _CE_.options.chat_hover_tooltip,
             label: "Chat tooltips",
             onchange: e => {
                 const value = e.target.checked;
@@ -1402,7 +1344,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_disableKeyboardShortcuts = new createInputCheckbox({
-            checked: scriptSetting.disable_keyboard_shortcuts,
+            checked: _CE_.options.disable_keyboard_shortcuts,
             label: "Disable WASD hotkeys",
             onchange: e => {
                 const value = e.target.checked;
@@ -1418,7 +1360,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteEvid = new createInputCheckbox({
-            checked: scriptSetting.evid_roulette,
+            checked: _CE_.options.evid_roulette,
             label: "EVD roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1430,7 +1372,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteSound = new createInputCheckbox({
-            checked: scriptSetting.sound_roulette,
+            checked: _CE_.options.sound_roulette,
             label: "SND roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1441,7 +1383,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteMusic = new createInputCheckbox({
-            checked: scriptSetting.music_roulette,
+            checked: _CE_.options.music_roulette,
             label: "MUS roulette",
             onchange: e => {
                 const value = e.target.checked;
@@ -1452,7 +1394,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_globalButtons = new createInputCheckbox({
-            checked: scriptSetting.global_buttons,
+            checked: _CE_.options.global_buttons,
             label: "Global BGM/SFX Control Buttons",
             onchange: e => {
                 const value = e.target.checked;
@@ -1464,7 +1406,7 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_muteBGMButtons = new createInputCheckbox({
-            checked: scriptSetting.mute_bgm_buttons,
+            checked: _CE_.options.mute_bgm_buttons,
             label: "BGM Control Buttons",
             onchange: e => {
                 const value = e.target.checked;
@@ -1474,26 +1416,26 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
-            checked: scriptSetting.evid_roulette_as_icon,
+            checked: _CE_.options.evid_roulette_as_icon,
             label: "Icon",
             title: "Smaller evidence in the corner",
-            display: scriptSetting.evid_roulette,
+            display: _CE_.options.evid_roulette,
             onchange: e => {
                 setSetting("evid_roulette_as_icon", e.target.checked);
             }
         });
 
         ui.extraSettings_rouletteEvidMax = new createInputText({
-            value: scriptSetting.evid_roulette_max,
+            value: _CE_.options.evid_roulette_max,
             label: "max",
             type: "number",
-            display: scriptSetting.evid_roulette,
+            display: _CE_.options.evid_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
                     setSetting("evid_roulette_max", value);
                 } else {
-                    e.target.value = scriptSetting.evid_roulette_max;
+                    e.target.value = _CE_.options.evid_roulette_max;
                     e.preventDefault();
                     return false;
                 }
@@ -1501,16 +1443,16 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteSoundMax = new createInputText({
-            value: scriptSetting.sound_roulette_max,
+            value: _CE_.options.sound_roulette_max,
             label: "max",
             type: "number",
-            display: scriptSetting.sound_roulette,
+            display: _CE_.options.sound_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
                     setSetting("sound_roulette_max", value);
                 } else {
-                    e.target.value = scriptSetting.sound_roulette_max;
+                    e.target.value = _CE_.options.sound_roulette_max;
                     e.preventDefault();
                     return false;
                 }
@@ -1518,16 +1460,16 @@ function onCourtroomJoin() {
         });
 
         ui.extraSettings_rouletteMusicMax = new createInputText({
-            value: scriptSetting.music_roulette_max,
+            value: _CE_.options.music_roulette_max,
             label: "max",
             type: "number",
-            display: scriptSetting.music_roulette,
+            display: _CE_.options.music_roulette,
             onfocusout: e => {
                 const value = parseInt(e.target.value);
                 if (value) {
                     setSetting("music_roulette_max", value);
                 } else {
-                    e.target.value = scriptSetting.music_roulette_max;
+                    e.target.value = _CE_.options.music_roulette_max;
                     e.preventDefault();
                     return false;
                 }
@@ -1560,23 +1502,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_fixEvidenceUploaderButton = new createButton({
-            label: "Fix Evidence Tab",
-            icon: "image-broken-variant",
-            title: "Reset the evidence tab when it's broken after evidence is turned off and on",
-            onclick: () => {
-                if (document.contains(ui.evidence_evidenceUploaders) || ui.evidence_container.textContent == "You cannot add evidence in this courtroom.") { return; }
-                ui.enhanceEvidenceTab();
-            }
-        });
-        ui.extraSettings_fixEvidenceUploaderButton.classList.add("d-inline-block", "ml-2");
-        ui.extraSettings_fixEvidenceUploaderButton.firstChild.setAttributes({
-            style: {
-                backgroundColor: "rgb(94 63 52)"
-            }
-        });
-
-        ui.extraSettings_rowHeader.append(ui.extraSettings_resetButton, ui.extraSettings_fixEvidenceUploaderButton);
+        ui.extraSettings_rowHeader.append(ui.extraSettings_resetButton);
         extraSettings_rows.push(ui.extraSettings_rowHeader);
 
         // Row 2 - Buttons
@@ -1604,11 +1530,11 @@ function onCourtroomJoin() {
                     ["help", "Help", "lightgrey"]
                 ]]
             ],
-            selectedValue: scriptSetting.textbox_style,
+            selectedValue: _CE_.options.textbox_style,
             onchange: e => {
                 const selected = e.target.value;
                 if (selected === "import") {
-                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    e.target.value = _CE_.options.textbox_style; //Reset select to original value
                     const input = prompt("Paste your code here");
                     if (!input) { return; }
                     var toImport = JSON.parse(input);
@@ -1630,7 +1556,7 @@ function onCourtroomJoin() {
                             option.textContent = thisStyle[1].name;
                             option.style.color = thisStyle[1].optionColor;
 
-                            if (thisStyle[0] === scriptSetting.textbox_style) {
+                            if (thisStyle[0] === _CE_.options.textbox_style) {
                                 e.target.dispatchEvent(new Event("change")); // Force change when updating the current active style
                             }
                         };
@@ -1646,7 +1572,7 @@ function onCourtroomJoin() {
 
                     return e.preventDefault();
                 } else if (selected === "remove") {
-                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    e.target.value = _CE_.options.textbox_style; //Reset select to original value
                     const input = prompt("Type a style ID or name to delete");
                     if (!input) { return; }
                     var key;
@@ -1670,13 +1596,13 @@ function onCourtroomJoin() {
                     if (!toSave) { return; }
                     setSetting("custom_styles", toSave);
 
-                    if (key === scriptSetting.textbox_style) {
+                    if (key === _CE_.options.textbox_style) {
                         e.target.dispatchEvent(new Event("change")); // Force change when deleting the current style
                     }
 
                     return e.preventDefault();
                 } else if (selected === "help") {
-                    e.target.value = scriptSetting.textbox_style; //Reset select to original value
+                    e.target.value = _CE_.options.textbox_style; //Reset select to original value
                     window.open("https://rentry.co/n2g92", '_blank');
                     return e.preventDefault();
                 } else if (selected === "none" || ui.StylePicker.customStyles.has(selected)) { // Selected a style
@@ -1689,7 +1615,7 @@ function onCourtroomJoin() {
         ui.extraSettings_fileHostSelector = new createInputSelect({
             label: "File host",
             values: Array.from(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
-            selectedValue: scriptSetting.file_host,
+            selectedValue: _CE_.options.file_host,
             onchange: e => {
                 if (ui.Uploader.fileHosts.has(e.target.value)) {
                     setSetting("file_host", e.target.value);
@@ -1699,14 +1625,13 @@ function onCourtroomJoin() {
 
         ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
         ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
-                                              ui.extraSettings_rememberUsername,
-                                              ui.extraSettings_showConsole,
-                                              ui.extraSettings_adjustChatTextWithWheel,
-                                              ui.extraSettings_textboxStyleSelector,
-                                              ui.extraSettings_chatClickableLinks,
-                                              ui.extraSettings_chatHoverTooltip,
-                                              ui.extraSettings_disableKeyboardShortcuts,
-                                              ui.extraSettings_fileHostSelector);
+            ui.extraSettings_rememberUsername,
+            ui.extraSettings_showConsole,
+            ui.extraSettings_adjustChatTextWithWheel,
+            ui.extraSettings_textboxStyleSelector,
+            ui.extraSettings_chatHoverTooltip,
+            ui.extraSettings_disableKeyboardShortcuts,
+            ui.extraSettings_fileHostSelector);
         extraSettings_rows.push(ui.extraSettings_rowButtons);
 
         // Row 3 - Roulettes
@@ -1821,58 +1746,59 @@ function onCourtroomJoin() {
             }
         });
 
-        function rouletteClick(command, max, icon) {
+        function sendFrameMessage(command, icon = "") {
             if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
                 return;
             }
-            ui.leftFrame_textarea.value = command;
-            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-            ui.leftFrame_sendButton.click();
-            ui.Logger.log(command, icon);
-        }
+            ui.leftFrame_textEditor.__vue__.$store.state.courtroom.frame.text += command;
+            ui.leftFrame_textEditor.__vue__.send();
 
-        function sendMessageClick(command) {
-            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
-                return;
+            if (icon) {
+                ui.Logger.log(command, icon);
             }
-            ui.leftFrame_textarea.value = command;
-            ui.leftFrame_textarea.dispatchEvent(new Event("input"));
-            ui.leftFrame_sendButton.click();
         }
 
         ui.customButtons_evidRouletteButton = new createButton({
             label: "EVD",
             title: "Show a random piece of evidence",
-            display: scriptSetting.evid_roulette,
+            display: _CE_.options.evid_roulette,
             icon: "dice-multiple",
-            onclick: e => {
-                rouletteClick("[#evd" + (scriptSetting.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * scriptSetting.evid_roulette_max) + "]", "image");
+            onclick: () => {
+                if (_CE_.vue.$store.state.courtroom.room.restrictEvidence) {
+                    ui.Logger.log("Evidence is restricted");
+                    _CE_.vue.$store.dispatch("courtroom/appendMessage", {
+                        type: "error",
+                        text: "Showing evidence is restricted to this courtroom's evidence list."
+                    });
+                    return;
+                }
+                sendFrameMessage("[#evd" + (_CE_.options.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "image");
             }
         });
 
         ui.customButtons_soundRouletteButton = new createButton({
             label: "SFX",
             title: "Play a random sound",
-            display: scriptSetting.sound_roulette,
+            display: _CE_.options.sound_roulette,
             icon: "dice-multiple",
-            onclick: e => {
-                rouletteClick("[#bgs" + Math.floor(Math.random() * scriptSetting.sound_roulette_max) + "]", "volume-medium");
+            onclick: () => {
+                sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "volume-medium");
             }
         });
 
         ui.customButtons_musicRouletteButton = new createButton({
             label: "BGM",
             title: "Play a random song",
-            display: scriptSetting.music_roulette,
+            display: _CE_.options.music_roulette,
             icon: "dice-multiple",
-            onclick: e => {
-                rouletteClick("[#bgm" + Math.floor(Math.random() * scriptSetting.music_roulette_max) + "]", "music-note");
+            onclick: () => {
+                sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "music-note");
             }
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
-                                           ui.customButtons_soundRouletteButton,
-                                           ui.customButtons_musicRouletteButton);
+            ui.customButtons_soundRouletteButton,
+            ui.customButtons_musicRouletteButton);
 
         // Music buttons
         if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
@@ -1887,7 +1813,7 @@ function onCourtroomJoin() {
             ui.customButton_toggleBGM = new createButton({
                 label: "Mute BGM",
                 title: "Mutes the song that's currently playing (only for you)",
-                display: scriptSetting.mute_bgm_buttons,
+                display: _CE_.options.mute_bgm_buttons,
                 icon: "volume-mute",
                 backgroundColor: "teal",
                 onclick: e => {
@@ -1922,33 +1848,33 @@ function onCourtroomJoin() {
             ui.customButton_stopMusic = new createButton({
                 label: "Stop BGM",
                 title: "Stops the song that is currently playing (for everyone)",
-                display: scriptSetting.global_buttons,
+                display: _CE_.options.global_buttons,
                 icon: "volume-variant-off",
                 backgroundColor: "crimson",
-                onclick: e => {
-                    sendMessageClick("[#bgms]");
+                onclick: () => {
+                    sendFrameMessage("[#bgms]");
                 }
             });
 
             ui.customButton_stopSounds = new createButton({
                 label: "Stop SFX",
                 title: "Stop all SFX that are currently playing (for everyone)",
-                display: scriptSetting.global_buttons,
+                display: _CE_.options.global_buttons,
                 icon: "volume-variant-off",
                 backgroundColor: "crimson",
-                onclick: e => {
-                    sendMessageClick("[#bgss]");
+                onclick: () => {
+                    sendFrameMessage("[#bgss]");
                 }
             });
 
             ui.customButton_stopSoundsMusic = new createButton({
                 label: "Stop BGM/SFX",
                 title: "Stop all sounds that are currently playing (for everyone)",
-                display: scriptSetting.global_buttons,
+                display: _CE_.options.global_buttons,
                 icon: "volume-variant-off",
                 backgroundColor: "crimson",
-                onclick: e => {
-                    sendMessageClick("[#bgms][#bgss]");
+                onclick: () => {
+                    sendFrameMessage("[#bgms][#bgss]");
                 }
             });
 
@@ -1957,24 +1883,20 @@ function onCourtroomJoin() {
                 title: "Get the URL for the song playing now",
                 icon: "link-variant",
                 backgroundColor: "teal",
-                onclick: e => {
+                onclick: () => {
                     for (const howl of unsafeWindow.Howler._howls) {
                         if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
-                            const bgm_url = howl._src;
-                            let bgm_name;
+                            let bgm_url = howl._src;
 
-                            for (const key in vue.$store.state.assets.music.cache) {
-                                if (vue.$store.state.assets.music.cache[key].url === bgm_url) {
-                                    bgm_name = vue.$store.state.assets.music.cache[key].name + " ";
-                                    break;
-                                }
+                            // Look for a BGM in cache with a matching URL and get that name
+                            const bgm_name = Object.values(_CE_.vue.$store.state.assets.music.cache).find(music => music.url === bgm_url);
+                            if (typeof bgm_name.name === "string") bgm_url = bgm_name.name + " " + bgm_url;
+
+                            if (!_CE_.options.show_console) {
+                                alert(bgm_url);
                             }
 
-                            if (!scriptSetting.show_console) {
-                                alert(bgm_name + bgm_url);
-                            }
-
-                            ui.Logger.log(bgm_name + bgm_url, "link-variant");
+                            ui.Logger.log(bgm_url, "link-variant");
                             break;
                         }
                     };
@@ -1989,7 +1911,7 @@ function onCourtroomJoin() {
                 onclick: e => {
                     for (const howl of unsafeWindow.Howler._howls) {
                         if (howl._state == "loaded" && howl._onend.length != 0) {
-                            if (!scriptSetting.show_console) {
+                            if (!_CE_.options.show_console) {
                                 alert(howl._src);
                             }
                             ui.Logger.log(howl._src, "link-variant");
@@ -1999,13 +1921,13 @@ function onCourtroomJoin() {
             });
 
             ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                                               ui.customButton_getCurMusicUrl,
-                                               ui.customButton_getCurSoundUrl);
+                ui.customButton_getCurMusicUrl,
+                ui.customButton_getCurSoundUrl);
 
             ui.customButtons_musicButtons.append(ui.customButton_toggleBGM,
-                                                 ui.customButton_stopMusic,
-                                                 ui.customButton_stopSounds,
-                                                 ui.customButton_stopSoundsMusic);
+                ui.customButton_stopMusic,
+                ui.customButton_stopSounds,
+                ui.customButton_stopSoundsMusic);
 
             ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
         }
@@ -2127,7 +2049,7 @@ function onCourtroomJoin() {
                         })
                     });
 
-                    if (scriptSetting.show_console && this.elemContainer.style.display == "none") {
+                    if (_CE_.options.show_console && this.elemContainer.style.display == "none") {
                         this.elemContainer.style.display = "flex";
                     }
                     this.elemItems.prepend(item);
@@ -2166,7 +2088,7 @@ function onCourtroomJoin() {
         }
         ui.courtroom_chatBoxText.style.fontSize = Math.min(100, Math.max(10, parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01))) + "px";
     }
-    if (scriptSetting.adjust_chat_text_with_wheel) {
+    if (_CE_.options.adjust_chat_text_with_wheel) {
         ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
     }
 
@@ -2179,34 +2101,25 @@ function onCourtroomJoin() {
     // Chat log handler
     const chatHandler = {
         init() {
-            this.observer = new MutationObserver(this.chatUpdate);
-            this.observer.observe(ui.chatLog_chatList, {
-                childList: true,
-                characterData: true,
-                subtree: true
-            });
+            _CE_.vue.$watch("$store.state.courtroom.messages", () => { this.chatUpdate(); });
         },
         chatUpdate() {
-            if (scriptSetting.chat_clickable_links) {
-                for (let messageNode of ui.chatLog_chatList.children) {
-                    const messageIcon = messageNode.querySelector('i');
-                    if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
+            for (let messageNode of ui.chatLog_chatList.children) {
+                const messageIcon = messageNode.querySelector('i');
+                if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
 
-                    const messageTextDiv = messageNode.querySelector('div.chat-text');
-                    const html = messageTextDiv.innerHTML;
-                    if (html.includes('</a>')) continue;
+                const messageTextDiv = messageNode.querySelector('div.chat-text');
+                const html = messageTextDiv.innerHTML;
+                if (html.includes('</a>')) continue;
 
-                    const match = html.match(URL_REGEX);
-                    if (match === null) continue;
+                const match = html.match(URL_REGEX);
+                if (match === null) continue;
 
-                    let url = match[0];
-                    if (url.match('http:\/\/') !== null) url = 'https' + url.slice(4);
-                    else if (url.match('https:\/\/') === null) url = 'https://' + url;
-                    messageTextDiv.innerHTML = html.replaceAll(
-                        URL_REGEX,
-                        '<a target="_blank" rel="noreferrer" href="' + url + '">$1</a>$2',
-                    );
-                }
+                let url = match[0];
+                messageTextDiv.innerHTML = html.replaceAll(
+                    URL_REGEX,
+                    '<a target="_blank" rel="noreferrer" href="' + url + '">$1</a>',
+                );
             }
 
             if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
@@ -2223,13 +2136,6 @@ function onCourtroomJoin() {
                     }
                 };
             }
-        },
-        disconnect() {
-            this.observer.disconnect();
-        },
-        destroy() {
-            this.disconnect();
-            this.observer = null;
         }
     }
 
@@ -2270,7 +2176,7 @@ function onCourtroomJoin() {
             this.onChatListMouseOver = this.onChatListMouseOver.bind(this);
             this.onChatItemMouseLeave = this.onChatItemMouseLeave.bind(this);
 
-            if (scriptSetting.chat_hover_tooltip) {
+            if (_CE_.options.chat_hover_tooltip) {
                 ui.chatLog_chat.addEventListener("mouseover", this.onChatListMouseOver, false);
             }
             this.tooltipElement.addEventListener("mouseenter", e => { e.target.style.opacity = "1"; });
@@ -2532,18 +2438,18 @@ function onCourtroomJoin() {
         }
     };
 
-    if (scriptSetting.disable_keyboard_shortcuts) {
+    if (_CE_.options.disable_keyboard_shortcuts) {
         ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
         ui.settings_keyboardShortcutsWS.style.display = "none";
         ui.settings_keyboardShortcutsAD.style.display = "none";
     }
 
-    ui.StylePicker.changeStyle(scriptSetting.textbox_style);
+    ui.StylePicker.changeStyle(_CE_.options.textbox_style);
 
 }
 
 function on_beforeUnload(e) {
-    if (scriptSetting.warn_on_exit) {
+    if (_CE_.options.warn_on_exit) {
         e.preventDefault();
         e.returnValue = "Are you sure you want to leave?";
         return "Are you sure you want to leave?";
@@ -2564,17 +2470,8 @@ function getSetting(setting_name, default_value) {
 }
 
 function setSetting(setting_name, value) {
-    scriptSetting[setting_name] = value;
+    _CE_.options[setting_name] = value;
     return storeSet("setting_" + setting_name, value);
-}
-
-function getStoredUsername() {
-    return storeGet("courtroom_username");
-}
-
-function setStoredUsername(username) {
-    storedUsername = username;
-    return storeSet("courtroom_username", String(username));
 }
 
 function storeGet(key, def = "") {
@@ -2624,7 +2521,7 @@ function storeClear() {
             GM_deleteValue(storedSettings[val]);
         }
     }
-    scriptSetting.warn_on_exit = false;
+    _CE_.options.warn_on_exit = false;
     window.location.reload();
 };
 
