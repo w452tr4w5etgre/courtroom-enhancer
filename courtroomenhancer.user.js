@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.776
+// @version      0.778
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -685,12 +685,6 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     ui.enhanceEvidenceTab = function () {
-        if (!_CE_.vue.$store.getters["courtroom/addEvidencePermission"] || ui.enhanceEvidenceTab.permission === true) {
-            ui.enhanceEvidenceTab.permission = false;
-            return;
-        }
-        ui.enhanceEvidenceTab.permission = true;
-
         ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
         ui.evidence_form = ui.evidence_container.querySelector("div > form");
         ui.evidence_formDivs = ui.evidence_form.querySelector("div:first-of-type");
@@ -1064,10 +1058,17 @@ function onCourtroomJoin() {
 
     };
 
-    ui.enhanceEvidenceTab();
-    _CE_.vue.$watch("$store.state.courtroom.room.permissions.addEvidence", () => {
+    if (_CE_.vue.$store.getters["courtroom/addEvidencePermission"]) {
         ui.enhanceEvidenceTab();
-    });
+    }
+
+    // Watch for evidence permission or mod/owner status changes
+    _CE_.vue.$watch(() => _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.vue.isMod || _CE_.vue.isOwner) || _CE_.vue.isOwner,
+        (newValue, oldValue) => {
+            // Only run the enhancer function when permission are turned from OFF to ON
+            if (newValue === false || newValue && oldValue) return;
+            ui.enhanceEvidenceTab();
+        });
 
     // CSS injector to change textbox style
     ui.StylePicker = {
@@ -2109,47 +2110,40 @@ function onCourtroomJoin() {
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
     // Chat log handler
-    const chatHandler = {
-        init() {
-            _CE_.vue.$watch("$store.state.courtroom.messages", () => { this.chatUpdate(); });
-        },
-        chatUpdate() {
-            for (let messageNode of ui.chatLog_chatList.children) {
-                const messageIcon = messageNode.querySelector('i');
-                if (!messageIcon.matches('.mdi-account,.mdi-crown,.mdi-account-tie')) continue;
+    _CE_.vue.$watch("$store.state.courtroom.messages", () => {
+        setTimeout(() => {
+            {
+                for (let messageNode of ui.chatLog_chatList.children) {
+                    const messageIcon = messageNode.querySelector('i');
+                    if (!messageIcon.matches('.mdi-account, .mdi-crown, .mdi-account-tie')) continue;
 
-                const messageTextDiv = messageNode.querySelector('div.chat-text');
-                const html = messageTextDiv.innerHTML;
-                if (html.includes('</a>')) continue;
+                    const messageTextDiv = messageNode.querySelector('div.chat-text');
+                    const html = messageTextDiv.innerHTML;
+                    if (html.includes('</a>')) continue;
 
-                const match = html.match(URL_REGEX);
-                if (match === null) continue;
+                    messageTextDiv.innerHTML = html.replaceAll(
+                        URL_REGEX,
+                        '<a target="_blank" rel="noreferrer" href="$1">$1</a>',
+                    );
+                }
 
-                let url = match[0];
-                messageTextDiv.innerHTML = html.replaceAll(
-                    URL_REGEX,
-                    '<a target="_blank" rel="noreferrer" href="' + url + '">$1</a>',
-                );
-            }
-
-            if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
-                for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
-                        if (ui.customButton_toggleBGM.dataset.muted == "true") {
-                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                            howl.volume(0.0);
-                        } else {
-                            ui.customButton_toggleBGM.dataset.muted = "false"
-                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
+                    for (const howl of unsafeWindow.Howler._howls) {
+                        if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
+                            if (ui.customButton_toggleBGM.dataset.muted == "true") {
+                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                                howl.volume(0.0);
+                            } else {
+                                ui.customButton_toggleBGM.dataset.muted = "false"
+                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                            }
+                            break;
                         }
-                        break;
-                    }
-                };
+                    };
+                }
             }
-        }
-    }
-
-    chatHandler.init();
+        }, 0)
+    });
 
     // Chat hover tooltips
     const chatTooltip = {
