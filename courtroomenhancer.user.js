@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.775
+// @version      0.776
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -76,12 +76,6 @@ function onVueLoaded() {
         });
     }
 
-    // remember chat color
-    _CE_.vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
-    _CE_.vue.$watch("$store.state.courtroom.color", color => {
-        storeSet("courtroom_chat_color", String(color));
-    });
-
     // this.$store.state.courtroom.frame.text
 
 }
@@ -141,6 +135,22 @@ function onCourtroomJoin() {
     ui.settings_keyboardShortcutsAD = ui.settings_keyboardShortcutsWS.nextSibling;
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
+
+    // remember last character
+    _CE_.vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
+    _CE_.vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
+    _CE_.vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
+        storeSet("last_poseId", String(poseId));
+    });
+    _CE_.vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
+        storeSet("last_characterId", String(characterId));
+    });
+
+    // remember chat color
+    _CE_.vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
+    _CE_.vue.$watch("$store.state.courtroom.color", color => {
+        storeSet("courtroom_chat_color", String(color));
+    });
 
     // Look for Dialog windows
     const myAssetsWatcher = {
