@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.779
+// @version      0.780
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -81,45 +81,29 @@ function onVueLoaded() {
 }
 
 function onCourtroomJoin() {
-    ui.leftFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag == "CourtLeftPanel"; }).$el;
+    ui.leftFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; }).$el;
 
-    ui.leftFrame_textEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag == "courtTextEditor"; }).$el;
+    ui.leftFrame_textEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; }).$el;
 
     ui.leftFrame_sendButton = ui.leftFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div.pl-1 > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
 
     ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
     ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
 
-    //ui.rightFrame_container = ui.main.firstChild.lastChild.firstChild;
-    ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag == "CourtRightPanel"; }).$el;
-    ui.rightFrame_toolbarContainer = ui.rightFrame_container.querySelector("div.v-card.v-sheet > header.v-toolbar > div.v-toolbar__content");
+    ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; }).$el;
 
-    ui.rightFrame_toolbarGetTabs = function () {
-        ui.rightFrame_toolbarTabs = ui.rightFrame_toolbarContainer.querySelector("div.v-tabs > div[role=tablist] > div.v-slide-group__wrapper > div.v-slide-group__content.v-tabs-bar__content")
-        if (ui.rightFrame_toolbarTabs) {
-            for (const toolbarTab of ui.rightFrame_toolbarTabs.querySelectorAll("div.v-tab")) {
-                switch (toolbarTab.textContent.trim().toUpperCase()) {
-                    case "CHAT LOG":
-                        ui.rightFrame_toolbarTabChatLog = toolbarTab;
-                        break;
-                    case "EVIDENCE":
-                        ui.rightFrame_toolbarTabEvidence = toolbarTab;
-                        break;
-                    case "BACKGROUNDS":
-                        ui.rightFrame_toolbarTabBackgrounds = toolbarTab;
-                        break;
-                    case "SETTINGS":
-                        ui.rightFrame_toolbarTabSettings = toolbarTab;
-                        break;
-                    case "ADMIN":
-                        ui.rightFrame_toolbarTabAdmin = toolbarTab;
-                        break;
-                    default:
-                        console.log("Toolbar tab not found: " + toolbarTab.innerText);
-                }
-            }
-        }
-    }();
+    ui.rightFrame_content = ui.rightFrame_container.__vue__.$children[0];
+    ui.rightFrame_toolbar = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-toolbar"; });
+
+    ui.rightFrame_tabs = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-tabs-items"; });
+
+    ui.rightFrame_tabChatLog = ui.rightFrame_tabs.$children[0];
+    ui.rightFrame_tabEvidence = ui.rightFrame_tabs.$children[1];
+    ui.rightFrame_tabBackgrounds = ui.rightFrame_tabs.$children[2];
+    ui.rightFrame_tabSettings = ui.rightFrame_tabs.$children[3];
+    ui.rightFrame_tabAdmin = ui.rightFrame_tabs.$children[4];
+
+    ui.courtEvidence = ui.rightFrame_tabEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "courtEvidence"; });
 
     ui.chatLog_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type");
     ui.chatLog_chat = ui.chatLog_container.querySelector("div > div.chat");
@@ -685,74 +669,63 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     ui.enhanceEvidenceTab = function () {
-        ui.evidence_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(2)");
-        ui.evidence_form = ui.evidence_container.querySelector("div > form");
-        ui.evidence_formDivs = ui.evidence_form.querySelector("div:first-of-type");
+        ui.evidence_form = ui.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; }).$el;
+        ui.evidence_formDivs = ui.evidence_form.firstChild;
         ui.evidence_formFields = ui.evidence_formDivs.querySelectorAll("input");
-        ui.evidence_formFieldName = ui.evidence_formFields[0];
-        ui.evidence_formFieldIconURL = ui.evidence_formFields[1];
-        ui.evidence_formFieldCheckURL = ui.evidence_formFields[2];
         ui.evidence_formFieldDescription = ui.evidence_formDivs.querySelector("textarea");
 
         ui.evidence_formBottomRow = ui.evidence_form.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-        ui.evidence_addButton = ui.evidence_formBottomRow_buttonsColumn.querySelector("button.v-btn.success");
-        ui.evidence_list = ui.evidence_container.querySelector("div > div.row:last-of-type");
+        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
 
         ui.evidence_list.style.maxHeight = "70vh";
         ui.evidence_list.style.scrollBehavior = "smooth";
 
-        // Pressing the Enter key on the form fields clicks the "Add" button
+        // Pressing the Enter key on the form fields adds the evidence
         ui.evidence_formFields.forEach(f => {
             f.addEventListener("keydown", e => {
                 if (e.keyCode == 13 || e.key == "Enter") {
-                    ui.evidence_addButton.focus();
+                    e.target.blur();
+                    ui.courtEvidence.addEvidence();
                 }
             });
         });
 
+        // Override the validation function to allow anonymous evidence
+        ui.courtEvidence.$refs.form.validate = () => {
+            if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) {
+                ui.courtEvidence.url = ui.courtEvidence.iconUrl;
+            }
+            if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) {
+                ui.courtEvidence.iconUrl = ui.courtEvidence.url;
+            }
+            if (!ui.courtEvidence.name) {
+                ui.courtEvidence.name = " ";
+            }
+            ui.courtEvidence.valid = true;
+            return true;
+        };
+
         // Fix evidence form layout
-        ui.evidence_formFieldDescription.style.height = "50px";
-        for (const [i, node] of ui.evidence_formDivs.childNodes.entries()) {
-            switch (i) {
-                case 0: // Name
-                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-                    node.classList.add("col-sm-4");
-                    break;
-                case 1: // Icon URL
-                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-                    node.classList.add("col-sm-4", "pr-sm-1");
-                    break;
-                case 2: // Check URL
-                    node.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-                    node.classList.add("col-sm-4", "pl-sm-1");
-                    break;
-                case 3: // Empty space
-                    node.classList.add("d-none");
-                    break;
-                case 4: // Description
-                    node.classList.remove("col-12", "my-3");
-                    node.classList.add("pr-sm-1");
-                    break;
-                case 5: // Type
-                    node.classList.remove("col-12");
-                    node.classList.add("col-sm-6", "pl-sm-1");
-                    break;
-            }
-        }
 
+        // Name
+        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
+        // Icon URL
+        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
+        // Check URL
+        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
+        // Description
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
+        ui.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
+        // Type
+        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
+        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
 
-        // Clicking the "Add" button fills the "Name" tab with a space if it's empty
-        ui.evidence_addButton.addEventListener("click", e => {
-            if (ui.evidence_formFieldName.value.length == 0) {
-                ui.evidence_formFieldName.value = String.fromCharCode(32);
-                ui.evidence_formFieldName.dispatchEvent(new Event("input"));
-            }
-            e.target.blur();
-            if (ui.evidence_list.childElementCount) {
-                setTimeout(f => { ui.evidence_list.scrollTop = ui.evidence_list.scrollHeight; }, 250);
-            }
-        }, true);
 
         const createEvidenceUploaders = {
             init: function () {
@@ -766,12 +739,9 @@ function onCourtroomJoin() {
                 });
 
                 const evidenceImageUploader = new ui.Uploader.filePicker(res => {
-                    ui.evidence_formFieldName.value = res.filename.substr(0, 20);
-                    ui.evidence_formFieldName.dispatchEvent(new Event("input"));
-                    ui.evidence_formFieldIconURL.value = res.url;
-                    ui.evidence_formFieldIconURL.dispatchEvent(new Event("input"));
-                    ui.evidence_formFieldCheckURL.value = res.url;
-                    ui.evidence_formFieldCheckURL.dispatchEvent(new Event("input"));
+                    ui.courtEvidence.name = res.filename.substr(0, 20);
+                    ui.courtEvidence.iconUrl = res.url;
+                    ui.courtEvidence.url = res.url;
                 }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                 evidenceImageUploader.setAttributes({
@@ -872,17 +842,14 @@ function onCourtroomJoin() {
                                     }
                                     ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                         try {
-                                            ui.evidence_formFieldName.value = responseJSON.post[0].id;
-                                            ui.evidence_formFieldName.dispatchEvent(new Event("input"));
-                                            ui.evidence_formFieldIconURL.value = uploaderResponse.url;
-                                            ui.evidence_formFieldIconURL.dispatchEvent(new Event("input"));
-                                            ui.evidence_formFieldCheckURL.value = uploaderResponse.url;
-                                            ui.evidence_formFieldCheckURL.dispatchEvent(new Event("input"));
+                                            ui.courtEvidence.name = responseJSON.post[0].id;
+                                            ui.courtEvidence.iconUrl = uploaderResponse.url;
+                                            ui.courtEvidence.url = uploaderResponse.url;
                                             gelbooruInputTags.value = "";
                                             gelbooruInputTags.style.color = "white";
                                             gelbooruInputTags.disabled = false;
                                             gelbooruIcon.click();
-                                            setTimeout(f => { ui.evidence_addButton.click() }, 500);
+                                            setTimeout(f => { ui.courtEvidence.addEvidence() }, 100);
                                         } catch (e) {
                                             throw (e);
                                         }
