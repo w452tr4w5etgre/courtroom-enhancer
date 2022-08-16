@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.781
+// @version      0.782
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -26,7 +26,6 @@ _CE_.options = {
     "warn_on_exit": getSetting("warn_on_exit", true),
     "remember_username": getSetting("remember_username", true),
     "show_console": getSetting("show_console", false),
-    "adjust_chat_text_with_wheel": getSetting("adjust_chat_text_with_wheel", true),
     "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
     "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
     "evid_roulette": getSetting("evid_roulette", false),
@@ -110,21 +109,23 @@ function onCourtroomJoin() {
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
-    // remember last character
+    // Remember last used character/pose and text color
     _CE_.vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
     _CE_.vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
-    _CE_.vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
-        storeSet("last_poseId", String(poseId));
-    });
-    _CE_.vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
-        storeSet("last_characterId", String(characterId));
-    });
-
-    // remember chat color
     _CE_.vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
-    _CE_.vue.$watch("$store.state.courtroom.color", color => {
-        storeSet("courtroom_chat_color", String(color));
-    });
+
+    // Set up watchers after a delay
+    setTimeout(() => {
+        _CE_.vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
+            storeSet("last_poseId", String(poseId));
+        });
+        _CE_.vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
+            storeSet("last_characterId", String(characterId));
+        });
+        _CE_.vue.$watch("$store.state.courtroom.color", color => {
+            storeSet("courtroom_chat_color", String(color));
+        });
+    }, 1000);
 
     // Look for Dialog windows
     const myAssetsWatcher = {
@@ -1283,20 +1284,6 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_adjustChatTextWithWheel = new createInputCheckbox({
-            checked: _CE_.options.adjust_chat_text_with_wheel,
-            label: "Scroll to resize chat",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("adjust_chat_text_with_wheel", value);
-                if (value) {
-                    ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
-                } else {
-                    ui.courtroom_chatBoxes.removeEventListener("wheel", on_chatBoxTextWheel);
-                }
-            }
-        });
-
         ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
             checked: _CE_.options.chat_hover_tooltip,
             label: "Chat tooltips",
@@ -1595,7 +1582,6 @@ function onCourtroomJoin() {
         ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
             ui.extraSettings_rememberUsername,
             ui.extraSettings_showConsole,
-            ui.extraSettings_adjustChatTextWithWheel,
             ui.extraSettings_textboxStyleSelector,
             ui.extraSettings_chatHoverTooltip,
             ui.extraSettings_disableKeyboardShortcuts,
@@ -2045,18 +2031,6 @@ function onCourtroomJoin() {
             ui.customButtonsContainer.appendChild(row);
         });
     }();
-
-    // Adjust chatbox text size with mouse wheel
-    const on_chatBoxTextWheel = function (e) {
-        if (ui.courtroom_chatBoxText === null || typeof ui.courtroom_chatBoxText === "undefined") {
-            ui.courtroom_chatBoxText = ui.courtroom_container.querySelector("div.chat-box-text");
-            ui.courtroom_chatBoxText.style.lineHeight = "1.3";
-        }
-        ui.courtroom_chatBoxText.style.fontSize = Math.min(100, Math.max(10, parseFloat(parseFloat(getComputedStyle(ui.courtroom_chatBoxText, null).getPropertyValue('font-size')) + e.deltaY * -0.01))) + "px";
-    }
-    if (_CE_.options.adjust_chat_text_with_wheel) {
-        ui.courtroom_chatBoxes.addEventListener("wheel", on_chatBoxTextWheel);
-    }
 
     // Make the "fade" courtroom elements click-through to right-click images underneath directly
     ui.courtroom_container.querySelectorAll("div.fade_everything, div.fade_scene, div.fade_background").forEach(f => {
