@@ -76,7 +76,6 @@ function onCourtroomJoin() {
     _CE_.courtTextEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; }).$el;
 
     ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
-    ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
 
     ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; }).$el;
 
