@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.780
+// @version      0.781
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -59,14 +59,8 @@ function checkVueLoaded(_changes, observer) {
 
 function onVueLoaded() {
     _CE_.vue = ui.main.__vue__;
-    _CE_.socket = _CE_.vue.$socket;
 
     _CE_.vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
-
-    // when join courtroom window popups
-    _CE_.vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", s => {
-        if (!s) { return; }
-    })
 
     // remember username
     if (_CE_.options.remember_username) {
@@ -75,17 +69,12 @@ function onVueLoaded() {
             storeSet("courtroom_username", String(username));
         });
     }
-
-    // this.$store.state.courtroom.frame.text
-
 }
 
 function onCourtroomJoin() {
     ui.leftFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; }).$el;
 
-    ui.leftFrame_textEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; }).$el;
-
-    ui.leftFrame_sendButton = ui.leftFrame_container.querySelector("div > div:nth-child(4) > div:nth-child(2) > div > div > div:nth-child(2) > div > div.pl-1 > button.v-btn > span.v-btn__content > i.mdi-send").parentNode.parentNode;
+    _CE_.courtTextEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; }).$el;
 
     ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
     ui.courtroom_chatBoxes = ui.courtroom_container.querySelector("div.fade_everything").previousSibling;
@@ -93,17 +82,18 @@ function onCourtroomJoin() {
     ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; }).$el;
 
     ui.rightFrame_content = ui.rightFrame_container.__vue__.$children[0];
+
     ui.rightFrame_toolbar = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-toolbar"; });
-
     ui.rightFrame_tabs = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-tabs-items"; });
-
     ui.rightFrame_tabChatLog = ui.rightFrame_tabs.$children[0];
     ui.rightFrame_tabEvidence = ui.rightFrame_tabs.$children[1];
     ui.rightFrame_tabBackgrounds = ui.rightFrame_tabs.$children[2];
     ui.rightFrame_tabSettings = ui.rightFrame_tabs.$children[3];
     ui.rightFrame_tabAdmin = ui.rightFrame_tabs.$children[4];
 
-    ui.courtEvidence = ui.rightFrame_tabEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "courtEvidence"; });
+    _CE_.courtEvidence = ui.rightFrame_tabEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "courtEvidence"; });
+
+    ui.presentDialog = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; }).$el;
 
     ui.chatLog_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type");
     ui.chatLog_chat = ui.chatLog_container.querySelector("div > div.chat");
@@ -669,14 +659,14 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     ui.enhanceEvidenceTab = function () {
-        ui.evidence_form = ui.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; }).$el;
-        ui.evidence_formDivs = ui.evidence_form.firstChild;
+        ui.evidence_form = _CE_.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; });
+        ui.evidence_formDivs = ui.evidence_form.$el.firstChild;
         ui.evidence_formFields = ui.evidence_formDivs.querySelectorAll("input");
         ui.evidence_formFieldDescription = ui.evidence_formDivs.querySelector("textarea");
 
-        ui.evidence_formBottomRow = ui.evidence_form.querySelector("form > div:nth-child(2)");
+        ui.evidence_formBottomRow = ui.evidence_form.$el.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
+        ui.evidence_list = _CE_.courtEvidence.$el.querySelector("div > div.row:last-of-type");
 
         ui.evidence_list.style.maxHeight = "70vh";
         ui.evidence_list.style.scrollBehavior = "smooth";
@@ -686,45 +676,45 @@ function onCourtroomJoin() {
             f.addEventListener("keydown", e => {
                 if (e.keyCode == 13 || e.key == "Enter") {
                     e.target.blur();
-                    ui.courtEvidence.addEvidence();
+                    _CE_.courtEvidence.addEvidence();
                 }
             });
         });
 
         // Override the validation function to allow anonymous evidence
-        ui.courtEvidence.$refs.form.validate = () => {
-            if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) {
-                ui.courtEvidence.url = ui.courtEvidence.iconUrl;
+        _CE_.courtEvidence.$refs.form.validate = () => {
+            if (!_CE_.courtEvidence.url && _CE_.courtEvidence.iconUrl) {
+                _CE_.courtEvidence.url = _CE_.courtEvidence.iconUrl;
             }
-            if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) {
-                ui.courtEvidence.iconUrl = ui.courtEvidence.url;
+            if (!_CE_.courtEvidence.iconUrl && _CE_.courtEvidence.url) {
+                _CE_.courtEvidence.iconUrl = _CE_.courtEvidence.url;
             }
-            if (!ui.courtEvidence.name) {
-                ui.courtEvidence.name = " ";
+            if (!_CE_.courtEvidence.name) {
+                _CE_.courtEvidence.name = " ";
             }
-            ui.courtEvidence.valid = true;
+            _CE_.courtEvidence.valid = true;
             return true;
         };
 
         // Fix evidence form layout
 
         // Name
-        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
+        _CE_.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        _CE_.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
         // Icon URL
-        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
+        _CE_.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        _CE_.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
         // Check URL
-        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
+        _CE_.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        _CE_.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
         // Description
-        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
-        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
-        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
-        ui.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
+        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
+        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
+        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
+        _CE_.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
         // Type
-        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
-        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
+        _CE_.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
+        _CE_.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
 
 
         const createEvidenceUploaders = {
@@ -739,9 +729,9 @@ function onCourtroomJoin() {
                 });
 
                 const evidenceImageUploader = new ui.Uploader.filePicker(res => {
-                    ui.courtEvidence.name = res.filename.substr(0, 20);
-                    ui.courtEvidence.iconUrl = res.url;
-                    ui.courtEvidence.url = res.url;
+                    _CE_.courtEvidence.name = res.filename.substr(0, 20);
+                    _CE_.courtEvidence.iconUrl = res.url;
+                    _CE_.courtEvidence.url = res.url;
                 }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                 evidenceImageUploader.setAttributes({
@@ -842,14 +832,14 @@ function onCourtroomJoin() {
                                     }
                                     ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                         try {
-                                            ui.courtEvidence.name = responseJSON.post[0].id;
-                                            ui.courtEvidence.iconUrl = uploaderResponse.url;
-                                            ui.courtEvidence.url = uploaderResponse.url;
+                                            _CE_.courtEvidence.name = responseJSON.post[0].id;
+                                            _CE_.courtEvidence.iconUrl = uploaderResponse.url;
+                                            _CE_.courtEvidence.url = uploaderResponse.url;
                                             gelbooruInputTags.value = "";
                                             gelbooruInputTags.style.color = "white";
                                             gelbooruInputTags.disabled = false;
                                             gelbooruIcon.click();
-                                            setTimeout(f => { ui.courtEvidence.addEvidence() }, 100);
+                                            setTimeout(f => { _CE_.courtEvidence.addEvidence() }, 100);
                                         } catch (e) {
                                             throw (e);
                                         }
@@ -1032,7 +1022,7 @@ function onCourtroomJoin() {
     // Watch for evidence permission or mod/owner status changes
     _CE_.vue.$watch(() => _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.vue.isMod || _CE_.vue.isOwner) || _CE_.vue.isOwner,
         (newValue, oldValue) => {
-            // Only run the enhancer function when permission are turned from OFF to ON
+            // Only run the enhancer function when permission changes OFF to ON
             if (newValue === false || newValue && oldValue) return;
             ui.enhanceEvidenceTab();
         });
@@ -1725,11 +1715,9 @@ function onCourtroomJoin() {
         });
 
         function sendFrameMessage(command, icon = "") {
-            if (ui.leftFrame_sendButton.disabled || !ui.leftFrame_container.contains(ui.leftFrame_sendButton)) {
-                return;
-            }
-            ui.leftFrame_textEditor.__vue__.$store.state.courtroom.frame.text += command;
-            ui.leftFrame_textEditor.__vue__.send();
+            if (!_CE_.courtTextEditor.__vue__.canSend) return;
+            _CE_.courtTextEditor.__vue__.$store.state.courtroom.frame.text += command;
+            _CE_.courtTextEditor.__vue__.send();
 
             if (icon) {
                 ui.Logger.log(command, icon);
@@ -2079,35 +2067,33 @@ function onCourtroomJoin() {
     // Chat log handler
     _CE_.vue.$watch("$store.state.courtroom.messages", () => {
         setTimeout(() => {
-            {
-                for (let messageNode of ui.chatLog_chatList.children) {
-                    const messageIcon = messageNode.querySelector('i');
-                    if (!messageIcon.matches('.mdi-account, .mdi-crown, .mdi-account-tie')) continue;
+            for (let messageNode of ui.chatLog_chatList.children) {
+                const messageIcon = messageNode.querySelector('i');
+                if (!messageIcon.matches('.mdi-account, .mdi-crown, .mdi-account-tie')) continue;
 
-                    const messageTextDiv = messageNode.querySelector('div.chat-text');
-                    const html = messageTextDiv.innerHTML;
-                    if (html.includes('</a>')) continue;
+                const messageTextDiv = messageNode.querySelector('div.chat-text');
+                const html = messageTextDiv.innerHTML;
+                if (html.includes('</a>')) continue;
 
-                    messageTextDiv.innerHTML = html.replaceAll(
-                        URL_REGEX,
-                        '<a target="_blank" rel="noreferrer" href="$1">$1</a>',
-                    );
-                }
+                messageTextDiv.innerHTML = html.replaceAll(
+                    URL_REGEX,
+                    '<a target="_blank" rel="noreferrer" href="$1">$1</a>',
+                );
+            }
 
-                if (ui.chatLog_chatList.lastChild.querySelector("div.chat-text").textContent.includes("[Play Music]")) {
-                    for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
-                            if (ui.customButton_toggleBGM.dataset.muted == "true") {
-                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                                howl.volume(0.0);
-                            } else {
-                                ui.customButton_toggleBGM.dataset.muted = "false"
-                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                            }
-                            break;
+            if (_CE_.vue.$store.state.courtroom.messages[_CE_.vue.$store.state.courtroom.messages.length - 1].text.includes("[Play Music]")) {
+                for (const howl of unsafeWindow.Howler._howls) {
+                    if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
+                        if (ui.customButton_toggleBGM.dataset.muted == "true") {
+                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
+                            howl.volume(0.0);
+                        } else {
+                            ui.customButton_toggleBGM.dataset.muted = "false"
+                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
                         }
-                    };
-                }
+                        break;
+                    }
+                };
             }
         }, 0)
     });
