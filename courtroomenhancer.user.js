@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.784
+// @version      0.785
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,7 +32,7 @@ _CE_.options = {
     "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false),
     "global_buttons": getSetting("global_buttons", false),
-    "mute_bgm_buttons": getSetting("mute_bgm_buttons", false),
+    "mute_bgm_button": getSetting("mute_bgm_button", false),
     "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 577000),
     "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 53000),
     "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 172000),
@@ -1736,21 +1736,20 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_toggleBGM = new createButton({
+        ui.customButton_muteBGM = new createButton({
             label: "Mute BGM",
             title: "Mute BGM",
-            display: _CE_.options.mute_bgm_buttons,
             icon: "volume-mute",
             backgroundColor: "teal",
             onclick: () => {
                 if (_CE_.muteBgm) {
-                    ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
-                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
-                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
+                    ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
                 } else {
-                    ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
-                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
-                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
+                    ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
                 }
 
                 _CE_.muteBgm = !_CE_.muteBgm;
@@ -1837,7 +1836,7 @@ function onCourtroomJoin() {
             ui.customButton_getCurMusicUrl,
             ui.customButton_getCurSoundUrl);
 
-        ui.customButtons_musicButtons.append(ui.customButton_toggleBGM,
+        ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
             ui.customButton_stopMusic,
             ui.customButton_stopSounds,
             ui.customButton_stopSoundsMusic);
