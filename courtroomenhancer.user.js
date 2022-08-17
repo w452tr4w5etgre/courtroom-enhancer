@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.782
+// @version      0.784
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -33,7 +33,6 @@ _CE_.options = {
     "music_roulette": getSetting("music_roulette", false),
     "global_buttons": getSetting("global_buttons", false),
     "mute_bgm_buttons": getSetting("mute_bgm_buttons", false),
-    "evid_roulette_as_icon": getSetting("evid_roulette_as_icon", false),
     "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 577000),
     "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 53000),
     "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 172000),
@@ -61,50 +60,48 @@ function onVueLoaded() {
 
     _CE_.vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
 
-    // remember username
-    if (_CE_.options.remember_username) {
-        _CE_.vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
-        _CE_.vue.$watch("$store.state.courtroom.user.username", username => {
-            storeSet("courtroom_username", String(username));
-        });
-    }
+    // When the Join Courtroom dialog is shown
+    _CE_.vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", (newValue, oldValue) => {
+        if (!newValue) return;
+        // remember username
+        if (_CE_.options.remember_username) {
+            _CE_.vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
+        }
+    });
+
+    _CE_.vue.$watch("$store.state.courtroom.user.username", (newValue, oldValue) => {
+        if (!newValue || _CE_.vue.$store.state.courtroom.user.isSpectator) return;
+        storeSet("courtroom_username", String(newValue));
+    });
+
 }
 
 function onCourtroomJoin() {
-    ui.leftFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; }).$el;
+    ui.CourtLeftPanel = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; });
+    ui.courtTextEditor = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; });
+    ui.courtPlayer = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtPlayer"; });
 
-    _CE_.courtTextEditor = ui.leftFrame_container.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; }).$el;
+    ui.courtroom_container = ui.courtPlayer.$refs.player.$refs.sceneDiv;
 
-    ui.courtroom_container = ui.leftFrame_container.querySelector("div.court-container > div.courtroom");
+    ui.CourtRightPanel = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; });
 
-    ui.rightFrame_container = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; }).$el;
+    ui.rightFrame_tabs = ui.CourtRightPanel.$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "v-tabs-items"; });
+    ui.courtChatLog = ui.rightFrame_tabs.$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "courtChatLog"; });
+    ui.courtEvidence = ui.rightFrame_tabs.$children[1].$children.find(child => { return child.$vnode.componentOptions.tag === "courtEvidence"; });
+    ui.courtBackground = ui.rightFrame_tabs.$children[2].$children.find(child => { return child.$vnode.componentOptions.tag === "courtBackground"; });
+    ui.courtSettings = ui.rightFrame_tabs.$children[3].$children.find(child => { return child.$vnode.componentOptions.tag === "courtSettings"; });
+    ui.courtAdmin = ui.rightFrame_tabs.$children[4].$children.find(child => { return child.$vnode.componentOptions.tag === "courtAdmin"; });
 
-    ui.rightFrame_content = ui.rightFrame_container.__vue__.$children[0];
+    ui.chatLog_chatList = ui.courtChatLog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-list"; }).$el;
 
-    ui.rightFrame_toolbar = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-toolbar"; });
-    ui.rightFrame_tabs = ui.rightFrame_content.$children.find(child => { return child.$vnode.componentOptions.tag === "v-tabs-items"; });
-    ui.rightFrame_tabChatLog = ui.rightFrame_tabs.$children[0];
-    ui.rightFrame_tabEvidence = ui.rightFrame_tabs.$children[1];
-    ui.rightFrame_tabBackgrounds = ui.rightFrame_tabs.$children[2];
-    ui.rightFrame_tabSettings = ui.rightFrame_tabs.$children[3];
-    ui.rightFrame_tabAdmin = ui.rightFrame_tabs.$children[4];
+    ui.divider = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "v-divider"; }).$el;
 
-    _CE_.courtEvidence = ui.rightFrame_tabEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "courtEvidence"; });
-
-    ui.presentDialog = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; }).$el;
-
-    ui.chatLog_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:first-of-type");
-    ui.chatLog_chat = ui.chatLog_container.querySelector("div > div.chat");
-    ui.chatLog_chatList = ui.chatLog_chat.querySelector("div.v-list");
-    ui.chatLog_textField = ui.chatLog_container.querySelector("div.v-window-item > div > div:nth-child(2) > div > div > div > div.v-text-field__slot > input[type=text]");
-
-    ui.settings_container = ui.rightFrame_container.querySelector("div.v-card.v-sheet > div.v-window.v-item-group > div.v-window__container > div.v-window-item:nth-of-type(4)");
-    ui.settings_usernameChangeInput = ui.settings_container.querySelector("div > div > div div.v-input > div.v-input__control > div.v-input__slot > div.v-text-field__slot > input[type=text]");
-    ui.settings_switchDiv = ui.settings_container.querySelector("div > div:nth-child(2) > div > div.v-input--switch").parentNode.parentNode;
-    ui.settings_separator = ui.settings_container.querySelector("div > hr:last-of-type");
-    ui.settings_keyboardShortcutsHeader = ui.settings_container.querySelector("div > h3:first-of-type");
+    ui.settings_keyboardShortcutsHeader = ui.courtSettings.$el.querySelector("div > h3:first-of-type");
     ui.settings_keyboardShortcutsWS = ui.settings_keyboardShortcutsHeader.nextSibling.nextSibling.nextSibling;
     ui.settings_keyboardShortcutsAD = ui.settings_keyboardShortcutsWS.nextSibling;
+    ui.settings_keyboardShortcutsT = ui.settings_keyboardShortcutsAD.nextSibling.nextSibling;
+
+    ui.presentDialog = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
@@ -659,14 +656,14 @@ function onCourtroomJoin() {
 
     // Evidence tab enhancements
     ui.enhanceEvidenceTab = function () {
-        ui.evidence_form = _CE_.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; });
+        ui.evidence_form = ui.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; });
         ui.evidence_formDivs = ui.evidence_form.$el.firstChild;
         ui.evidence_formFields = ui.evidence_formDivs.querySelectorAll("input");
         ui.evidence_formFieldDescription = ui.evidence_formDivs.querySelector("textarea");
 
         ui.evidence_formBottomRow = ui.evidence_form.$el.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-        ui.evidence_list = _CE_.courtEvidence.$el.querySelector("div > div.row:last-of-type");
+        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
 
         ui.evidence_list.style.maxHeight = "70vh";
         ui.evidence_list.style.scrollBehavior = "smooth";
@@ -676,45 +673,45 @@ function onCourtroomJoin() {
             f.addEventListener("keydown", e => {
                 if (e.keyCode == 13 || e.key == "Enter") {
                     e.target.blur();
-                    _CE_.courtEvidence.addEvidence();
+                    ui.courtEvidence.addEvidence();
                 }
             });
         });
 
         // Override the validation function to allow anonymous evidence
-        _CE_.courtEvidence.$refs.form.validate = () => {
-            if (!_CE_.courtEvidence.url && _CE_.courtEvidence.iconUrl) {
-                _CE_.courtEvidence.url = _CE_.courtEvidence.iconUrl;
+        ui.courtEvidence.$refs.form.validate = () => {
+            if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) {
+                ui.courtEvidence.url = ui.courtEvidence.iconUrl;
             }
-            if (!_CE_.courtEvidence.iconUrl && _CE_.courtEvidence.url) {
-                _CE_.courtEvidence.iconUrl = _CE_.courtEvidence.url;
+            if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) {
+                ui.courtEvidence.iconUrl = ui.courtEvidence.url;
             }
-            if (!_CE_.courtEvidence.name) {
-                _CE_.courtEvidence.name = " ";
+            if (!ui.courtEvidence.name) {
+                ui.courtEvidence.name = " ";
             }
-            _CE_.courtEvidence.valid = true;
+            ui.courtEvidence.valid = true;
             return true;
         };
 
         // Fix evidence form layout
 
         // Name
-        _CE_.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        _CE_.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
+        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
         // Icon URL
-        _CE_.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        _CE_.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
+        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
         // Check URL
-        _CE_.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-        _CE_.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
+        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
+        ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
         // Description
-        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
-        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
-        _CE_.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
-        _CE_.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
+        ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
+        ui.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
         // Type
-        _CE_.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
-        _CE_.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
+        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
+        ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
 
 
         const createEvidenceUploaders = {
@@ -729,9 +726,9 @@ function onCourtroomJoin() {
                 });
 
                 const evidenceImageUploader = new ui.Uploader.filePicker(res => {
-                    _CE_.courtEvidence.name = res.filename.substr(0, 20);
-                    _CE_.courtEvidence.iconUrl = res.url;
-                    _CE_.courtEvidence.url = res.url;
+                    ui.courtEvidence.name = res.filename.substr(0, 20);
+                    ui.courtEvidence.iconUrl = res.url;
+                    ui.courtEvidence.url = res.url;
                 }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                 evidenceImageUploader.setAttributes({
@@ -832,14 +829,14 @@ function onCourtroomJoin() {
                                     }
                                     ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                         try {
-                                            _CE_.courtEvidence.name = responseJSON.post[0].id;
-                                            _CE_.courtEvidence.iconUrl = uploaderResponse.url;
-                                            _CE_.courtEvidence.url = uploaderResponse.url;
+                                            ui.courtEvidence.name = responseJSON.post[0].id;
+                                            ui.courtEvidence.iconUrl = uploaderResponse.url;
+                                            ui.courtEvidence.url = uploaderResponse.url;
                                             gelbooruInputTags.value = "";
                                             gelbooruInputTags.style.color = "white";
                                             gelbooruInputTags.disabled = false;
                                             gelbooruIcon.click();
-                                            setTimeout(f => { _CE_.courtEvidence.addEvidence() }, 100);
+                                            setTimeout(f => { ui.courtEvidence.addEvidence() }, 100);
                                         } catch (e) {
                                             throw (e);
                                         }
@@ -1023,7 +1020,7 @@ function onCourtroomJoin() {
     _CE_.vue.$watch(() => _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.vue.isMod || _CE_.vue.isOwner) || _CE_.vue.isOwner,
         (newValue, oldValue) => {
             // Only run the enhancer function when permission changes OFF to ON
-            if (newValue === false || newValue && oldValue) return;
+            if (!newValue || (newValue && oldValue)) return;
             ui.enhanceEvidenceTab();
         });
 
@@ -1290,16 +1287,16 @@ function onCourtroomJoin() {
                 const value = e.target.checked;
                 setSetting("chat_hover_tooltip", value);
                 if (value) {
-                    ui.chatLog_chat.addEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
+                    ui.chatLog_chatList.addEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
                 } else {
-                    ui.chatLog_chat.removeEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
+                    ui.chatLog_chatList.removeEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
                 }
             }
         });
 
         ui.extraSettings_disableKeyboardShortcuts = new createInputCheckbox({
             checked: _CE_.options.disable_keyboard_shortcuts,
-            label: "Disable WASD hotkeys",
+            label: "Disable WASDT hotkeys",
             onchange: e => {
                 const value = e.target.checked;
                 setSetting("disable_keyboard_shortcuts", value);
@@ -1310,6 +1307,7 @@ function onCourtroomJoin() {
                 }
                 ui.settings_keyboardShortcutsWS.style.display = value ? "none" : "flex";
                 ui.settings_keyboardShortcutsAD.style.display = value ? "none" : "flex";
+                ui.settings_keyboardShortcutsT.style.display = value ? "none" : "flex";
             }
         });
 
@@ -1320,7 +1318,6 @@ function onCourtroomJoin() {
                 const value = e.target.checked;
                 setSetting("evid_roulette", value);
                 ui.customButtons_evidRouletteButton.style.display = value ? "flex" : "none";
-                ui.extraSettings_rouletteEvidAsIcon.style.display = value ? "flex" : "none";
                 ui.extraSettings_rouletteEvidMax.style.display = value ? "flex" : "none";
             }
         });
@@ -1347,35 +1344,15 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_globalButtons = new createInputCheckbox({
-            checked: _CE_.options.global_buttons,
+        ui.extraSettings_globalAudioControlButtons = new createInputCheckbox({
+            checked: _CE_.options.global_audio_control_buttons,
             label: "Global BGM/SFX Control Buttons",
             onchange: e => {
                 const value = e.target.checked;
-                setSetting("global_buttons", value);
+                setSetting("global_audio_control_buttons", value);
                 ui.customButton_stopSounds.style.display = value ? "flex" : "none";
                 ui.customButton_stopMusic.style.display = value ? "flex" : "none";
                 ui.customButton_stopSoundsMusic.style.display = value ? "flex" : "none";
-            }
-        });
-
-        ui.extraSettings_muteBGMButtons = new createInputCheckbox({
-            checked: _CE_.options.mute_bgm_buttons,
-            label: "BGM Control Buttons",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("mute_bgm_buttons", value);
-                ui.customButton_toggleBGM.style.display = value ? "flex" : "none";
-            }
-        });
-
-        ui.extraSettings_rouletteEvidAsIcon = new createInputCheckbox({
-            checked: _CE_.options.evid_roulette_as_icon,
-            label: "Icon",
-            title: "Smaller evidence in the corner",
-            display: _CE_.options.evid_roulette,
-            onchange: e => {
-                setSetting("evid_roulette_as_icon", e.target.checked);
             }
         });
 
@@ -1429,9 +1406,6 @@ function onCourtroomJoin() {
                 }
             }
         });
-
-        // Get the <hr> separator on the Settings page
-        const settings_separator = ui.settings_separator;
 
         // Row 1 - Header
         const extraSettings_rows = [];
@@ -1641,8 +1615,7 @@ function onCourtroomJoin() {
 
         rouletteEvidContainer.append(
             ui.extraSettings_rouletteEvid,
-            ui.extraSettings_rouletteEvidMax,
-            ui.extraSettings_rouletteEvidAsIcon,
+            ui.extraSettings_rouletteEvidMax
         );
 
         rouletteSoundContainer.append(
@@ -1656,30 +1629,30 @@ function onCourtroomJoin() {
         );
 
         musicControlContainer.append(
-            ui.extraSettings_globalButtons,
-            ui.extraSettings_muteBGMButtons
+            ui.extraSettings_globalAudioControlButtons
         );
 
         ui.extraSettings_rowRoulettes.lastChild.append(rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer, musicControlContainer);
 
         extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
-        // Find the element after the last <hr> and attach the extra settings before it
-        ui.settings_afterSeparator = settings_separator.nextElementSibling;
+        // 
+        const volumeControl = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "volumeControl"; }).$el.parentNode;
+
         extraSettings_rows.forEach(row => {
-            ui.settings_afterSeparator.insertAdjacentElement("beforebegin", row);
+            volumeControl.insertAdjacentElement("beforebegin", row);
         });
 
         // Add the <hr> separator after the last row
-        ui.settings_afterSeparator.insertAdjacentElement("beforebegin", settings_separator.cloneNode());
+        volumeControl.insertAdjacentElement("beforebegin", ui.divider.cloneNode());
     }();
 
     // Create additional buttons container below the right panels
     var addRightFrameExtraButtons = function () {
-        ui.customButtonsContainer = ui.rightFrame_container.insertAdjacentElement("afterend", document.createElement("div"));
+        ui.customButtonsContainer = ui.CourtRightPanel.$el.insertAdjacentElement("afterend", document.createElement("div"));
         ui.customButtonsContainer.className = "mx-3 mt-4";
 
-        ui.customButtons_rows = []
+        ui.customButtons_rows = [];
 
         // Roulette buttons row
         ui.customButtons_rowButtons = document.createElement("div");
@@ -1700,9 +1673,9 @@ function onCourtroomJoin() {
         });
 
         function sendFrameMessage(command, icon = "") {
-            if (!_CE_.courtTextEditor.__vue__.canSend) return;
-            _CE_.courtTextEditor.__vue__.$store.state.courtroom.frame.text += command;
-            _CE_.courtTextEditor.__vue__.send();
+            if (!ui.courtTextEditor.canSend) return;
+            ui.courtTextEditor.$store.state.courtroom.frame.text += command;
+            ui.courtTextEditor.send();
 
             if (icon) {
                 ui.Logger.log(command, icon);
@@ -1723,7 +1696,7 @@ function onCourtroomJoin() {
                     });
                     return;
                 }
-                sendFrameMessage("[#evd" + (_CE_.options.evid_roulette_as_icon ? "i" : "") + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "image");
+                sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "image");
             }
         });
 
@@ -1752,136 +1725,124 @@ function onCourtroomJoin() {
             ui.customButtons_musicRouletteButton);
 
         // Music buttons
-        if (typeof unsafeWindow !== "undefined" && typeof unsafeWindow.Howler === "object") {
-            ui.customButton_stopAllSounds = new createButton({
-                label: "Shut up BGM/SFX",
-                title: "Stop all sounds that are currently playing (only for you)",
-                icon: "volume-variant-off",
-                backgroundColor: "teal",
-                onclick: unsafeWindow.Howler.stop.bind()
-            });
+        ui.customButton_stopAllSounds = new createButton({
+            label: "Shut up BGM/SFX",
+            title: "Stop all sounds that are currently playing (only for you)",
+            icon: "volume-variant-off",
+            backgroundColor: "teal",
+            onclick: () => {
+                ui.courtPlayer.$refs.player.musicPlayer.stopMusic();
+                ui.courtPlayer.$refs.player.musicPlayer.stopSounds();
+            }
+        });
 
-            ui.customButton_toggleBGM = new createButton({
-                label: "Mute BGM",
-                title: "Mutes the song that's currently playing (only for you)",
-                display: _CE_.options.mute_bgm_buttons,
-                icon: "volume-mute",
-                backgroundColor: "teal",
-                onclick: e => {
-                    if (ui.customButton_toggleBGM.dataset.muted === "true") {
-                        ui.customButton_toggleBGM.dataset.muted = "false";
-                        ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
-                        ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
-                        ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
-                    } else {
-                        ui.customButton_toggleBGM.dataset.muted = "true";
-                        ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
-                        ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
-                        ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
+        ui.customButton_toggleBGM = new createButton({
+            label: "Mute BGM",
+            title: "Mute BGM",
+            display: _CE_.options.mute_bgm_buttons,
+            icon: "volume-mute",
+            backgroundColor: "teal",
+            onclick: () => {
+                if (_CE_.muteBgm) {
+                    ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
+                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
+                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
+                } else {
+                    ui.customButton_toggleBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
+                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
+                    ui.customButton_toggleBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
+                }
+
+                _CE_.muteBgm = !_CE_.muteBgm;
+                ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
+            }
+        });
+
+        ui.customButton_stopMusic = new createButton({
+            label: "Stop BGM",
+            title: "Stops the song that is currently playing (for everyone)",
+            display: _CE_.options.global_buttons,
+            icon: "volume-variant-off",
+            backgroundColor: "crimson",
+            onclick: () => {
+                sendFrameMessage("[#bgms]");
+            }
+        });
+
+        ui.customButton_stopSounds = new createButton({
+            label: "Stop SFX",
+            title: "Stop all SFX that are currently playing (for everyone)",
+            display: _CE_.options.global_buttons,
+            icon: "volume-variant-off",
+            backgroundColor: "crimson",
+            onclick: () => {
+                sendFrameMessage("[#bgss]");
+            }
+        });
+
+        ui.customButton_stopSoundsMusic = new createButton({
+            label: "Stop BGM/SFX",
+            title: "Stop all sounds that are currently playing (for everyone)",
+            display: _CE_.options.global_buttons,
+            icon: "volume-variant-off",
+            backgroundColor: "crimson",
+            onclick: () => {
+                sendFrameMessage("[#bgms][#bgss]");
+            }
+        });
+
+        ui.customButton_getCurMusicUrl = new createButton({
+            label: "BGM URL",
+            title: "Get the URL for the song playing now",
+            icon: "link-variant",
+            backgroundColor: "teal",
+            onclick: () => {
+                for (const howl of unsafeWindow.Howler._howls) {
+                    if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
+                        let bgm_url = ui.courtPlayer.$refs.player.musicPlayer.currentMusicUrl;
+
+                        // Look for a BGM in cache with a matching URL and get that name
+                        const bgm_name = Object.values(ui.courtPlayer.musicCache).find(music => music.url === bgm_url);
+                        if (typeof bgm_name.name === "string") bgm_url = bgm_name.name + " " + bgm_url;
+
+                        if (!_CE_.options.show_console) {
+                            alert(bgm_url);
+                        }
+
+                        ui.Logger.log(bgm_url, "link-variant");
+                        break;
                     }
+                };
+            }
+        });
 
-                    for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
-                            if (ui.customButton_toggleBGM.dataset.muted === "true") {
-                                ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                                howl.volume(0.0);
-                            } else {
-                                howl.volume(Math.min(ui.customButton_toggleBGM.dataset.volume, 1.0));
-                            }
-                            break;
+        ui.customButton_getCurSoundUrl = new createButton({
+            label: "SFX URL",
+            title: "Get the URL for the sfx playing now",
+            icon: "link-variant",
+            backgroundColor: "teal",
+            onclick: e => {
+                for (const howl of unsafeWindow.Howler._howls) {
+                    if (howl._state == "loaded" && howl._onend.length != 0) {
+                        if (!_CE_.options.show_console) {
+                            alert(howl._src);
                         }
+                        ui.Logger.log(howl._src, "link-variant");
                     }
-                }
-            });
+                };
+            }
+        });
 
-            ui.customButton_toggleBGM.dataset.muted = "false";
+        ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
+            ui.customButton_getCurMusicUrl,
+            ui.customButton_getCurSoundUrl);
 
-            ui.customButton_stopMusic = new createButton({
-                label: "Stop BGM",
-                title: "Stops the song that is currently playing (for everyone)",
-                display: _CE_.options.global_buttons,
-                icon: "volume-variant-off",
-                backgroundColor: "crimson",
-                onclick: () => {
-                    sendFrameMessage("[#bgms]");
-                }
-            });
+        ui.customButtons_musicButtons.append(ui.customButton_toggleBGM,
+            ui.customButton_stopMusic,
+            ui.customButton_stopSounds,
+            ui.customButton_stopSoundsMusic);
 
-            ui.customButton_stopSounds = new createButton({
-                label: "Stop SFX",
-                title: "Stop all SFX that are currently playing (for everyone)",
-                display: _CE_.options.global_buttons,
-                icon: "volume-variant-off",
-                backgroundColor: "crimson",
-                onclick: () => {
-                    sendFrameMessage("[#bgss]");
-                }
-            });
-
-            ui.customButton_stopSoundsMusic = new createButton({
-                label: "Stop BGM/SFX",
-                title: "Stop all sounds that are currently playing (for everyone)",
-                display: _CE_.options.global_buttons,
-                icon: "volume-variant-off",
-                backgroundColor: "crimson",
-                onclick: () => {
-                    sendFrameMessage("[#bgms][#bgss]");
-                }
-            });
-
-            ui.customButton_getCurMusicUrl = new createButton({
-                label: "BGM URL",
-                title: "Get the URL for the song playing now",
-                icon: "link-variant",
-                backgroundColor: "teal",
-                onclick: () => {
-                    for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
-                            let bgm_url = howl._src;
-
-                            // Look for a BGM in cache with a matching URL and get that name
-                            const bgm_name = Object.values(_CE_.vue.$store.state.assets.music.cache).find(music => music.url === bgm_url);
-                            if (typeof bgm_name.name === "string") bgm_url = bgm_name.name + " " + bgm_url;
-
-                            if (!_CE_.options.show_console) {
-                                alert(bgm_url);
-                            }
-
-                            ui.Logger.log(bgm_url, "link-variant");
-                            break;
-                        }
-                    };
-                }
-            });
-
-            ui.customButton_getCurSoundUrl = new createButton({
-                label: "SFX URL",
-                title: "Get the URL for the sfx playing now",
-                icon: "link-variant",
-                backgroundColor: "teal",
-                onclick: e => {
-                    for (const howl of unsafeWindow.Howler._howls) {
-                        if (howl._state == "loaded" && howl._onend.length != 0) {
-                            if (!_CE_.options.show_console) {
-                                alert(howl._src);
-                            }
-                            ui.Logger.log(howl._src, "link-variant");
-                        }
-                    };
-                }
-            });
-
-            ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-                ui.customButton_getCurMusicUrl,
-                ui.customButton_getCurSoundUrl);
-
-            ui.customButtons_musicButtons.append(ui.customButton_toggleBGM,
-                ui.customButton_stopMusic,
-                ui.customButton_stopSounds,
-                ui.customButton_stopSoundsMusic);
-
-            ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
-        }
+        ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
 
         // Log row
         ui.customButtons_rowLog = document.createElement("div");
@@ -2053,23 +2014,16 @@ function onCourtroomJoin() {
                     '<a target="_blank" rel="noreferrer" href="$1">$1</a>',
                 );
             }
-
-            if (_CE_.vue.$store.state.courtroom.messages[_CE_.vue.$store.state.courtroom.messages.length - 1].text.includes("[Play Music]")) {
-                for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._loop || howl._src.slice(0, 13) === "/audio/music/") {
-                        if (ui.customButton_toggleBGM.dataset.muted == "true") {
-                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                            howl.volume(0.0);
-                        } else {
-                            ui.customButton_toggleBGM.dataset.muted = "false"
-                            ui.customButton_toggleBGM.dataset.volume = howl._volume;
-                        }
-                        break;
-                    }
-                };
-            }
         }, 0)
     });
+
+    // If BGM is muted, mute when a new song is played
+    ui.courtPlayer.$refs.player.$watch("musicPlayer.currentMusicUrl", (newValue, oldValue) => {
+        if (!newValue) return;
+        if (_CE_.muteBgm) {
+            ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
+        }
+    }, { flush: "post" })
 
     // Chat hover tooltips
     const chatTooltip = {
@@ -2107,7 +2061,7 @@ function onCourtroomJoin() {
             this.onChatItemMouseLeave = this.onChatItemMouseLeave.bind(this);
 
             if (_CE_.options.chat_hover_tooltip) {
-                ui.chatLog_chat.addEventListener("mouseover", this.onChatListMouseOver, false);
+                ui.chatLog_chatList.addEventListener("mouseover", this.onChatListMouseOver, false);
             }
             this.tooltipElement.addEventListener("mouseenter", e => { e.target.style.opacity = "1"; });
             this.tooltipElement.addEventListener("mouseleave", this.onChatItemMouseLeave.bind(this), { capture: false });
@@ -2134,8 +2088,8 @@ function onCourtroomJoin() {
             if (!this.tooltipElement || !this.chat.element) { return; }
 
             top = this.chat.element.getBoundingClientRect().y + (this.chat.element.offsetHeight / 2) - (this.tooltipElement.offsetHeight / 2);
-            if (top < ui.chatLog_chat.getBoundingClientRect().y) {
-                top = ui.chatLog_chat.getBoundingClientRect().y;
+            if (top < ui.chatLog_chatList.getBoundingClientRect().y) {
+                top = ui.chatLog_chatList.getBoundingClientRect().y;
             } else if (top + this.tooltipElement.offsetHeight > this.tooltipElement.parentNode.offsetHeight) {
                 top = this.parentNode.offsetHeight - this.tooltipElement.offsetHeight - 20;
             }
@@ -2361,9 +2315,9 @@ function onCourtroomJoin() {
         e.stopImmediatePropagation();
     }, true);
 
-    // Disable WASD shortcuts
+    // Disable WASDT shortcuts
     const disableKeyboardShortcuts = function (e) {
-        if ("wasd".includes(e.srcKey)) {
+        if ("wasdt".includes(e.srcKey)) {
             e.stopImmediatePropagation()
         }
     };
@@ -2372,6 +2326,7 @@ function onCourtroomJoin() {
         ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
         ui.settings_keyboardShortcutsWS.style.display = "none";
         ui.settings_keyboardShortcutsAD.style.display = "none";
+        ui.settings_keyboardShortcutsT.style.display = "none";
     }
 
     ui.StylePicker.changeStyle(_CE_.options.textbox_style);
