@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.785
+// @version      0.786
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2019,9 +2019,7 @@ function onCourtroomJoin() {
     // If BGM is muted, mute when a new song is played
     ui.courtPlayer.$refs.player.$watch("musicPlayer.currentMusicUrl", (newValue, oldValue) => {
         if (!newValue) return;
-        if (_CE_.muteBgm) {
-            ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
-        }
+        ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
     }, { flush: "post" })
 
     // Chat hover tooltips
