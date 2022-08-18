@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.787
+// @version      0.788
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -578,7 +578,7 @@ function onCourtroomJoin() {
 
                     if (dataList instanceof FileList) {
                         for (const data of dataList) {
-                            if (data.type.match(this.acceptedregex) !== true) {
+                            if (!data.type.match(this.acceptedregex) !== true) {
                                 throw new Error("File type");
                             }
                             if (data.size >= this.maxsize) {
