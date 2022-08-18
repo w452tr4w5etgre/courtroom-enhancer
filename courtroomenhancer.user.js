@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.786
+// @version      0.787
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -48,7 +48,7 @@ const ui = { "app": document.querySelector("div#app") };
 (new MutationObserver(checkVueLoaded)).observe(document, { childList: true, subtree: true });
 
 function checkVueLoaded(_changes, observer) {
-    if (!document.body.contains(ui.app)) ui.app = document.querySelector("div#app");
+    if (document.body.contains(ui.app) !== true) ui.app = document.querySelector("div#app");
     ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
     if (!ui.main || !ui.main.__vue__) return;
     observer.disconnect();
@@ -572,15 +572,13 @@ function onCourtroomJoin() {
                         }
                     }
 
-                    if (!dataList) {
-                        return;
-                    }
+                    if (!dataList) return;
 
                     e.preventDefault();
 
                     if (dataList instanceof FileList) {
                         for (const data of dataList) {
-                            if (!data.type.match(this.acceptedregex)) {
+                            if (data.type.match(this.acceptedregex) !== true) {
                                 throw new Error("File type");
                             }
                             if (data.size >= this.maxsize) {
@@ -680,15 +678,9 @@ function onCourtroomJoin() {
 
         // Override the validation function to allow anonymous evidence
         ui.courtEvidence.$refs.form.validate = () => {
-            if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) {
-                ui.courtEvidence.url = ui.courtEvidence.iconUrl;
-            }
-            if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) {
-                ui.courtEvidence.iconUrl = ui.courtEvidence.url;
-            }
-            if (!ui.courtEvidence.name) {
-                ui.courtEvidence.name = " ";
-            }
+            if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) ui.courtEvidence.url = ui.courtEvidence.iconUrl;
+            if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) ui.courtEvidence.iconUrl = ui.courtEvidence.url;
+            if (!ui.courtEvidence.name) ui.courtEvidence.name = " ";
             ui.courtEvidence.valid = true;
             return true;
         };
@@ -1416,7 +1408,7 @@ function onCourtroomJoin() {
             label: "Reset and reload",
             icon: "refresh",
             onclick: e => {
-                if (!confirm("Reset Courtroom Enhancer settings and refresh the page?")) {
+                if (confirm("Reset Courtroom Enhancer settings and refresh the page?") !== true) {
                     return;
                 }
                 storeClear();
@@ -1673,7 +1665,7 @@ function onCourtroomJoin() {
         });
 
         function sendFrameMessage(command, icon = "") {
-            if (!ui.courtTextEditor.canSend) return;
+            if (ui.courtTextEditor.canSend !== true) return;
             ui.courtTextEditor.$store.state.courtroom.frame.text += command;
             ui.courtTextEditor.send();
 
@@ -1753,7 +1745,7 @@ function onCourtroomJoin() {
                 }
 
                 _CE_.muteBgm = !_CE_.muteBgm;
-                ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
+                if (ui.courtPlayer.$refs.player.musicPlayer.music !== undefined) ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
             }
         });
 
@@ -1804,7 +1796,7 @@ function onCourtroomJoin() {
                         const bgm_name = Object.values(ui.courtPlayer.musicCache).find(music => music.url === bgm_url);
                         if (typeof bgm_name.name === "string") bgm_url = bgm_name.name + " " + bgm_url;
 
-                        if (!_CE_.options.show_console) {
+                        if (_CE_.options.show_console !== true) {
                             alert(bgm_url);
                         }
 
@@ -1823,7 +1815,7 @@ function onCourtroomJoin() {
             onclick: e => {
                 for (const howl of unsafeWindow.Howler._howls) {
                     if (howl._state == "loaded" && howl._onend.length != 0) {
-                        if (!_CE_.options.show_console) {
+                        if (_CE_.options.show_console !== true) {
                             alert(howl._src);
                         }
                         ui.Logger.log(howl._src, "link-variant");
