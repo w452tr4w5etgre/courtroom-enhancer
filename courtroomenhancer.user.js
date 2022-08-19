@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.790
+// @version      0.791
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -58,7 +58,6 @@ function checkVueLoaded(_changes, observer) {
 function onVueLoaded() {
     _CE_.$vue = ui.main.__vue__;
     _CE_.$snotify = _CE_.$vue.$snotify;
-    console.log(_CE_.$snotify)
 
     _CE_.$vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
 
@@ -70,12 +69,6 @@ function onVueLoaded() {
             _CE_.$vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
         }
     });
-
-    _CE_.$vue.$watch("$store.state.courtroom.user.username", (newValue, oldValue) => {
-        if (!newValue || _CE_.$vue.$store.state.courtroom.user.isSpectator) return;
-        storeSet("courtroom_username", String(newValue));
-    });
-
 }
 
 function onCourtroomJoin() {
@@ -109,6 +102,9 @@ function onCourtroomJoin() {
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
+    // Remember username
+    storeSet("courtroom_username", _CE_.$vue.$store.state.courtroom.user.username);
+
     // Remember last used character/pose and text color
     _CE_.$vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
     _CE_.$vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
@@ -124,6 +120,10 @@ function onCourtroomJoin() {
         });
         _CE_.$vue.$watch("$store.state.courtroom.color", color => {
             storeSet("courtroom_chat_color", String(color));
+        });
+        _CE_.$vue.$watch("$store.state.courtroom.user.username", name => {
+            if (!name || !_CE_.options.remember_username) return;
+            storeSet("courtroom_username", String(name));
         });
     }, 1000);
 
