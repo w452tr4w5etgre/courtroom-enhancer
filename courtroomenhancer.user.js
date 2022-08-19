@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.789
+// @version      0.790
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -29,8 +29,8 @@ _CE_.options = {
     "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
     "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
     "evid_roulette": getSetting("evid_roulette", false),
-    "sound_roulette": getSetting("sound_roulette", false),
     "music_roulette": getSetting("music_roulette", false),
+    "sound_roulette": getSetting("sound_roulette", false),
     "global_buttons": getSetting("global_buttons", false),
     "mute_bgm_button": getSetting("mute_bgm_button", false),
     "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 577000),
@@ -56,34 +56,38 @@ function checkVueLoaded(_changes, observer) {
 }
 
 function onVueLoaded() {
-    _CE_.vue = ui.main.__vue__;
+    _CE_.$vue = ui.main.__vue__;
+    _CE_.$snotify = _CE_.$vue.$snotify;
+    console.log(_CE_.$snotify)
 
-    _CE_.vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
+    _CE_.$vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
 
     // When the Join Courtroom dialog is shown
-    _CE_.vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", (newValue, oldValue) => {
+    _CE_.$vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", (newValue, oldValue) => {
         if (!newValue) return;
         // remember username
         if (_CE_.options.remember_username) {
-            _CE_.vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
+            _CE_.$vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
         }
     });
 
-    _CE_.vue.$watch("$store.state.courtroom.user.username", (newValue, oldValue) => {
-        if (!newValue || _CE_.vue.$store.state.courtroom.user.isSpectator) return;
+    _CE_.$vue.$watch("$store.state.courtroom.user.username", (newValue, oldValue) => {
+        if (!newValue || _CE_.$vue.$store.state.courtroom.user.isSpectator) return;
         storeSet("courtroom_username", String(newValue));
     });
 
 }
 
 function onCourtroomJoin() {
-    ui.CourtLeftPanel = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; });
+    ui.CourtLeftPanel = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; });
     ui.courtTextEditor = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; });
     ui.courtPlayer = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtPlayer"; });
 
+    _CE_.musicPlayer = ui.courtPlayer.$refs.player.musicPlayer;
+
     ui.courtroom_container = ui.courtPlayer.$refs.player.$refs.sceneDiv;
 
-    ui.CourtRightPanel = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; });
+    ui.CourtRightPanel = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtRightPanel"; });
 
     ui.rightFrame_tabs = ui.CourtRightPanel.$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "v-tabs-items"; });
     ui.courtChatLog = ui.rightFrame_tabs.$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "courtChatLog"; });
@@ -101,24 +105,24 @@ function onCourtroomJoin() {
     ui.settings_keyboardShortcutsAD = ui.settings_keyboardShortcutsWS.nextSibling;
     ui.settings_keyboardShortcutsT = ui.settings_keyboardShortcutsAD.nextSibling.nextSibling;
 
-    ui.presentDialog = _CE_.vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
+    ui.presentDialog = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
     // Remember last used character/pose and text color
-    _CE_.vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
-    _CE_.vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
-    _CE_.vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
+    _CE_.$vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
+    _CE_.$vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
+    _CE_.$vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
 
     // Set up watchers after a delay
     setTimeout(() => {
-        _CE_.vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
+        _CE_.$vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
             storeSet("last_poseId", String(poseId));
         });
-        _CE_.vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
+        _CE_.$vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
             storeSet("last_characterId", String(characterId));
         });
-        _CE_.vue.$watch("$store.state.courtroom.color", color => {
+        _CE_.$vue.$watch("$store.state.courtroom.color", color => {
             storeSet("courtroom_chat_color", String(color));
         });
     }, 1000);
@@ -519,7 +523,7 @@ function onCourtroomJoin() {
                     }
                 });
                 setTimeout(resetElem, 3000);
-                ui.Logger.log(errorText);
+                _CE_.$snotify.error(errorText, "File Uploader");
             }
 
             const uploadCallbackSuccess = function () {
@@ -579,10 +583,10 @@ function onCourtroomJoin() {
                     if (dataList instanceof FileList) {
                         for (const data of dataList) {
                             if (!data.type.match(this.acceptedregex)) {
-                                throw new Error("File type");
+                                throw new Error("Invalid file type.");
                             }
                             if (data.size >= this.maxsize) {
-                                throw new Error("Max size: " + this.maxsize / 1e6 + "MB");
+                                throw new Error("File too big. Max size: " + this.maxsize / 1e6 + "MB");
                             }
                             file = data;
                             break;
@@ -598,11 +602,11 @@ function onCourtroomJoin() {
                                 file = data.getAsFile();
                                 break;
                             } else {
-                                throw new Error("Invalid kind");
+                                throw new Error("Invalid data kind.");
                             }
                         }
                     } else {
-                        throw new Error("Invalid dataList");
+                        throw new Error("Invalid dataList.");
                     }
 
                     elemContainer.setAttributes({
@@ -620,7 +624,7 @@ function onCourtroomJoin() {
                             ui.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this));
                         });
                     } else {
-                        throw new Error("Invalid file");
+                        throw new Error("Invalid file.");
                     }
                 } catch (e) {
                     uploadError(e.toString());
@@ -800,7 +804,7 @@ function onCourtroomJoin() {
                     gelbooruInputTags.addEventListener("focus", e => {
                         e.target.value = "";
                     }, { once: true });
-                    ui.Logger.log(errorText);
+                    _CE_.$snotify(errorText, "Gelbooru");
                 }
 
                 gelbooruBtnSend.addEventListener("click", e => {
@@ -979,7 +983,7 @@ function onCourtroomJoin() {
                 var imageUrl = divImage.querySelector(":scope > div.v-image__image").style.backgroundImage;
                 imageUrl = imageUrl.substring(4, imageUrl.length - 1).replace(/["']/g, "");
                 //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
-                ui.Logger.log(imageUrl, "link-variant");
+                _CE_.$snotify.info(imageUrl, { closeOnClick: false });
             });
 
             // Hide eye button (clicking on the image itself clicks on the eye)
@@ -1004,12 +1008,12 @@ function onCourtroomJoin() {
 
     };
 
-    if (_CE_.vue.$store.getters["courtroom/addEvidencePermission"]) {
+    if (_CE_.$vue.$store.getters["courtroom/addEvidencePermission"]) {
         ui.enhanceEvidenceTab();
     }
 
     // Watch for evidence permission or mod/owner status changes
-    _CE_.vue.$watch(() => _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.vue.isMod || _CE_.vue.isOwner) || _CE_.vue.isOwner,
+    _CE_.$vue.$watch(() => _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.$vue.isMod || _CE_.$vue.isOwner) || _CE_.$vue.isOwner,
         (newValue, oldValue) => {
             // Only run the enhancer function when permission changes OFF to ON
             if (!newValue || (newValue && oldValue)) return;
@@ -1664,14 +1668,17 @@ function onCourtroomJoin() {
             }
         });
 
-        function sendFrameMessage(command, icon = "") {
+        function sendFrameMessage(command, printInChatlog = false) {
             if (ui.courtTextEditor.canSend !== true) return;
             ui.courtTextEditor.$store.state.courtroom.frame.text += command;
             ui.courtTextEditor.send();
 
-            if (icon) {
-                ui.Logger.log(command, icon);
-            }
+            if (!printInChatlog) return;
+
+            _CE_.$vue.$store.dispatch("courtroom/appendMessage", {
+                type: "system",
+                text: (typeof printInChatlog === "string" ? printInChatlog + ": " : "") + command
+            });
         }
 
         ui.customButtons_evidRouletteButton = new createButton({
@@ -1680,25 +1687,11 @@ function onCourtroomJoin() {
             display: _CE_.options.evid_roulette,
             icon: "dice-multiple",
             onclick: () => {
-                if (_CE_.vue.$store.state.courtroom.room.restrictEvidence) {
-                    ui.Logger.log("Evidence is restricted");
-                    _CE_.vue.$store.dispatch("courtroom/appendMessage", {
-                        type: "error",
-                        text: "Showing evidence is restricted to this courtroom's evidence list."
-                    });
+                if (_CE_.$vue.$store.state.courtroom.room.restrictEvidence) {
+                    _CE_.$snotify.error("Showing evidence is restricted to this courtroom's evidence list.");
                     return;
                 }
-                sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "image");
-            }
-        });
-
-        ui.customButtons_soundRouletteButton = new createButton({
-            label: "SFX",
-            title: "Play a random sound",
-            display: _CE_.options.sound_roulette,
-            icon: "dice-multiple",
-            onclick: () => {
-                sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "volume-medium");
+                sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "EVD Roulette");
             }
         });
 
@@ -1708,13 +1701,23 @@ function onCourtroomJoin() {
             display: _CE_.options.music_roulette,
             icon: "dice-multiple",
             onclick: () => {
-                sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "music-note");
+                sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "BGM Roulette");
+            }
+        });
+
+        ui.customButtons_soundRouletteButton = new createButton({
+            label: "SFX",
+            title: "Play a random sound",
+            display: _CE_.options.sound_roulette,
+            icon: "dice-multiple",
+            onclick: () => {
+                sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "SFX Roulette");
             }
         });
 
         ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
-            ui.customButtons_soundRouletteButton,
-            ui.customButtons_musicRouletteButton);
+            ui.customButtons_musicRouletteButton,
+            ui.customButtons_soundRouletteButton);
 
         // Music buttons
         ui.customButton_stopAllSounds = new createButton({
@@ -1723,8 +1726,8 @@ function onCourtroomJoin() {
             icon: "volume-variant-off",
             backgroundColor: "teal",
             onclick: () => {
-                ui.courtPlayer.$refs.player.musicPlayer.stopMusic();
-                ui.courtPlayer.$refs.player.musicPlayer.stopSounds();
+                _CE_.musicPlayer.stopMusic();
+                _CE_.musicPlayer.stopSounds();
             }
         });
 
@@ -1734,7 +1737,7 @@ function onCourtroomJoin() {
             icon: "volume-mute",
             backgroundColor: "teal",
             onclick: () => {
-                if (_CE_.muteBgm) {
+                if (_CE_.bgmMute) {
                     ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
                     ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
                     ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
@@ -1744,8 +1747,18 @@ function onCourtroomJoin() {
                     ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
                 }
 
-                _CE_.muteBgm = !_CE_.muteBgm;
-                if (ui.courtPlayer.$refs.player.musicPlayer.music !== undefined) ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
+                _CE_.bgmMute = !_CE_.bgmMute;
+
+                if (ui.courtPlayer.$refs.player.musicPlayer.music !== undefined) {
+                    if (_CE_.bgmMute) {
+                        _CE_.bgmVol = _CE_.musicPlayer.volume;
+                        _CE_.musicPlayer.volume = 0;
+                        _CE_.musicPlayer.music.volume(0);
+                    } else {
+                        _CE_.musicPlayer.volume = _CE_.bgmVol;
+                        _CE_.musicPlayer.music.volume(_CE_.bgmVol);
+                    }
+                }
             }
         });
 
@@ -1782,50 +1795,52 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_getCurMusicUrl = new createButton({
-            label: "BGM URL",
-            title: "Get the URL for the song playing now",
+        ui.customButton_showBgmInfo = new createButton({
+            label: "BGM Info",
+            title: "Display active BGM information",
             icon: "link-variant",
             backgroundColor: "teal",
             onclick: () => {
-                for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._state == "loaded" && (howl._loop || howl._src.slice(0, 13) === "/audio/music/")) {
-                        let bgm_url = ui.courtPlayer.$refs.player.musicPlayer.currentMusicUrl;
+                if (!_CE_.musicPlayer.music) return;
+                if (_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info")) return;
 
-                        // Look for a BGM in cache with a matching URL and get that name
-                        const bgm_name = Object.values(ui.courtPlayer.musicCache).find(music => music.url === bgm_url);
-                        if (typeof bgm_name.name === "string") bgm_url = bgm_name.name + " " + bgm_url;
+                const bgm_url = _CE_.musicPlayer.currentMusicUrl;
+                const bgm_object = Object.values(ui.courtPlayer.musicCache).find(music => music.url === bgm_url);
+                const bgm_tag = "[#bgm" + bgm_object.id + "]";
 
-                        if (_CE_.options.show_console !== true) {
-                            alert(bgm_url);
-                        }
-
-                        ui.Logger.log(bgm_url, "link-variant");
-                        break;
-                    }
-                };
+                _CE_.bgmNotification = _CE_.$snotify.warning(bgm_url, "BGM Info", {
+                    html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>${sanitizeHTML(bgm_object.name)}</h3><div>${bgm_tag}</div><div><a href=${bgm_url} target="_blank" rel="noreferrer">${bgm_url}</a></div>`,
+                    closeOnClick: false, timeout: 3000, buttons: [
+                        { text: 'Copy tag', action: () => { navigator.clipboard.writeText(bgm_tag); } },
+                        { text: 'Copy URL', action: () => { navigator.clipboard.writeText(bgm_url); } }]
+                });
             }
         });
 
         ui.customButton_getCurSoundUrl = new createButton({
             label: "SFX URL",
-            title: "Get the URL for the sfx playing now",
+            title: "Display the URL for all active sound effects",
             icon: "link-variant",
             backgroundColor: "teal",
-            onclick: e => {
-                for (const howl of unsafeWindow.Howler._howls) {
-                    if (howl._state == "loaded" && howl._onend.length != 0) {
-                        if (_CE_.options.show_console !== true) {
-                            alert(howl._src);
-                        }
-                        ui.Logger.log(howl._src, "link-variant");
-                    }
-                };
+            onclick: () => {
+                if (_CE_.musicPlayer.soundsPlaying.length === 0) return;
+
+                var notif_html = "";
+                _CE_.musicPlayer.soundsPlaying.forEach(snd => {
+                    const snd_url = snd.howler._src;
+                    const snd_object = Object.values(ui.courtPlayer.soundCache).find(csnd => csnd.url === snd_url);
+                    notif_html += `<div>[#bgs${snd_object.id}] <b>${sanitizeHTML(snd_object.name)}</b><p><a href=${snd_url} target="_blank" rel="noreferrer">${snd_url}</a></p></div>`;
+                })
+
+                _CE_.$snotify.warning("SFX Info", "SFX Info", {
+                    html: `<div class="snotifyToast__body" style="word-break: break-all;">${notif_html}</div>`,
+                    closeOnClick: false, timeout: 3000
+                });
             }
         });
 
         ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
-            ui.customButton_getCurMusicUrl,
+            ui.customButton_showBgmInfo,
             ui.customButton_getCurSoundUrl);
 
         ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
@@ -1834,148 +1849,6 @@ function onCourtroomJoin() {
             ui.customButton_stopSoundsMusic);
 
         ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
-
-        // Log row
-        ui.customButtons_rowLog = document.createElement("div");
-        ui.customButtons_rowLog.setAttributes({
-            className: "row mt-4 no-gutters",
-            style: {
-                display: "flex"
-            }
-        });
-
-        ui.Logger = {
-            init() {
-                this.entries = [];
-                const elemContainer = document.createElement("div");
-                elemContainer.setAttributes({
-                    style: {
-                        width: "100%",
-                        display: "none"
-                    }
-                });
-
-                const elemShowLogButton = document.createElement("button");
-                elemShowLogButton.setAttributes({
-                    className: "mdi mdi-console theme--dark",
-                    style: {
-                        fontSize: "24px"
-                    }
-                });
-
-                elemShowLogButton.addEventListener("mouseover", e => {
-                    e.target.classList.remove("mdi-console");
-                    e.target.classList.add("mdi-close-circle");
-                });
-
-                elemShowLogButton.addEventListener("mouseout", e => {
-                    e.target.classList.remove("mdi-close-circle");
-                    e.target.classList.add("mdi-console");
-                });
-
-                elemShowLogButton.addEventListener("click", e => {
-                    ui.Logger.clear();
-                });
-
-                elemContainer.appendChild(elemShowLogButton);
-
-                const elemItems = document.createElement("div");
-                elemItems.setAttributes({
-                    className: "d-flex ml-1",
-                    style: {
-                        width: "100%",
-                        gap: "3px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        flexWrap: "nowrap",
-                        fontSize: "11px",
-                        fontFamily: "monospace",
-                        textColor: "white",
-                        lineHeight: "14px",
-                        alignItems: "center",
-                        textAlign: "center"
-                    }
-                });
-
-                elemContainer.appendChild(elemItems);
-
-                this.elemContainer = elemContainer;
-                this.elemItems = elemItems;
-                return elemContainer;
-            },
-            log: function (text, icon = null) {
-                let duplicate;
-                if (duplicate = this.entries.find(line => line.text == text)) {
-                    this.entries.splice(this.entries.indexOf(duplicate), 1);
-                }
-                if (this.entries.length > 7) {
-                    this.entries.shift();
-                }
-                this.entries.push({
-                    text: text,
-                    icon: icon
-                });
-
-                while (this.elemItems.firstChild) {
-                    this.elemItems.firstChild.remove()
-                }
-
-                this.entries.forEach(entry => {
-                    const item = document.createElement("span")
-                    if (entry.icon) {
-                        icon = document.createElement("i");
-                        icon.classList.add("mdi", "mr-1", "mdi-" + entry.icon);
-                        item.appendChild(icon);
-                    }
-                    item.setAttributes({
-                        style: {
-                            display: "inline-block",
-                            padding: "2px 4px",
-                            border: "1px solid rgb(126 85 143)",
-                            borderRadius: "4px",
-                            backgroundColor: "rgb(126 85 143)",
-                            userSelect: "all",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                        }
-                    });
-                    item.append(entry.text);
-
-                    item.addEventListener("mouseenter", e => {
-                        e.target.style.overflow = "visible";
-                    });
-
-                    item.addEventListener("mouseleave", e => {
-                        e.target.parentNode.childNodes.forEach(c => {
-                            c.style.overflow = "hidden";
-                        })
-                    });
-
-                    if (_CE_.options.show_console && this.elemContainer.style.display == "none") {
-                        this.elemContainer.style.display = "flex";
-                    }
-                    this.elemItems.prepend(item);
-                });
-                this.elemItems.firstChild.style.borderColor = "#b82792";
-            },
-            clear() {
-                this.entries = [];
-                while (this.elemItems.firstChild) {
-                    this.elemItems.firstChild.remove()
-                }
-                this.toggle(false);
-            },
-
-            toggle(value) {
-                this.elemContainer.style.display = value ? "flex" : "none";
-            }
-        }
-
-        ui.customButtons_rowLogLogger = ui.Logger.init();
-        ui.customButtons_rowLog.appendChild(ui.customButtons_rowLogLogger);
-
-        ui.customButtons_rows.push(ui.customButtons_rowLog);
 
         // Attach each rows to the custom buttons container
         ui.customButtons_rows.forEach(row => {
@@ -1990,29 +1863,36 @@ function onCourtroomJoin() {
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
     // Chat log handler
-    _CE_.vue.$watch("$store.state.courtroom.messages", () => {
+    _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
         setTimeout(() => {
             for (let messageNode of ui.chatLog_chatList.children) {
-                const messageIcon = messageNode.querySelector('i');
-                if (!messageIcon.matches('.mdi-account, .mdi-crown, .mdi-account-tie')) continue;
+                const messageIcon = messageNode.querySelector("i");
+                if (!messageIcon.matches(".mdi-account, .mdi-crown, .mdi-account-tie")) continue;
 
-                const messageTextDiv = messageNode.querySelector('div.chat-text');
+                const messageTextDiv = messageNode.querySelector("div.chat-text");
                 const html = messageTextDiv.innerHTML;
-                if (html.includes('</a>')) continue;
+                if (html.includes("</a>")) continue;
 
                 messageTextDiv.innerHTML = html.replaceAll(
                     URL_REGEX,
-                    '<a target="_blank" rel="noreferrer" href="$1">$1</a>',
+                    `<a target="_blank" rel="noreferrer" href="$1">$1</a>`,
                 );
             }
         }, 0)
     });
 
     // If BGM is muted, mute when a new song is played
-    ui.courtPlayer.$refs.player.$watch("musicPlayer.currentMusicUrl", (newValue, oldValue) => {
+    ui.courtPlayer.$refs.player.$watch("musicPlayer.music", (newValue, oldValue) => {
         if (!newValue) return;
-        ui.courtPlayer.$refs.player.musicPlayer.music.mute(_CE_.muteBgm);
-    }, { flush: "post" })
+
+        if (_CE_.bgmMute) {
+            newValue.once("load", () => {
+                _CE_.bgmVol = _CE_.musicPlayer.volume;
+                _CE_.musicPlayer.volume = 0;
+                _CE_.musicPlayer.music.volume(0);
+            })
+        }
+    });
 
     // Chat hover tooltips
     const chatTooltip = {
@@ -2398,6 +2278,10 @@ function storeClear() {
     _CE_.options.warn_on_exit = false;
     window.location.reload();
 };
+
+function sanitizeHTML(text) {
+    return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 const CrossOrigin = (function () {
     try {
