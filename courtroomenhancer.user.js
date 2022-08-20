@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.792
+// @version      0.793
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -99,15 +99,6 @@ function onCourtroomJoin() {
     ui.settings_keyboardShortcutsT = ui.settings_keyboardShortcutsAD.nextSibling.nextSibling;
 
     ui.presentDialog = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
-
-    console.log("courtEvidence", ui.courtEvidence);
-    console.log("presentDialog", ui.presentDialog);
-
-    /*  ui.courtEvidence.viewOrig = ui.courtEvidence.view;
-     ui.courtEvidence.view = t => {
-         _CE_.$vue.$store.state.courtroom.viewEvidence = ui.courtEvidence.evidenceList.find(r => r.id == t)
-         console.log("view t", _CE_.$vue.$store.state.courtroom.viewEvidence);
-     } */
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
@@ -899,7 +890,6 @@ function onCourtroomJoin() {
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function (node) {
-            console.log(node);
             const divCard = node.firstChild;
             const divImage = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
             const divTitle = divCard.querySelector("div.v-card__title");
