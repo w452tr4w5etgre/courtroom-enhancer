@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.791
+// @version      0.792
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -99,6 +99,15 @@ function onCourtroomJoin() {
     ui.settings_keyboardShortcutsT = ui.settings_keyboardShortcutsAD.nextSibling.nextSibling;
 
     ui.presentDialog = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
+
+    console.log("courtEvidence", ui.courtEvidence);
+    console.log("presentDialog", ui.presentDialog);
+
+    /*  ui.courtEvidence.viewOrig = ui.courtEvidence.view;
+     ui.courtEvidence.view = t => {
+         _CE_.$vue.$store.state.courtroom.viewEvidence = ui.courtEvidence.evidenceList.find(r => r.id == t)
+         console.log("view t", _CE_.$vue.$store.state.courtroom.viewEvidence);
+     } */
 
     window.addEventListener("beforeunload", on_beforeUnload, false);
 
@@ -657,7 +666,7 @@ function onCourtroomJoin() {
     };
 
     // Evidence tab enhancements
-    ui.enhanceEvidenceTab = function () {
+    ui.enhanceEvidenceForm = function () {
         ui.evidence_form = ui.courtEvidence.$children.find(child => { return child.$vnode.componentOptions.tag === "v-form"; });
         ui.evidence_formDivs = ui.evidence_form.$el.firstChild;
         ui.evidence_formFields = ui.evidence_formDivs.querySelectorAll("input");
@@ -665,10 +674,6 @@ function onCourtroomJoin() {
 
         ui.evidence_formBottomRow = ui.evidence_form.$el.querySelector("form > div:nth-child(2)");
         ui.evidence_formBottomRow_buttonsColumn = ui.evidence_formBottomRow.firstChild;
-        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
-
-        ui.evidence_list.style.maxHeight = "70vh";
-        ui.evidence_list.style.scrollBehavior = "smooth";
 
         // Pressing the Enter key on the form fields adds the evidence
         ui.evidence_formFields.forEach(f => {
@@ -884,17 +889,23 @@ function onCourtroomJoin() {
         ui.evidence_evidenceCounter = evidenceCounter.init();
         evidenceCounter.updateCount();
         ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
+    };
+
+    ui.enhanceEvidenceItems = function () {
+        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
+
+        ui.evidence_list.style.maxHeight = "70vh";
+        ui.evidence_list.style.scrollBehavior = "smooth";
 
         // Adjust evidence items
         ui.evidence_list.fixEvidenceItem = function (node) {
+            console.log(node);
             const divCard = node.firstChild;
-            const divImage = divCard.querySelector("div.v-image");
+            const divImage = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
             const divTitle = divCard.querySelector("div.v-card__title");
             const divSubtitle = divCard.querySelector("div.v-card__subtitle");
             const divActions = divCard.querySelector("div.v-card__actions");
             const buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
-
-
             divCard.addEventListener("mouseenter", e => {
                 const image = e.target.querySelector("div.v-image__image");
                 image.classList.add("v-image__image--contain");
@@ -912,26 +923,17 @@ function onCourtroomJoin() {
                 divActions.style.opacity = "0";
             });
 
-            divImage.style.cursor = "pointer";
-            divImage.style.height = "200px";
-            divImage.addEventListener("click", e => {
+            divImage.$el.style.cursor = "pointer";
+            divImage.$el.style.height = "200px";
+            divImage.$el.addEventListener("click", e => {
                 if (divActions.contains(e.target)) {
                     return;
                 }
 
                 buttonEye.click();
 
-                // Check if the evidence is ready to be checked
-                const checkEvidInterval = setInterval(e => {
-                    // Check if the Check button is visible
-                    if (ui.courtRecord_checkButton?.offsetParent === null) return;
-
-                    // Check if the currently loaded thumbnail matches the evidence we want to open
-                    if (ui.courtRecord_cardContent.querySelector(":scope > div:nth-child(2) > div:nth-child(1) > div.v-image > div.v-image__image").style.backgroundImage !== divImage.querySelector(":scope > div.v-image__image").style.backgroundImage) return;
-
-                    ui.courtRecord_checkButton.click();
-                    clearInterval(checkEvidInterval);
-                }, 50);
+                // Immediately show image
+                ui.presentDialog.checkImageUrl = divImage.src;
 
             }, true);
 
@@ -980,10 +982,14 @@ function onCourtroomJoin() {
 
             buttonLink.addEventListener("click", e => {
                 if (e.target.disabled) return;
-                var imageUrl = divImage.querySelector(":scope > div.v-image__image").style.backgroundImage;
-                imageUrl = imageUrl.substring(4, imageUrl.length - 1).replace(/["']/g, "");
-                //navigator.clipboard.writeText(imageUrl); // Copy URL to clipboard
-                _CE_.$snotify.info(imageUrl, { closeOnClick: false });
+                var imageUrl = divImage.url;
+                _CE_.bgmNotification = _CE_.$snotify.success(imageUrl, "Evidence Info " + imageUrl, {
+                    html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${imageUrl}" target="_blank" rel="noreferrer">${imageUrl}</a></div>`,
+                    closeOnClick: false, buttons: [
+                        { text: "Copy URL", action: () => { navigator.clipboard.writeText(imageUrl); } },
+                        { text: "Open in new tab", action: () => { window.open(imageUrl, "_blank", "noreferrer") } }
+                    ]
+                });
             });
 
             // Hide eye button (clicking on the image itself clicks on the eye)
@@ -1009,7 +1015,7 @@ function onCourtroomJoin() {
     };
 
     if (_CE_.$vue.$store.getters["courtroom/addEvidencePermission"]) {
-        ui.enhanceEvidenceTab();
+        ui.enhanceEvidenceForm();
     }
 
     // Watch for evidence permission or mod/owner status changes
@@ -1017,9 +1023,10 @@ function onCourtroomJoin() {
         (newValue, oldValue) => {
             // Only run the enhancer function when permission changes OFF to ON
             if (!newValue || (newValue && oldValue)) return;
-            ui.enhanceEvidenceTab();
+            ui.enhanceEvidenceForm();
         });
 
+    ui.enhanceEvidenceItems();
     // CSS injector to change textbox style
     ui.StylePicker = {
         styleSheet: (function () { var style = document.createElement("style"); document.head.appendChild(style); return style; })(),
@@ -1801,18 +1808,26 @@ function onCourtroomJoin() {
             icon: "link-variant",
             backgroundColor: "teal",
             onclick: () => {
-                if (!_CE_.musicPlayer.music) return;
-                if (_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info")) return;
-
+                if (!_CE_.musicPlayer.music) {
+                    if (!_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info Error"))
+                        _CE_.$snotify.error("Nothing is playing...", "BGM Info Error", {
+                            html: `<div class="snotifyToast__body" style="word-break: break-all;">Nothing is playing...</div>`
+                        });
+                    return;
+                }
                 const bgm_url = _CE_.musicPlayer.currentMusicUrl;
                 const bgm_object = Object.values(ui.courtPlayer.musicCache).find(music => music.url === bgm_url);
                 const bgm_tag = "[#bgm" + bgm_object.id + "]";
 
-                _CE_.bgmNotification = _CE_.$snotify.warning(bgm_url, "BGM Info", {
-                    html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>${sanitizeHTML(bgm_object.name)}</h3><div>${bgm_tag}</div><div><a href=${bgm_url} target="_blank" rel="noreferrer">${bgm_url}</a></div>`,
-                    closeOnClick: false, timeout: 3000, buttons: [
-                        { text: 'Copy tag', action: () => { navigator.clipboard.writeText(bgm_tag); } },
-                        { text: 'Copy URL', action: () => { navigator.clipboard.writeText(bgm_url); } }]
+                // Check if a notification for the current song is already active
+                if (_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info " + bgm_object.id)) return;
+
+                _CE_.bgmNotification = _CE_.$snotify.success(bgm_url, "BGM Info " + bgm_object.id, {
+                    html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>${sanitizeHTML(bgm_object.name)}</h3><div><a style="color:#0f28e6" href="${bgm_url}" target="_blank" rel="noreferrer">${bgm_url}</a></div><div>${bgm_tag}</div>`,
+                    closeOnClick: false, buttons: [
+                        { text: "Copy URL", action: () => { navigator.clipboard.writeText(bgm_url); } },
+                        { text: "Copy tag", action: () => { navigator.clipboard.writeText(bgm_tag); } }
+                    ]
                 });
             }
         });
@@ -1829,10 +1844,10 @@ function onCourtroomJoin() {
                 _CE_.musicPlayer.soundsPlaying.forEach(snd => {
                     const snd_url = snd.howler._src;
                     const snd_object = Object.values(ui.courtPlayer.soundCache).find(csnd => csnd.url === snd_url);
-                    notif_html += `<div>[#bgs${snd_object.id}] <b>${sanitizeHTML(snd_object.name)}</b><p><a href=${snd_url} target="_blank" rel="noreferrer">${snd_url}</a></p></div>`;
+                    notif_html += `<div>[#bgs${snd_object.id}] <b>${sanitizeHTML(snd_object.name)}</b><p><a style="color:#0f28e6" href="${snd_url}" target="_blank" rel="noreferrer">${snd_url}</a></p></div>`;
                 })
 
-                _CE_.$snotify.warning("SFX Info", "SFX Info", {
+                _CE_.$snotify.success("SFX Info", "SFX Info", {
                     html: `<div class="snotifyToast__body" style="word-break: break-all;">${notif_html}</div>`,
                     closeOnClick: false, timeout: 3000
                 });
