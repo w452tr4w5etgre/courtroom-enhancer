@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.795
+// @version      0.796
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -25,17 +25,14 @@ const _CE_ = {};
 _CE_.options = {
     "warn_on_exit": getSetting("warn_on_exit", true),
     "remember_username": getSetting("remember_username", true),
-    "show_console": getSetting("show_console", false),
     "chat_hover_tooltip": getSetting("chat_hover_tooltip", true),
     "disable_keyboard_shortcuts": getSetting("disable_keyboard_shortcuts", true),
-    "evid_roulette": getSetting("evid_roulette", false),
-    "music_roulette": getSetting("music_roulette", false),
-    "sound_roulette": getSetting("sound_roulette", false),
-    "global_buttons": getSetting("global_buttons", false),
+    "show_roulettes": getSetting("show_roulettes", true),
+    "global_audio_control_buttons": getSetting("global_audio_control_buttons", false),
     "mute_bgm_button": getSetting("mute_bgm_button", false),
-    "evid_roulette_max": Math.max(getSetting("evid_roulette_max", 0), 577000),
-    "sound_roulette_max": Math.max(getSetting("sound_roulette_max", 0), 53000),
-    "music_roulette_max": Math.max(getSetting("music_roulette_max", 0), 172000),
+    "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 582000),
+    "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 140000),
+    "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 53000),
     "file_host": getSetting("file_host", "catbox"),
     "textbox_style": getSetting("textbox_style", "none"),
     "custom_styles": getSetting("custom_styles")
@@ -317,6 +314,9 @@ function onCourtroomJoin() {
                 backgroundColor: options.backgroundColor || "rgb(184 39 146)"
             }
         });
+
+        if (options.width) button.style.width = options.width;
+
         button.addEventListener("click", options.onclick.bind(this));
 
         const label = document.createElement("span");
@@ -1239,16 +1239,6 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_showConsole = new createInputCheckbox({
-            checked: _CE_.options.show_console,
-            label: "Show console",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("show_console", value);
-                ui.Logger.toggle(value);
-            }
-        });
-
         ui.extraSettings_chatHoverTooltip = new createInputCheckbox({
             checked: _CE_.options.chat_hover_tooltip,
             label: "Chat tooltips",
@@ -1280,137 +1270,27 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rouletteEvid = new createInputCheckbox({
-            checked: _CE_.options.evid_roulette,
-            label: "EVD roulette",
+        ui.extraSettings_showRoulettes = new createInputCheckbox({
+            checked: _CE_.options.show_roulettes,
+            label: "Roulettes",
             onchange: e => {
                 const value = e.target.checked;
-                setSetting("evid_roulette", value);
-                ui.customButtons_evidRouletteButton.style.display = value ? "flex" : "none";
-                ui.extraSettings_rouletteEvidMax.style.display = value ? "flex" : "none";
-            }
-        });
-
-        ui.extraSettings_rouletteSound = new createInputCheckbox({
-            checked: _CE_.options.sound_roulette,
-            label: "SND roulette",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("sound_roulette", value);
+                setSetting("show_roulettes", value);
+                ui.customButtons_evidenceRouletteButton.style.display = value ? "flex" : "none";
                 ui.customButtons_soundRouletteButton.style.display = value ? "flex" : "none";
-                ui.extraSettings_rouletteSoundMax.style.display = value ? "flex" : "none";
-            }
-        });
-
-        ui.extraSettings_rouletteMusic = new createInputCheckbox({
-            checked: _CE_.options.music_roulette,
-            label: "MUS roulette",
-            onchange: e => {
-                const value = e.target.checked;
-                setSetting("music_roulette", value);
                 ui.customButtons_musicRouletteButton.style.display = value ? "flex" : "none";
-                ui.extraSettings_rouletteMusicMax.style.display = value ? "flex" : "none";
             }
         });
 
         ui.extraSettings_globalAudioControlButtons = new createInputCheckbox({
             checked: _CE_.options.global_audio_control_buttons,
-            label: "Global BGM/SFX Control Buttons",
+            label: "Global audio buttons",
             onchange: e => {
                 const value = e.target.checked;
                 setSetting("global_audio_control_buttons", value);
-                ui.customButton_stopSounds.style.display = value ? "flex" : "none";
-                ui.customButton_stopMusic.style.display = value ? "flex" : "none";
-                ui.customButton_stopSoundsMusic.style.display = value ? "flex" : "none";
-            }
-        });
-
-        ui.extraSettings_rouletteEvidMax = new createInputText({
-            value: _CE_.options.evid_roulette_max,
-            label: "max",
-            type: "number",
-            display: _CE_.options.evid_roulette,
-            onfocusout: e => {
-                const value = parseInt(e.target.value);
-                if (value) {
-                    setSetting("evid_roulette_max", value);
-                } else {
-                    e.target.value = _CE_.options.evid_roulette_max;
-                    e.preventDefault();
-                    return false;
-                }
-            }
-        });
-
-        ui.extraSettings_rouletteSoundMax = new createInputText({
-            value: _CE_.options.sound_roulette_max,
-            label: "max",
-            type: "number",
-            display: _CE_.options.sound_roulette,
-            onfocusout: e => {
-                const value = parseInt(e.target.value);
-                if (value) {
-                    setSetting("sound_roulette_max", value);
-                } else {
-                    e.target.value = _CE_.options.sound_roulette_max;
-                    e.preventDefault();
-                    return false;
-                }
-            }
-        });
-
-        ui.extraSettings_rouletteMusicMax = new createInputText({
-            value: _CE_.options.music_roulette_max,
-            label: "max",
-            type: "number",
-            display: _CE_.options.music_roulette,
-            onfocusout: e => {
-                const value = parseInt(e.target.value);
-                if (value) {
-                    setSetting("music_roulette_max", value);
-                } else {
-                    e.target.value = _CE_.options.music_roulette_max;
-                    e.preventDefault();
-                    return false;
-                }
-            }
-        });
-
-        // Row 1 - Header
-        const extraSettings_rows = [];
-        ui.extraSettings_rowHeader = document.createElement("h3");
-        ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
-
-        ui.extraSettings_resetButton = new createButton({
-            label: "Reset and reload",
-            icon: "refresh",
-            onclick: e => {
-                if (confirm("Reset Courtroom Enhancer settings and refresh the page?") !== true) {
-                    return;
-                }
-                storeClear();
-            }
-        });
-
-        ui.extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
-        ui.extraSettings_resetButton.firstChild.setAttributes({
-            style: {
-                backgroundColor: "rgb(161 35 35)"
-            }
-        });
-
-        ui.extraSettings_rowHeader.append(ui.extraSettings_resetButton);
-        extraSettings_rows.push(ui.extraSettings_rowHeader);
-
-        // Row 2 - Buttons
-        ui.extraSettings_rowButtons = document.createElement("div");
-        ui.extraSettings_rowButtons.className = "row mt-4 no-gutters";
-        ui.extraSettings_rowButtonsCol = document.createElement("div");
-        ui.extraSettings_rowButtonsCol.setAttributes({
-            className: "col col-12 d-flex align-center",
-            style: {
-                flexWrap: "wrap",
-                gap: "12px 5px"
+                ui.customButton_globalStopSfx.style.display = value ? "flex" : "none";
+                ui.customButton_globalStopBgm.style.display = value ? "flex" : "none";
+                ui.customButton_globalStopSfxMusic.style.display = value ? "flex" : "none";
             }
         });
 
@@ -1520,92 +1400,56 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
-        ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
-            ui.extraSettings_rememberUsername,
-            ui.extraSettings_showConsole,
-            ui.extraSettings_textboxStyleSelector,
-            ui.extraSettings_chatHoverTooltip,
-            ui.extraSettings_disableKeyboardShortcuts,
-            ui.extraSettings_fileHostSelector);
-        extraSettings_rows.push(ui.extraSettings_rowButtons);
+        // Row 1 - Header
+        const extraSettings_rows = [];
+        ui.extraSettings_rowHeader = document.createElement("h3");
+        ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
 
-        // Row 3 - Roulettes
-        ui.extraSettings_rowRoulettes = document.createElement("div");
-        ui.extraSettings_rowRoulettes.className = "row mt-4 no-gutters";
-        ui.extraSettings_rowRoulettesCol = document.createElement("div");
-        ui.extraSettings_rowRoulettesCol.setAttributes({
+        ui.extraSettings_resetButton = new createButton({
+            label: "Reset and reload",
+            icon: "refresh",
+            onclick: e => {
+                if (confirm("Reset Courtroom Enhancer settings and refresh the page?") !== true) {
+                    return;
+                }
+                storeClear();
+            }
+        });
+
+        ui.extraSettings_resetButton.classList.add("d-inline-block", "ml-2");
+        ui.extraSettings_resetButton.firstChild.setAttributes({
+            style: {
+                backgroundColor: "rgb(161 35 35)"
+            }
+        });
+
+        ui.extraSettings_rowHeader.append(ui.extraSettings_resetButton);
+        extraSettings_rows.push(ui.extraSettings_rowHeader);
+
+        // Row 2 - Buttons
+        ui.extraSettings_rowButtons = document.createElement("div");
+        ui.extraSettings_rowButtons.className = "row mt-4 no-gutters";
+        ui.extraSettings_rowButtonsCol = document.createElement("div");
+        ui.extraSettings_rowButtonsCol.setAttributes({
             className: "col col-12 d-flex align-center",
             style: {
                 flexWrap: "wrap",
-                gap: "12px 15px"
+                gap: "12px 5px"
             }
         });
 
-        ui.extraSettings_rowRoulettes.appendChild(ui.extraSettings_rowRoulettesCol);
+        ui.extraSettings_rowButtons.appendChild(ui.extraSettings_rowButtonsCol);
+        ui.extraSettings_rowButtonsCol.append(ui.extraSettings_warnOnExit,
+            ui.extraSettings_rememberUsername,
+            ui.extraSettings_chatHoverTooltip,
+            ui.extraSettings_disableKeyboardShortcuts,
+            ui.extraSettings_textboxStyleSelector,
+            ui.extraSettings_fileHostSelector,
+            ui.extraSettings_showRoulettes,
+            ui.extraSettings_globalAudioControlButtons);
+        extraSettings_rows.push(ui.extraSettings_rowButtons);
 
-        ui.extraSettings_rouletteEvidMax.querySelector("input").setAttributes({
-            maxLength: "7",
-            min: "0",
-            max: "9999999",
-            style: {
-                width: "55px"
-            }
-        });
-
-        ui.extraSettings_rouletteSoundMax.querySelector("input").setAttributes({
-            maxLength: "7",
-            min: "0",
-            max: "9999999",
-            style: {
-                width: "45px"
-            }
-        });
-
-        ui.extraSettings_rouletteMusicMax.querySelector("input").setAttributes({
-            maxLength: "7",
-            min: "0",
-            max: "9999999",
-            style: {
-                width: "55px"
-            }
-        });
-
-        const rouletteEvidContainer = document.createElement("div");
-        rouletteEvidContainer.setAttributes({
-            className: "d-flex align-center",
-            style: {
-                gap: "0px 4px"
-            }
-        });
-        const rouletteSoundContainer = rouletteEvidContainer.cloneNode();
-        const rouletteMusicContainer = rouletteEvidContainer.cloneNode();
-        const musicControlContainer = rouletteEvidContainer.cloneNode();
-
-        rouletteEvidContainer.append(
-            ui.extraSettings_rouletteEvid,
-            ui.extraSettings_rouletteEvidMax
-        );
-
-        rouletteSoundContainer.append(
-            ui.extraSettings_rouletteSound,
-            ui.extraSettings_rouletteSoundMax
-        );
-
-        rouletteMusicContainer.append(
-            ui.extraSettings_rouletteMusic,
-            ui.extraSettings_rouletteMusicMax
-        );
-
-        musicControlContainer.append(
-            ui.extraSettings_globalAudioControlButtons
-        );
-
-        ui.extraSettings_rowRoulettes.lastChild.append(rouletteEvidContainer, rouletteSoundContainer, rouletteMusicContainer, musicControlContainer);
-
-        extraSettings_rows.push(ui.extraSettings_rowRoulettes);
-
-        //
+        // Append the custom controls before the volume control
         const volumeControl = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "volumeControl"; }).$el.parentNode;
 
         extraSettings_rows.forEach(row => {
@@ -1632,50 +1476,44 @@ function onCourtroomJoin() {
             }
         });
 
-        // Music Control buttons row
-        ui.customButtons_musicButtons = document.createElement("div");
-        ui.customButtons_musicButtons.setAttributes({
-            className: "row mt-2 no-gutters",
-            style: {
-                gap: "15px 5px"
-            }
-        });
-
-        ui.customButtons_evidRouletteButton = new createButton({
+        ui.customButtons_evidenceRouletteButton = new createButton({
             label: "EVD",
             title: "Show a random piece of evidence",
-            display: _CE_.options.evid_roulette,
+            display: _CE_.options.show_roulettes,
             icon: "dice-multiple",
             onclick: () => {
                 if (_CE_.$vue.$store.state.courtroom.room.restrictEvidence) {
                     _CE_.$snotify.error("Showing evidence is restricted to this courtroom's evidence list.");
                     return;
                 }
-                _CE_.sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "EVD Roulette");
+                _CE_.findHighestAssetID("evidence");
+                _CE_.sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.roulette_max_evidence) + "]", "EVD Roulette");
             }
         });
 
         ui.customButtons_musicRouletteButton = new createButton({
             label: "BGM",
             title: "Play a random song",
-            display: _CE_.options.music_roulette,
+            display: _CE_.options.show_roulettes,
             icon: "dice-multiple",
             onclick: () => {
-                _CE_.sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "BGM Roulette");
+                _CE_.findHighestAssetID("music");
+                _CE_.sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.roulette_max_music) + "]", "BGM Roulette");
             }
         });
 
         ui.customButtons_soundRouletteButton = new createButton({
             label: "SFX",
             title: "Play a random sound",
-            display: _CE_.options.sound_roulette,
+            display: _CE_.options.show_roulettes,
             icon: "dice-multiple",
             onclick: () => {
-                _CE_.sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "SFX Roulette");
+                _CE_.findHighestAssetID("sound");
+                _CE_.sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.roulette_max_sound) + "]", "SFX Roulette");
             }
         });
 
-        ui.customButtons_rowButtons.append(ui.customButtons_evidRouletteButton,
+        ui.customButtons_rowButtons.append(ui.customButtons_evidenceRouletteButton,
             ui.customButtons_musicRouletteButton,
             ui.customButtons_soundRouletteButton);
 
@@ -1694,17 +1532,18 @@ function onCourtroomJoin() {
         ui.customButton_muteBGM = new createButton({
             label: "Mute BGM",
             title: "Mute BGM",
-            icon: "volume-mute",
+            icon: "music",
             backgroundColor: "teal",
+            width: "115px",
             onclick: () => {
                 if (_CE_.bgmMute) {
                     ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
-                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-mute");
-                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-volume-variant-off");
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-music");
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-music-off");
                 } else {
-                    ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute BGM";
-                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-volume-mute");
-                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-volume-variant-off");
+                    ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Unmute";
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-music");
+                    ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-music-off");
                 }
 
                 _CE_.bgmMute = !_CE_.bgmMute;
@@ -1722,10 +1561,10 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_stopMusic = new createButton({
+        ui.customButton_globalStopBgm = new createButton({
             label: "Stop BGM",
             title: "Stops the song that is currently playing (for everyone)",
-            display: _CE_.options.global_buttons,
+            display: _CE_.options.global_audio_control_buttons,
             icon: "volume-variant-off",
             backgroundColor: "crimson",
             onclick: () => {
@@ -1733,10 +1572,10 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_stopSounds = new createButton({
+        ui.customButton_globalStopSfx = new createButton({
             label: "Stop SFX",
             title: "Stop all SFX that are currently playing (for everyone)",
-            display: _CE_.options.global_buttons,
+            display: _CE_.options.global_audio_control_buttons,
             icon: "volume-variant-off",
             backgroundColor: "crimson",
             onclick: () => {
@@ -1744,10 +1583,10 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_stopSoundsMusic = new createButton({
+        ui.customButton_globalStopSfxMusic = new createButton({
             label: "Stop BGM/SFX",
             title: "Stop all sounds that are currently playing (for everyone)",
-            display: _CE_.options.global_buttons,
+            display: _CE_.options.global_audio_control_buttons,
             icon: "volume-variant-off",
             backgroundColor: "crimson",
             onclick: () => {
@@ -1758,13 +1597,13 @@ function onCourtroomJoin() {
         ui.customButton_showBgmInfo = new createButton({
             label: "BGM Info",
             title: "Display active BGM information",
-            icon: "link-variant",
+            icon: "music-circle-outline",
             backgroundColor: "teal",
             onclick: () => {
                 if (!_CE_.musicPlayer.music) {
                     if (!_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info Error"))
-                        _CE_.$snotify.error("Nothing is playing...", "BGM Info Error", {
-                            html: `<div class="snotifyToast__body" style="word-break: break-all;">Nothing is playing...</div>`
+                        _CE_.$snotify.error("No music is playing.", "BGM Info Error", {
+                            html: `<div class="snotifyToast__body" style="word-break: break-all;">No music is playing.</div>`
                         });
                     return;
                 }
@@ -1779,7 +1618,7 @@ function onCourtroomJoin() {
                     html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>${sanitizeHTML(bgm_object.name)}</h3><div><a style="color:#0f28e6" href="${bgm_url}" target="_blank" rel="noreferrer">${bgm_url}</a></div><div>${bgm_tag}</div>`,
                     closeOnClick: false, buttons: [
                         { text: "Copy URL", action: () => { navigator.clipboard.writeText(bgm_url); } },
-                        { text: "Copy tag", action: () => { navigator.clipboard.writeText(bgm_tag); } }
+                        { text: "Copy Tag", action: () => { navigator.clipboard.writeText(bgm_tag); } }
                     ]
                 });
             }
@@ -1788,10 +1627,16 @@ function onCourtroomJoin() {
         ui.customButton_showSfxInfo = new createButton({
             label: "SFX URL",
             title: "Display the URL for all active sound effects",
-            icon: "link-variant",
+            icon: "music-circle-outline",
             backgroundColor: "teal",
             onclick: () => {
-                if (_CE_.musicPlayer.soundsPlaying.length === 0) return;
+                if (_CE_.musicPlayer.soundsPlaying.length === 0) {
+                    if (!_CE_.$snotify.notifications.some(notification => notification.title === "SFX Info Error"))
+                        _CE_.$snotify.error("No sounds are playing.", "SFX Info Error", {
+                            html: `<div class="snotifyToast__body" style="word-break: break-all;">No sounds are playing.</div>`
+                        });
+                    return;
+                }
 
                 var notif_html = "";
                 _CE_.musicPlayer.soundsPlaying.forEach(snd => {
@@ -1809,14 +1654,13 @@ function onCourtroomJoin() {
 
         ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
             ui.customButton_showBgmInfo,
-            ui.customButton_showSfxInfo);
+            ui.customButton_showSfxInfo,
+            ui.customButton_muteBGM,
+            ui.customButton_globalStopBgm,
+            ui.customButton_globalStopSfx,
+            ui.customButton_globalStopSfxMusic);
 
-        ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
-            ui.customButton_stopMusic,
-            ui.customButton_stopSounds,
-            ui.customButton_stopSoundsMusic);
-
-        ui.customButtons_rows.push(ui.customButtons_rowButtons, ui.customButtons_musicButtons);
+        ui.customButtons_rows.push(ui.customButtons_rowButtons);
 
         // Attach each rows to the custom buttons container
         ui.customButtons_rows.forEach(row => {
@@ -1862,6 +1706,7 @@ function onCourtroomJoin() {
         }
     });
 
+    // Sends a message with optional output in the chatlog
     _CE_.sendFrameMessage = function (command, printInChatlog = false) {
         if (ui.courtTextEditor.canSend !== true) return;
         ui.courtTextEditor.$store.state.courtroom.frame.text += command;
@@ -1873,6 +1718,20 @@ function onCourtroomJoin() {
             type: "system",
             text: (typeof printInChatlog === "string" ? printInChatlog + ": " : "") + command
         });
+    }
+
+    // Find a cached asset with an ID highest than the recorded one and if it exists remember it
+    _CE_.findHighestAssetID = function (asset) {
+        if (!["evidence", "music", "sound"].includes(asset)) return;
+        const highestCached = Math.max(...Object.keys(_CE_.$vue.$store.state.assets[asset].cache));
+        if (highestCached > _CE_.options[`roulette_max_${asset}`]) {
+            setSetting(`roulette_max_${asset}`, highestCached);
+        }
+    }
+
+    // Finds all cached assets with the highest ID for later use
+    _CE_.findAllHighestAssetID = function () {
+        ["evidence", "music", "sound"].forEach(asset => { _CE_.findHighestAssetID(asset); })
     }
 
     // Chat hover tooltips
@@ -2184,6 +2043,7 @@ function onCourtroomJoin() {
 }
 
 function on_beforeUnload(e) {
+    findAllHighestAssetID();
     if (_CE_.options.warn_on_exit) {
         e.preventDefault();
         e.returnValue = "Are you sure you want to leave?";
