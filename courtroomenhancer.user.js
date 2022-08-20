@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.794
+// @version      0.795
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -884,6 +884,7 @@ function onCourtroomJoin() {
 
                 divActions.style.visibility = "hidden";
                 divActions.style.opacity = "0";
+                divActions.style.padding = "4px";
             });
 
             divImage.$el.style.cursor = "pointer";
@@ -928,6 +929,8 @@ function onCourtroomJoin() {
                     transition: "opacity 0.1s ease-in-out 0s"
                 }
             });
+
+            divActions.querySelectorAll("button.v-btn").forEach(btn => { btn.style.margin = "0"; btn.style.padding = "0"; });
 
             // Add "link" button
             const buttonLink = document.createElement("button");
@@ -1602,7 +1605,7 @@ function onCourtroomJoin() {
 
         extraSettings_rows.push(ui.extraSettings_rowRoulettes);
 
-        // 
+        //
         const volumeControl = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "volumeControl"; }).$el.parentNode;
 
         extraSettings_rows.forEach(row => {
