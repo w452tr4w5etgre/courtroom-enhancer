@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.793
+// @version      0.794
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -90,6 +90,8 @@ function onCourtroomJoin() {
     ui.courtAdmin = ui.rightFrame_tabs.$children[4].$children.find(child => { return child.$vnode.componentOptions.tag === "courtAdmin"; });
 
     ui.chatLog_chatList = ui.courtChatLog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-list"; }).$el;
+
+    ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
 
     ui.divider = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "v-divider"; }).$el;
 
@@ -853,38 +855,9 @@ function onCourtroomJoin() {
         ui.evidence_formBottomRow.classList.remove("pb-1");
         ui.evidence_formBottomRow.classList.add("align-center", "pb-2");
         ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
-
-        // Show evidence count
-        const evidenceCounter = {
-            updateCount: function () {
-                const evidMax = 75, evidCount = Math.max(ui.evidence_list.childElementCount, 0);
-                if (evidCount == evidMax) {
-                    this.text.className = "mdi mdi-alert error--text";
-                } else if (evidCount / evidMax > 0.9) {
-                    this.text.className = "warning--text";
-                } else {
-                    this.text.className = "success--text";
-                }
-                this.text.textContent = evidCount + " / " + evidMax;
-            },
-            init: function () {
-                this.container = document.createElement("div");
-                this.text = document.createElement("div");
-                this.container.className = "d-flex";
-                this.container.appendChild(this.text);
-                this.updateCount();
-                return this.container;
-            }
-        };
-
-        ui.evidence_evidenceCounter = evidenceCounter.init();
-        evidenceCounter.updateCount();
-        ui.evidence_formBottomRow.appendChild(ui.evidence_evidenceCounter);
     };
 
     ui.enhanceEvidenceItems = function () {
-        ui.evidence_list = ui.courtEvidence.$el.querySelector("div > div.row:last-of-type");
-
         ui.evidence_list.style.maxHeight = "70vh";
         ui.evidence_list.style.scrollBehavior = "smooth";
 
@@ -972,7 +945,7 @@ function onCourtroomJoin() {
 
             buttonLink.addEventListener("click", e => {
                 if (e.target.disabled) return;
-                var imageUrl = divImage.url;
+                var imageUrl = divImage.src;
                 _CE_.bgmNotification = _CE_.$snotify.success(imageUrl, "Evidence Info " + imageUrl, {
                     html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${imageUrl}" target="_blank" rel="noreferrer">${imageUrl}</a></div>`,
                     closeOnClick: false, buttons: [
@@ -994,7 +967,6 @@ function onCourtroomJoin() {
 
         (new MutationObserver(on_evidenceListChange)).observe(ui.evidence_list, { childList: true });
         function on_evidenceListChange(changes, observer) {
-            evidenceCounter.updateCount();
             for (const change of changes) {
                 for (const node of change.addedNodes) {
                     ui.evidence_list.fixEvidenceItem(node);
@@ -1017,6 +989,7 @@ function onCourtroomJoin() {
         });
 
     ui.enhanceEvidenceItems();
+
     // CSS injector to change textbox style
     ui.StylePicker = {
         styleSheet: (function () { var style = document.createElement("style"); document.head.appendChild(style); return style; })(),
@@ -1280,9 +1253,9 @@ function onCourtroomJoin() {
                 const value = e.target.checked;
                 setSetting("chat_hover_tooltip", value);
                 if (value) {
-                    ui.chatLog_chatList.addEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
+                    ui.chatLog_chatList.addEventListener("mouseover", _CE_.chatTooltip.onChatListMouseOver, false);
                 } else {
-                    ui.chatLog_chatList.removeEventListener("mouseover", chatTooltip.onChatListMouseOver, false);
+                    ui.chatLog_chatList.removeEventListener("mouseover", _CE_.chatTooltip.onChatListMouseOver, false);
                 }
             }
         });
@@ -1665,19 +1638,6 @@ function onCourtroomJoin() {
             }
         });
 
-        function sendFrameMessage(command, printInChatlog = false) {
-            if (ui.courtTextEditor.canSend !== true) return;
-            ui.courtTextEditor.$store.state.courtroom.frame.text += command;
-            ui.courtTextEditor.send();
-
-            if (!printInChatlog) return;
-
-            _CE_.$vue.$store.dispatch("courtroom/appendMessage", {
-                type: "system",
-                text: (typeof printInChatlog === "string" ? printInChatlog + ": " : "") + command
-            });
-        }
-
         ui.customButtons_evidRouletteButton = new createButton({
             label: "EVD",
             title: "Show a random piece of evidence",
@@ -1688,7 +1648,7 @@ function onCourtroomJoin() {
                     _CE_.$snotify.error("Showing evidence is restricted to this courtroom's evidence list.");
                     return;
                 }
-                sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "EVD Roulette");
+                _CE_.sendFrameMessage("[#evd" + Math.floor(Math.random() * _CE_.options.evid_roulette_max) + "]", "EVD Roulette");
             }
         });
 
@@ -1698,7 +1658,7 @@ function onCourtroomJoin() {
             display: _CE_.options.music_roulette,
             icon: "dice-multiple",
             onclick: () => {
-                sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "BGM Roulette");
+                _CE_.sendFrameMessage("[#bgm" + Math.floor(Math.random() * _CE_.options.music_roulette_max) + "]", "BGM Roulette");
             }
         });
 
@@ -1708,7 +1668,7 @@ function onCourtroomJoin() {
             display: _CE_.options.sound_roulette,
             icon: "dice-multiple",
             onclick: () => {
-                sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "SFX Roulette");
+                _CE_.sendFrameMessage("[#bgs" + Math.floor(Math.random() * _CE_.options.sound_roulette_max) + "]", "SFX Roulette");
             }
         });
 
@@ -1822,7 +1782,7 @@ function onCourtroomJoin() {
             }
         });
 
-        ui.customButton_getCurSoundUrl = new createButton({
+        ui.customButton_showSfxInfo = new createButton({
             label: "SFX URL",
             title: "Display the URL for all active sound effects",
             icon: "link-variant",
@@ -1846,7 +1806,7 @@ function onCourtroomJoin() {
 
         ui.customButtons_rowButtons.append(ui.customButton_stopAllSounds,
             ui.customButton_showBgmInfo,
-            ui.customButton_getCurSoundUrl);
+            ui.customButton_showSfxInfo);
 
         ui.customButtons_musicButtons.append(ui.customButton_muteBGM,
             ui.customButton_stopMusic,
@@ -1899,8 +1859,21 @@ function onCourtroomJoin() {
         }
     });
 
+    _CE_.sendFrameMessage = function (command, printInChatlog = false) {
+        if (ui.courtTextEditor.canSend !== true) return;
+        ui.courtTextEditor.$store.state.courtroom.frame.text += command;
+        ui.courtTextEditor.send();
+
+        if (!printInChatlog) return;
+
+        _CE_.$vue.$store.dispatch("courtroom/appendMessage", {
+            type: "system",
+            text: (typeof printInChatlog === "string" ? printInChatlog + ": " : "") + command
+        });
+    }
+
     // Chat hover tooltips
-    const chatTooltip = {
+    _CE_.chatTooltip = {
         init() {
             this.chat = {};
             this.tooltipElement = document.createElement("div");
@@ -2181,7 +2154,7 @@ function onCourtroomJoin() {
         }
     }
 
-    ui.chatTooltip = chatTooltip.init();
+    ui.chatTooltip = _CE_.chatTooltip.init();
     ui.app.appendChild(ui.chatTooltip);
 
     // Restore right click functionality to courtroom container
