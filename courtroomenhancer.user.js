@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.796
+// @version      0.797
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -19,7 +19,6 @@
 // ==/UserScript==
 
 'use strict';
-
 const _CE_ = {};
 
 _CE_.options = {
@@ -38,7 +37,7 @@ _CE_.options = {
     "custom_styles": getSetting("custom_styles")
 };
 
-const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@;:%_\+.~#?&\/\/=]*)/gi;
+const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@,;:%_\+.~#?&\/\/=]*)/gi;
 
 const ui = { "app": document.querySelector("div#app") };
 
