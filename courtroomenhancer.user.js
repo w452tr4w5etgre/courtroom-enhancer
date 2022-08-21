@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.798
+// @version      0.799
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1599,7 +1599,7 @@ function onCourtroomJoin() {
             icon: "music-circle-outline",
             backgroundColor: "teal",
             onclick: () => {
-                if (!_CE_.musicPlayer.music) {
+                if (!_CE_.musicPlayer.currentMusicUrl) {
                     if (!_CE_.$snotify.notifications.some(notification => notification.title === "BGM Info Error"))
                         _CE_.$snotify.error("No music is playing.", "BGM Info Error", {
                             html: `<div class="snotifyToast__body" style="word-break: break-all;">No music is playing.</div>`
@@ -2132,4 +2132,4 @@ const CrossOrigin = (function () {
 })();
 
 // Helper function to set multiple element attributes at once
-Element.prototype.setAttributes = function (attr) { var recursiveSet = function (at, set) { for (var prop in at) { if (typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null) { recursiveSet(at[prop], set[prop]); } else { set[prop] = at[prop]; } } }; recursiveSet(attr, this); }   
+Element.prototype.setAttributes = function (attr) { var recursiveSet = function (at, set) { for (var prop in at) { if (typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null) { recursiveSet(at[prop], set[prop]); } else { set[prop] = at[prop]; } } }; recursiveSet(attr, this); }
