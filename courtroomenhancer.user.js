@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.800
+// @version      0.801
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -15,7 +15,7 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
-// @run-at       document-end
+// @run-at       document-idle
 // ==/UserScript==
 
 'use strict';
@@ -39,14 +39,14 @@ _CE_.options = {
 
 const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@,;:%_\+.~#?&\/\/=]*)/gi;
 
-const ui = { "app": document.querySelector("div#app") };
+const ui = { "app": document.querySelector("body > div#app[data-app]") };
 
 (new MutationObserver(checkVueLoaded)).observe(document, { childList: true, subtree: true });
 
-function checkVueLoaded(_changes, observer) {
-    if (document.body.contains(ui.app) !== true) ui.app = document.querySelector("div#app");
-    ui.main = ui.app.querySelector("div.v-application--wrap > div.container > main.v-main > div.v-main__wrap > div");
-    if (!ui.main || !ui.main.__vue__) return;
+function checkVueLoaded(changes, observer) {
+    if (document.body.contains(ui.app) !== true) ui.app = document.querySelector("body > div#app[data-app]");
+    ui.main = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-main"; }).$children[0].$el;
+    if (!ui.main) return;
     observer.disconnect();
     onVueLoaded();
 }
@@ -54,13 +54,13 @@ function checkVueLoaded(_changes, observer) {
 function onVueLoaded() {
     _CE_.$vue = ui.main.__vue__;
     _CE_.$snotify = _CE_.$vue.$snotify;
+    _CE_.$store = _CE_.$vue.$store;
 
     _CE_.$vue.sockets.subscribe("join_success", () => { setTimeout(onCourtroomJoin, 0) });
 
     // When the Join Courtroom dialog is shown
     _CE_.$vue.$watch("$store.state.courtroom.dialogs.joinCourtroom", (newValue, oldValue) => {
-        if (!newValue) return;
-        // remember username
+        if (!newValue === true) return;
         if (_CE_.options.remember_username) {
             _CE_.$vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
         }
@@ -123,183 +123,102 @@ function onCourtroomJoin() {
             if (!name || !_CE_.options.remember_username) return;
             storeSet("courtroom_username", String(name));
         });
-    }, 1000);
 
-    // Look for Dialog windows
-    const myAssetsWatcher = {
-        on_myAssetsAdded(node) {
-            const tabsContainer = node.querySelector("div.v-dialog > div.v-card > div.v-window > div.v-window__container");
-            this.element = node;
-            this.observer = new MutationObserver(this.on_myAssetsListChange.bind(this))
-            this.observer.observe(tabsContainer, { childList: true });
-            this.myAssets_DoChanges(node.querySelector("div.v-window-item--active"));
-        },
-        on_myAssetsListChange(changes, observer) {
-            for (const change of changes) {
-                for (const addedNode of change.addedNodes) {
-                    this.myAssets_DoChanges(addedNode);
+        // Watch My Assets dialog
+        _CE_.$vue.$watch("$store.state.assetsDialog", (newValue, oldValue) => {
+            if (newValue !== true) return;
+            const assetsManager = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "assetsManager"; });
+            const assetsManager__dialog = assetsManager.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; });
+            const assetsManager__tabs = assetsManager__dialog.$refs.dialog.querySelector("div.v-tabs-items").__vue__.$children;
+
+            const assetsManager__background = assetsManager__tabs[0];
+            if (assetsManager__background.hasContent === true) {
+                assetsManager__background.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__background.$children[0].name = uploaderResponse.filename;
+                        assetsManager__background.$children[0].url = uploaderResponse.url;
+                    }, { label: "BG", icon: "image", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 4e6, pastetargets: assetsManager__background.$el.querySelectorAll("div.v-text-field__slot > input[type=text]") })
+                );
+            }
+
+            const assetsManager__music = assetsManager__tabs[3];
+            assetsManager__music.$watch("hasContent", hasContent => {
+                if (hasContent !== true) return;
+                assetsManager__music.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__music.$children[0].name = uploaderResponse.filename;
+                        assetsManager__music.$children[0].url = uploaderResponse.url;
+                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__music.$el.querySelectorAll("input[type=text]") })
+                );
+            });
+
+            const assetsManager__sounds = assetsManager__tabs[4];
+            assetsManager__sounds.$watch("hasContent", hasContent => {
+                if (hasContent !== true) return;
+                assetsManager__sounds.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__sounds.$children[0].name = uploaderResponse.filename;
+                        assetsManager__sounds.$children[0].url = uploaderResponse.url;
+                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__sounds.$el.querySelectorAll("input[type=text]") })
+                );
+            });
+
+        }, { flush: "post" });
+
+        // Watch Manage Character dialog
+        _CE_.$vue.$watch("$store.state.manageCharacterDialog", (newValue, oldValue) => {
+            if (newValue !== true) return;
+            const manageCharacterDialog = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "manageCharacterDialog"; });
+            const manageCharacterDialog__dialog = manageCharacterDialog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; }).$refs.dialog;
+
+            var characterHelperURL = document.createElement("input")
+            characterHelperURL.setAttributes({
+                type: "text",
+                maxLength: "255",
+                title: "URL",
+                readonly: true,
+                style: {
+                    backgroundColor: "white",
+                    color: "black",
+                    height: "1vw",
+                    fontSize: "8pt",
+                    border: "1px solid black",
+                    minWidth: "140px",
+                    maxWidth: "100%",
+                    display: "none",
+                    flexBasis: "100"
                 }
-            }
-        },
-        on_myAssetsRemoved(node) {
-            this.observer.disconnect();
-        },
-        myAssets_DoChanges(node) {
-            const activeTab = this.element.querySelector("div.v-dialog > div.v-card > div.v-tabs > div.v-tabs-bar > div > div.v-tabs-bar__content > div.v-tab.v-tab--active");
-            const activeWindow = node.parentNode.childNodes[Array.from(activeTab.parentNode.children).indexOf(activeTab) - 1];
-            switch (activeTab.firstChild.firstChild.textContent.trim().toUpperCase()) {
-                case "BACKGROUNDS":
-                    ui.backgroundsFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
-                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
-                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                        inputName.value = uploaderResponse.filename;
-                        inputName.dispatchEvent(new Event("input"));
-                        inputURL.value = uploaderResponse.url;
-                        inputURL.dispatchEvent(new Event("input"));
-                    }, { label: "bg", icon: "image", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 4e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
-                    activeWindow.querySelector("div.v-card__actions").prepend(ui.backgroundsFilePicker);
-                    break;
-                case "CHARACTERS":
-                    break;
-                case "POPUPS":
-                    break;
-                case "MUSIC":
-                    ui.musicFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
-                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
-                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                        inputName.value = uploaderResponse.filename;
-                        inputName.dispatchEvent(new Event("input"));
-                        inputURL.value = uploaderResponse.url;
-                        inputURL.dispatchEvent(new Event("input"));
-                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
-                    activeWindow.querySelector("div.v-card__actions").prepend(ui.musicFilePicker);
-                    break;
-                case "SOUNDS":
-                    ui.soundFilePicker = new ui.Uploader.filePicker(uploaderResponse => {
-                        const inputName = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(1) div.v-text-field__slot > input[type=text]");
-                        const inputURL = activeWindow.querySelector("div.v-card__text > div.v-input:nth-of-type(2) div.v-text-field__slot > input[type=text]");
-                        inputName.value = uploaderResponse.filename;
-                        inputName.dispatchEvent(new Event("input"));
-                        inputURL.value = uploaderResponse.url;
-                        inputURL.dispatchEvent(new Event("input"));
-                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: activeWindow.querySelectorAll("input[type=text]") });
-                    activeWindow.querySelector("div.v-card__actions").prepend(ui.soundFilePicker);
-                    break;
-                default:
-                    console.log("My Assets tab not found: " + activeTab.firstChild.firstChild.textContent);
-            }
-        }
-    };
+            });
+            characterHelperURL.addEventListener("click", e => { e.target.select(); })
 
-    (new MutationObserver(on_appNodeListChange)).observe(ui.app, { childList: true });
-    function on_appNodeListChange(changes, observer) {
-        for (const change of changes) {
-            for (const node of change.addedNodes) {
-                if (node.classList.contains("v-dialog__content")) {
-                    const closeButton = node.querySelector("header.v-sheet.v-toolbar > div.v-toolbar__content > div.v-toolbar__items > button.v-btn:last-of-type");
-                    const dialogCard = node.querySelector("div.v-dialog > div.v-card");
-                    // Check if the pop up is an image (Evidence)
-                    if (dialogCard.childNodes.length == 3 &&
-                        dialogCard.childNodes[1] instanceof HTMLImageElement &&
-                        dialogCard.childNodes[1].className == "d-flex mx-auto" &&
-                        (dialogCard.childNodes[2] instanceof Comment || (dialogCard.childNodes[2] instanceof HTMLDivElement && dialogCard.childNodes[2].classList.contains("subtitle-1")))) {
-                        const img = dialogCard.childNodes[1];
-                        img.style.maxWidth = "100%";
-                        img.style.maxHeight = "80vh";
-                        img.addEventListener("load", e => {
-                            if (img.naturalHeight > img.height || img.naturalWidth > img.width) {
-                                img.style.cursor = "zoom-in";
-                                img.addEventListener("click", e => {
-                                    if (e.target.style.cursor == "zoom-out") {
-                                        e.target.style.maxWidth = "100%";
-                                        e.target.style.maxHeight = "80vh";
-                                        e.target.style.cursor = "zoom-in";
-                                    } else {
-                                        e.target.style.maxWidth = "";
-                                        e.target.style.maxHeight = "";
-                                        e.target.style.cursor = "zoom-out";
-                                    }
-                                });
-                            }
-                        });
-                    } else if (node.querySelector("div.v-dialog > div.v-card > div.v-sheet > div > span:first-of-type")?.textContent.trim().toUpperCase() === "COURT RECORD") {
-                        ui.courtRecord_toolbarContent = node.querySelector("div.v-card > div:nth-child(1)");
-                        ui.courtRecord_cardContent = node.querySelector("div.v-card > div:nth-child(2)");
-
-                        ui.courtRecord_buttons = ui.courtRecord_cardContent.firstChild;
-                        ui.courtRecord_checkButton = ui.courtRecord_buttons.querySelector("div:first-child > button");
-
-                    } else {
-                        const toolbarContent = node.querySelector("header.v-sheet > div.v-toolbar__content");
-                        const dialogTitle = toolbarContent.querySelector("div.v-toolbar__title").textContent.trim().toUpperCase();
-                        switch (dialogTitle) {
-                            case "PAIRING":
-                                break;
-                            case "CHANGE CHARACTER":
-                                break;
-                            case "MANAGE CHARACTER":
-                                // Add an uploader at the top of the Manage Character window
-                                var characterHelperURL = document.createElement("input")
-                                characterHelperURL.setAttributes({
-                                    type: "text",
-                                    maxLength: "255",
-                                    title: "URL",
-                                    readonly: true,
-                                    style: {
-                                        backgroundColor: "white",
-                                        color: "black",
-                                        height: "1vw",
-                                        fontSize: "8pt",
-                                        border: "1px solid black",
-                                        minWidth: "140px",
-                                        maxWidth: "100%",
-                                        display: "none",
-                                        flexBasis: "100"
-                                    }
-                                });
-                                characterHelperURL.addEventListener("click", e => { e.target.select(); })
-
-                                var characterHelper_Uploader = new ui.Uploader.filePicker(res => {
-                                    if (characterHelperURL.style.display === "none") {
-                                        characterHelperURL.style.display = "block";
-                                    }
-                                    characterHelperURL.value = res.url;
-                                }, { label: "file", icon: "image-size-select-large", acceptedhtml: "*", acceptedregex: ".*", maxsize: 2e7, pastetargets: characterHelperURL });
-                                characterHelper_Uploader.style.flexBasis = "100";
-                                characterHelper_Uploader.style.borderColor = "#83ffff";
-
-                                var characterHelper = document.createElement("div");
-                                characterHelper.setAttributes({
-                                    className: "v-toolbar__items",
-                                    style: {
-                                        flexWrap: "wrap",
-                                        alignItems: "center",
-                                        alignContent: "center",
-                                        justifyContent: "center",
-                                        maxWidth: "150px"
-                                    }
-                                });
-
-                                characterHelper.append(characterHelper_Uploader, characterHelperURL);
-
-                                var spacer = document.createElement("div");
-                                spacer.className = "spacer";
-                                toolbarContent.querySelector("div.spacer").after(characterHelper, spacer);
-                                break;
-                            case "MY ASSETS":
-                                myAssetsWatcher.on_myAssetsAdded(node);
-                                break;
-                        }
-                    }
+            var characterHelper_Uploader = new _CE_.Uploader.filePicker(res => {
+                if (characterHelperURL.style.display === "none") {
+                    characterHelperURL.style.display = "block";
                 }
-            }
-            for (const node of change.removedNodes) {
-                if (node === myAssetsWatcher.element) {
-                    myAssetsWatcher.on_myAssetsRemoved(node);
+                characterHelperURL.value = res.url;
+            }, { label: "file", icon: "image-size-select-large", acceptedhtml: "*", acceptedregex: ".*", maxsize: 2e7, pastetargets: characterHelperURL });
+            characterHelper_Uploader.style.flexBasis = "100";
+            characterHelper_Uploader.style.borderColor = "#83ffff";
+
+            var characterHelper = document.createElement("div");
+            characterHelper.setAttributes({
+                className: "v-toolbar__items",
+                style: {
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    alignContent: "center",
+                    justifyContent: "center",
+                    maxWidth: "150px"
                 }
-            }
-        }
-    }
+            });
+
+            characterHelper.append(characterHelper_Uploader, characterHelperURL);
+
+            var spacer = document.createElement("div");
+            spacer.className = "spacer";
+            manageCharacterDialog__dialog.querySelector("div.spacer").after(characterHelper, spacer);
+        }, { flush: "post" });
+    }, 250);
 
     const createButton = function (options) {
         const container = document.createElement("div");
@@ -345,7 +264,7 @@ function onCourtroomJoin() {
 
     // Add evidence sources
 
-    ui.Uploader = {
+    _CE_.Uploader = {
         parseForm(data) {
             const form = new FormData();
             Object.entries(data).filter(([key, value]) => value !== null).map(([key, value]) => form.append(key, value));
@@ -360,13 +279,13 @@ function onCourtroomJoin() {
                 formatDataFile(data) {
                     return {
                         headers: {},
-                        data: ui.Uploader.parseForm({ reqtype: "fileupload", fileToUpload: data })
+                        data: _CE_.Uploader.parseForm({ reqtype: "fileupload", fileToUpload: data })
                     }
                 },
                 formatDataUrl(data) {
                     return {
                         headers: {},
-                        data: ui.Uploader.parseForm({ reqtype: "urlupload", url: data })
+                        data: _CE_.Uploader.parseForm({ reqtype: "urlupload", url: data })
                     }
                 },
                 urlFromResponse(response) {
@@ -378,13 +297,13 @@ function onCourtroomJoin() {
                 formatDataFile(data) {
                     return {
                         headers: {},
-                        data: ui.Uploader.parseForm({ "files[]": data })
+                        data: _CE_.Uploader.parseForm({ "files[]": data })
                     }
                 },
                 formatDataUrl(data) {
                     return {
                         headers: { "Content-type": "application/x-www-form-urlencoded" },
-                        data: ui.Uploader.parseParams({ "urls[]": data })
+                        data: _CE_.Uploader.parseParams({ "urls[]": data })
                     }
                 },
                 urlFromResponse(response) {
@@ -619,10 +538,10 @@ function onCourtroomJoin() {
                         }
                     });
                     if (file instanceof File) {
-                        ui.Uploader.upload(file, uploadCallbackSuccess, uploadError);
+                        _CE_.Uploader.upload(file, uploadCallbackSuccess, uploadError);
                     } else if (file instanceof DataTransferItem && file.kind == "string") {
                         file.getAsString(url => {
-                            ui.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this));
+                            _CE_.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this));
                         });
                     } else {
                         throw new Error("Invalid file.");
@@ -718,7 +637,7 @@ function onCourtroomJoin() {
                     }
                 });
 
-                const evidenceImageUploader = new ui.Uploader.filePicker(res => {
+                const evidenceImageUploader = new _CE_.Uploader.filePicker(res => {
                     ui.courtEvidence.name = res.filename.substr(0, 20);
                     ui.courtEvidence.iconUrl = res.url;
                     ui.courtEvidence.url = res.url;
@@ -820,7 +739,7 @@ function onCourtroomJoin() {
                                     if (!responseJSON.post) {
                                         throw new Error("No results");
                                     }
-                                    ui.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
+                                    _CE_.Uploader.upload(responseJSON.post[0].file_url, uploaderResponse => {
                                         try {
                                             ui.courtEvidence.name = responseJSON.post[0].id;
                                             ui.courtEvidence.iconUrl = uploaderResponse.url;
@@ -1390,10 +1309,10 @@ function onCourtroomJoin() {
 
         ui.extraSettings_fileHostSelector = new createInputSelect({
             label: "File host",
-            values: Array.from(ui.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
+            values: Array.from(_CE_.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
             selectedValue: _CE_.options.file_host,
             onchange: e => {
-                if (ui.Uploader.fileHosts.has(e.target.value)) {
+                if (_CE_.Uploader.fileHosts.has(e.target.value)) {
                     setSetting("file_host", e.target.value);
                 }
             }
@@ -1668,8 +1587,8 @@ function onCourtroomJoin() {
     }();
 
     // Make the "fade" courtroom elements click-through to right-click images underneath directly
-    ui.courtroom_container.querySelectorAll("div.fade_everything, div.fade_scene, div.fade_background").forEach(f => {
-        f.style.pointerEvents = "none";
+    ui.courtroom_container.querySelectorAll("div.fade_everything, div.fade_scene, div.fade_background").forEach(element => {
+        element.style.pointerEvents = "none";
     });
     ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
