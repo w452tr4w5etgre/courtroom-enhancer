@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.799
+// @version      0.800
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1722,7 +1722,7 @@ function onCourtroomJoin() {
     // Find a cached asset with an ID highest than the recorded one and if it exists remember it
     _CE_.findHighestAssetID = function (asset) {
         if (!["evidence", "music", "sound"].includes(asset)) return;
-        const highestCached = Math.max(...Object.keys(_CE_.$vue.$store.state.assets[asset].cache));
+        const highestCached = Math.max(...Object.keys(_CE_.$vue.$store.state.assets[asset].cache), 0);
         if (highestCached > _CE_.options[`roulette_max_${asset}`]) {
             setSetting(`roulette_max_${asset}`, highestCached);
         }
@@ -2042,7 +2042,7 @@ function onCourtroomJoin() {
 }
 
 function on_beforeUnload(e) {
-    findAllHighestAssetID();
+    _CE_.findAllHighestAssetID();
     if (_CE_.options.warn_on_exit) {
         e.preventDefault();
         e.returnValue = "Are you sure you want to leave?";
@@ -2132,4 +2132,15 @@ const CrossOrigin = (function () {
 })();
 
 // Helper function to set multiple element attributes at once
-Element.prototype.setAttributes = function (attr) { var recursiveSet = function (at, set) { for (var prop in at) { if (typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null) { recursiveSet(at[prop], set[prop]); } else { set[prop] = at[prop]; } } }; recursiveSet(attr, this); }
+Element.prototype.setAttributes = function (attr) {
+    var recursiveSet = function (at, set) {
+        for (var prop in at) {
+            if (typeof at[prop] == 'object' && at[prop].dataset == null && at[prop][0] == null) {
+                recursiveSet(at[prop], set[prop]);
+            } else {
+                set[prop] = at[prop];
+            }
+        }
+    };
+    recursiveSet(attr, this);
+}
