@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.802
+// @version      0.803
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -47,7 +47,7 @@
     (new MutationObserver(checkVueLoaded)).observe(document.body, { childList: true, subtree: true });
 
     function checkVueLoaded(changes, observer) {
-        if (document.body.contains(ui.app) !== true) ui.app = document.querySelector("body > div#app[data-app]");
+        if (document.body.contains(ui.app) !== true || !ui.app.__vue__) ui.app = document.querySelector("body > div#app[data-app]");
         ui.main = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-main"; });
         if (!ui.main || !ui.main.$children) return;
         ui.main = ui.main.$children[0].$el;
