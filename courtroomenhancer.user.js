@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.806
+// @version      0.807
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1655,10 +1655,10 @@
         });
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
-        _CE_.notificationSound = { sound: new Audio("https://objection.lol/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1260 };
+        _CE_.notificationSound = { sound: new Audio("https://objection.lol/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240 };
         _CE_.notificationSound.sound.onplay = ev => {
             var sound = ev.target;
-            sound.currentTime = _CE_.notificationSound.seek;
+            sound.currentTime = _CE_.notificationSound.seek / 1000;
             setTimeout(() => {
                 sound.pause();
             }, _CE_.notificationSound.duration);
@@ -1669,17 +1669,18 @@
         _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
-            if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true &&
-                lastMessage.authUsername && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}`, "gmi")))) {
+            if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true
+                && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
+                && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}`, "gmi")))) {
                 _CE_.notificationSound.sound.play();
 
                 // If there is music playing lower its volume while the notification sound is playing
                 if (_CE_.musicPlayer.music && _CE_.musicPlayer.music.volume()) {
                     const musicVolume = _CE_.musicPlayer.music.volume();
-                    _CE_.musicPlayer.music.volume(musicVolume * 0.5);
-                    setTimeout(() => {
+                    _CE_.musicPlayer.music.volume(musicVolume * 0.35);
+                    _CE_.notificationSound.sound.onpause = () => {
                         _CE_.musicPlayer.music.fade(_CE_.musicPlayer.music.volume(), musicVolume, 300);
-                    }, _CE_.notificationSound.duration);
+                    };
                 }
             }
 
