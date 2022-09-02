@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.804
+// @version      0.805
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -37,7 +37,10 @@
         "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 53000),
         "file_host": getSetting("file_host", "catboxmoe"),
         "textbox_style": getSetting("textbox_style", "none"),
-        "custom_styles": getSetting("custom_styles")
+        "custom_styles": getSetting("custom_styles"),
+        "chatlog_highlights": getSetting("chatlog_highlights", false),
+        "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
+        "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"])
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@,;:%_\+.~#?&\/\/=]*)/gi;
@@ -47,8 +50,11 @@
     (new MutationObserver(checkVueLoaded)).observe(document.body, { childList: true, subtree: true });
 
     function checkVueLoaded(changes, observer) {
-        if (document.body.contains(ui.app) !== true || !ui.app.__vue__) ui.app = document.querySelector("body > div#app[data-app]");
-        ui.main = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-main"; });
+        if (document.body.contains(ui.app) !== true || !ui.app.__vue__) {
+            ui.app = document.querySelector("body > div#app[data-app]");
+            return;
+        }
+        if (!ui.main) ui.main = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-main"; });
         if (!ui.main || !ui.main.$children) return;
         ui.main = ui.main.$children[0].$el;
         if (!ui.main) return;
@@ -124,6 +130,7 @@
             _CE_.$vue.$watch("$store.state.courtroom.user.username", name => {
                 if (!name || !_CE_.options.remember_username) return;
                 storeSet("courtroom_username", String(name));
+                _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
             });
 
             // Watch My Assets dialog
@@ -590,7 +597,7 @@
             // Pressing the Enter key on the form fields adds the evidence
             ui.evidence_formFields.forEach(formField => {
                 formField.addEventListener("keydown", ev => {
-                    if (ev.keyCode == 13 || ev.key == "Enter") {
+                    if (ev.key == "Enter") {
                         ev.target.blur();
                         ui.courtEvidence.addEvidence();
                     }
@@ -708,7 +715,7 @@
                     });
 
                     gelbooruInputTags.addEventListener("keydown", ev => {
-                        if (ev.target.value && (ev.keyCode == 13 || ev.key == "Enter")) {
+                        if (ev.target.value && ev.key === "Enter") {
                             gelbooruBtnSend.click();
                         }
                     });
@@ -1036,6 +1043,7 @@
                 input.setAttributes({
                     className: "v-select__selections pa-0 mr-0",
                     type: options.type,
+                    title: options.title,
                     style: { color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px" }
                 });
 
@@ -1044,6 +1052,7 @@
                 inputSlot.appendChild(selectSlot);
                 selectSlot.append(label, input);
 
+                container.style.maxWidth = options.maxWidth;
                 if (options.display === false) {
                     container.style.display = "none";
                 }
@@ -1061,6 +1070,13 @@
                     label.classList.remove("primary--text");
                     options.onfocusout.call(this, ev);
                 });
+
+                input.addEventListener("keypress", ev => {
+                    if (ev.key === "Enter") {
+                        ev.preventDefault();
+                        ev.target.blur();
+                    }
+                })
 
                 return container;
             };
@@ -1320,6 +1336,46 @@
                 }
             });
 
+            ui.extraSettings_chatlogHighlights = new createInputCheckbox({
+                checked: _CE_.options.chatlog_highlights,
+                label: "Chat Notifications",
+                title: "Enable notifications for when a message contains one of the words on the list",
+                onchange: ev => {
+                    const value = ev.target.checked;
+                    setSetting("chatlog_highlights", value);
+                    ui.extraSettings_chatlogHighlightsPlaySound.style.display = value ? "flex" : "none";
+                    ui.extraSettings_chatlogHighlightsWordlist.style.display = value ? "flex" : "none";
+                }
+            });
+
+            ui.extraSettings_chatlogHighlightsPlaySound = new createInputCheckbox({
+                checked: _CE_.options.chatlog_highlights_playsound,
+                label: "Play Sound",
+                title: "Play a sound when a word is highlighted and the window is not in focus",
+                display: _CE_.options.chatlog_highlights,
+                onchange: ev => {
+                    const value = ev.target.checked;
+                    setSetting("chatlog_highlights_playsound", value);
+                }
+            });
+
+            ui.extraSettings_chatlogHighlightsWordlist = new createInputText({
+                value: _CE_.options.chatlog_highlights_wordlist,
+                label: "Words separated by commas",
+                title: "List of words to be highlighted, separated by commas. $me always refers to your current username.",
+                display: _CE_.options.chatlog_highlights,
+                type: "text",
+                maxWidth: "max-content",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    // Remove duplicates, empty spaces and non-word characters, and split into an array
+                    const list = [...new Set(value.split(",").map(word => word.replace(/[^\w\s@$]/g, "").trim()).filter(word => typeof word === "string"))];
+                    ev.target.value = list.join(",");
+                    setSetting("chatlog_highlights_wordlist", list);
+                    _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
+                }
+            });
+
             // Row 1 - Header
             const extraSettings_rows = [];
             ui.extraSettings_rowHeader = document.createElement("h3");
@@ -1366,7 +1422,11 @@
                 ui.extraSettings_textboxStyleSelector,
                 ui.extraSettings_fileHostSelector,
                 ui.extraSettings_showRoulettes,
-                ui.extraSettings_globalAudioControlButtons);
+                ui.extraSettings_globalAudioControlButtons,
+                ui.extraSettings_chatlogHighlights,
+                ui.extraSettings_chatlogHighlightsPlaySound,
+                ui.extraSettings_chatlogHighlightsWordlist,
+            );
             extraSettings_rows.push(ui.extraSettings_rowButtons);
 
             // Append the custom controls before the volume control
@@ -1596,7 +1656,25 @@
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
         // Chat log handler
+        _CE_.notificationSound = new Howl({ src: "https://objection.lol/Audio/Music/ringtone%202.ogg", sprite: { tone: [1710, 1282] } });
+        _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
+
         _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
+            const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
+            // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
+            if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true &&
+                lastMessage.authUsername && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}`, "gmi")))) {
+                const notificationSound = _CE_.notificationSound.play("tone");
+                // If there is music playing lower its volume while the notification sound is playing
+                if (_CE_.musicPlayer.music && _CE_.musicPlayer.music.volume()) {
+                    const musicVolume = _CE_.musicPlayer.music.volume();
+                    _CE_.musicPlayer.music.volume(musicVolume * 0.25);
+                    setTimeout(() => {
+                        _CE_.musicPlayer.music.fade(_CE_.musicPlayer.music.volume(), musicVolume, 300);
+                    }, _CE_.notificationSound.duration(notificationSound) * 1000);
+                }
+            }
+
             setTimeout(() => {
                 for (let messageNode of ui.chatLog_chatList.children) {
                     const messageIcon = messageNode.querySelector("i");
@@ -1604,12 +1682,22 @@
 
                     const messageTextDiv = messageNode.querySelector("div.chat-text");
                     const html = messageTextDiv.innerHTML;
-                    if (html.includes("</a>")) continue;
+                    if (html.includes("<")) continue;
 
                     messageTextDiv.innerHTML = html.replaceAll(
                         URL_REGEX,
                         `<a target="_blank" rel="noreferrer" href="$1">$1</a>`
                     );
+
+                    // Highlight notification words
+                    if (_CE_.options.chatlog_highlights === true) {
+                        messageTextDiv.innerHTML = _CE_.notificationWords.reduce(
+                            (previousValue, currentValue) => previousValue.replaceAll(
+                                new RegExp(`\\b${currentValue}`, "gmi"),
+                                `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
+                            ),
+                            messageTextDiv.innerHTML);
+                    }
                 }
             }, 0);
         });
