@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.807
+// @version      0.808
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1671,7 +1671,7 @@
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
             if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true
                 && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
-                && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}`, "gmi")))) {
+                && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}\\b`, "gmi")))) {
                 _CE_.notificationSound.sound.play();
 
                 // If there is music playing lower its volume while the notification sound is playing
@@ -1702,7 +1702,7 @@
                     if (_CE_.options.chatlog_highlights === true) {
                         messageTextDiv.innerHTML = _CE_.notificationWords.reduce(
                             (previousValue, currentValue) => previousValue.replaceAll(
-                                new RegExp(`\\b${currentValue}`, "gmi"),
+                                new RegExp(`\\b${currentValue}\\b`, "gmi"),
                                 `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
                             ),
                             messageTextDiv.innerHTML);
