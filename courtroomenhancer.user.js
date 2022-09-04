@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.808
+// @version      0.809
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1369,8 +1369,9 @@
                 onfocusout: ev => {
                     const value = ev.target.value;
                     // Remove duplicates, empty spaces and non-word characters, and split into an array
-                    const list = [...new Set(value.split(",").map(word => word.replace(/[^\w\s@$]/g, "").trim()).filter(word => typeof word === "string"))];
+                    const list = [...new Set(value.split(",").map(word => word.replace(/[^\w\s@$]/g, "").trim()).filter(word => word && typeof word === "string"))];
                     ev.target.value = list.join(",");
+                    console.log(list);
                     setSetting("chatlog_highlights_wordlist", list);
                     _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
                 }
