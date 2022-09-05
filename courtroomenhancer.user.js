@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.809
+// @version      0.810
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1517,7 +1517,7 @@
                 backgroundColor: "teal",
                 width: "115px",
                 onclick: () => {
-                    if (_CE_.bgmMute) {
+                    if (_CE_.bgmMute === true) {
                         ui.customButton_muteBGM.querySelector("span.v-btn__content").lastChild.textContent = "Mute BGM";
                         ui.customButton_muteBGM.querySelector(".v-icon").classList.add("mdi-music");
                         ui.customButton_muteBGM.querySelector(".v-icon").classList.remove("mdi-music-off");
@@ -1530,7 +1530,7 @@
                     _CE_.bgmMute = !_CE_.bgmMute;
 
                     if (ui.courtPlayer.$refs.player.musicPlayer.music !== undefined) {
-                        if (_CE_.bgmMute) {
+                        if (_CE_.bgmMute === true) {
                             _CE_.bgmVol = _CE_.musicPlayer.volume;
                             _CE_.musicPlayer.volume = 0;
                             _CE_.musicPlayer.music.volume(0);
@@ -1676,10 +1676,11 @@
                 _CE_.notificationSound.sound.play();
 
                 // If there is music playing lower its volume while the notification sound is playing
-                if (_CE_.musicPlayer.music && _CE_.musicPlayer.music.volume()) {
+                if (_CE_.musicPlayer.music && _CE_.musicPlayer.music.volume() && _CE_.bgmMute !== true) {
                     const musicVolume = _CE_.musicPlayer.music.volume();
                     _CE_.musicPlayer.music.volume(musicVolume * 0.35);
                     _CE_.notificationSound.sound.onpause = () => {
+                        if (_CE_.bgmMute === true) return;
                         _CE_.musicPlayer.music.fade(_CE_.musicPlayer.music.volume(), musicVolume, 300);
                     };
                 }
@@ -1716,7 +1717,7 @@
         ui.courtPlayer.$refs.player.$watch("musicPlayer.music", (newValue, oldValue) => {
             if (!newValue) return;
 
-            if (_CE_.bgmMute) {
+            if (_CE_.bgmMute === true) {
                 newValue.once("load", () => {
                     _CE_.bgmVol = _CE_.musicPlayer.volume;
                     _CE_.musicPlayer.volume = 0;
