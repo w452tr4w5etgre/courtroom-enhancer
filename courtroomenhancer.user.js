@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.810
+// @version      0.811
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -40,7 +40,8 @@
         "custom_styles": getSetting("custom_styles"),
         "chatlog_highlights": getSetting("chatlog_highlights", false),
         "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
-        "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"])
+        "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
+        "evidence_compact": getSetting("evidence_compact", false)
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@,;:%_\+.~#?&\/\/=]*)/gi;
@@ -190,7 +191,7 @@
                         backgroundColor: "white",
                         color: "black",
                         height: "1vw",
-                        fontSize: "8pt",
+                        fontSize: "8px",
                         border: "1px solid black",
                         minWidth: "140px",
                         maxWidth: "100%",
@@ -616,24 +617,25 @@
             // Fix evidence form layout
 
             // Name
-            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-sm-4");
+            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pr-sm-1", "mb-2");
+            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-4", "pr-1");
             // Icon URL
-            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-sm-4", "pr-sm-1");
+            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pl-sm-1", "mb-2");
+            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-4", "pl-1", "pr-1");
             // Check URL
-            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6");
-            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-sm-4", "pl-sm-1");
+            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "mb-2");
+            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-4", "pl-1");
             // Description
             ui.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
-            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "my-3");
-            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("pr-sm-1");
+            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "col-sm-6", "my-3");
+            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("col-6", "pr-1");
             ui.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
+            ui.courtEvidence.$refs.form.$children[3].$refs.input.style.lineHeight = "normal";
             // Type
             ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
-            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-sm-6", "pl-sm-1");
+            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-6", "pl-1");
 
-
+            // Add evidence uploaders
             const createEvidenceUploaders = {
                 init: function () {
                     const container = document.createElement("div");
@@ -775,12 +777,59 @@
                     return container;
                 }
             };
-
             ui.evidence_evidenceUploaders = createEvidenceUploaders.init();
             ui.evidence_formBottomRow.append(ui.evidence_formBottomRow_buttonsColumn, ui.evidence_evidenceUploaders);
-            ui.evidence_formBottomRow.classList.remove("pb-1");
-            ui.evidence_formBottomRow.classList.add("align-center", "pb-2");
-            ui.evidence_formBottomRow_buttonsColumn.className = "d-flex";
+
+            ui.evidence_formBottomRow.classList.remove("pb-1", "mt-4");
+            ui.evidence_formBottomRow.classList.add("pb-2", "mt-0");
+            ui.evidence_formBottomRow_buttonsColumn.classList.remove("col");
+
+            // Add buttons to adjust evidence list sizes
+            ui.evidence_scaleContainer = document.createElement("div");
+
+            ui.evidence_scaleButtonLarge = document.createElement("button");
+            ui.evidence_scaleButtonLarge.setAttributes({
+                type: "button",
+                className: "v-btn v-size--default v-btn--round v-btn--icon theme--dark",
+                title: "Make the evidence list more compact"
+            });
+            ui.evidence_scaleButtonLarge_icon = document.createElement("i");
+            ui.evidence_scaleButtonLarge_icon.className = "v-btn__content v-icon mdi mdi-grid";
+            ui.evidence_scaleButtonLarge.append(ui.evidence_scaleButtonLarge_icon);
+
+            ui.evidence_scaleButtonSmall = document.createElement("button");
+            ui.evidence_scaleButtonSmall.setAttributes({
+                type: "button",
+                className: "v-btn v-size--default v-btn--round v-btn--icon theme--dark",
+                title: "Make the evidence list less compact"
+            });
+            ui.evidence_scaleButtonSmall_icon = document.createElement("i");
+            ui.evidence_scaleButtonSmall_icon.className = "v-btn__content v-icon mdi mdi-grid-large";
+            ui.evidence_scaleButtonSmall.append(ui.evidence_scaleButtonSmall_icon);
+
+            ui.evidence_scaleButtonLarge.addEventListener("click", ev => {
+                setSetting("evidence_compact", true);
+                ui.evidence_list.querySelectorAll("div.v-image").forEach(img => { img.style.height = "100px" });
+                ui.evidence_list.childNodes.forEach(el => {
+                    el.classList.remove("col-lg-3"); el.classList.add("col-lg-2");
+                    el.querySelector("div.v-card__title").style.fontSize = "small";
+                    el.querySelector("div.v-card__subtitle").style.textIndent = "-66px";
+                });
+            });
+
+            ui.evidence_scaleButtonSmall.addEventListener("click", ev => {
+                setSetting("evidence_compact", false);
+                ui.evidence_list.querySelectorAll("div.v-image").forEach(img => { img.style.height = "160px" });
+                ui.evidence_list.childNodes.forEach(el => {
+                    el.classList.remove("col-lg-2"); el.classList.add("col-lg-3");
+                    el.querySelector("div.v-card__title").style.fontSize = "large";
+                    el.querySelector("div.v-card__subtitle").style.textIndent = "";
+                });
+            });
+
+            ui.evidence_scaleContainer.append(ui.evidence_scaleButtonLarge, ui.evidence_scaleButtonSmall);
+
+            ui.evidence_form.$children.find(child => { return child.$vnode.componentOptions.tag === "v-divider"; }).$el.nextElementSibling.firstChild.insertAdjacentElement("afterend", ui.evidence_scaleContainer);
         };
 
         ui.enhanceEvidenceItems = function () {
@@ -789,12 +838,17 @@
 
             // Adjust evidence items
             ui.evidence_list.fixEvidenceItem = function (node) {
+                node.classList.remove("col-lg-3", "col-md-6", "col-sm-4", "col-6");
+                node.classList.add(_CE_.options.evidence_compact ? "col-lg-2" : "col-lg-3", "col-md-3", "col-sm-2");
                 const divCard = node.firstChild;
                 const divImage = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
                 const divTitle = divCard.querySelector("div.v-card__title");
                 const divSubtitle = divCard.querySelector("div.v-card__subtitle");
                 const divActions = divCard.querySelector("div.v-card__actions");
-                const buttonEye = divActions.querySelector("button > span.v-btn__content > i.mdi-eye").parentNode.parentNode;
+
+                const buttonEye = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-btn" && child.$el.firstChild.firstChild.classList.contains("mdi-eye"); }).$el;
+                const buttonMention = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-menu"; }).$children[0].$el;
+
                 divCard.addEventListener("mouseenter", ev => {
                     const image = ev.target.querySelector("div.v-image__image");
                     image.classList.add("v-image__image--contain");
@@ -802,6 +856,8 @@
 
                     divActions.style.visibility = "visible";
                     divActions.style.opacity = "1";
+
+                    if (_CE_.options.evidence_compact) divTitle.style.visibility = "hidden";
                 });
                 divCard.addEventListener("mouseleave", ev => {
                     const image = ev.target.querySelector("div.v-image__image");
@@ -810,11 +866,13 @@
 
                     divActions.style.visibility = "hidden";
                     divActions.style.opacity = "0";
-                    divActions.style.padding = "4px";
+                    divActions.style.padding = "0";
+
+                    divTitle.style.visibility = "visible";
                 });
 
                 divImage.$el.style.cursor = "pointer";
-                divImage.$el.style.height = "200px";
+                divImage.$el.style.height = _CE_.options.evidence_compact ? "100px" : "160px";
                 divImage.$el.addEventListener("click", ev => {
                     if (divActions.contains(ev.target)) {
                         return;
@@ -824,13 +882,14 @@
 
                     // Immediately show image
                     ui.presentDialog.checkImageUrl = divImage.src;
-
                 }, true);
 
                 divTitle.setAttributes({
                     style: {
                         textShadow: "2px 1px #000000",
-                        padding: "4px"
+                        padding: "4px",
+                        lineHeight: "normal",
+                        fontSize: _CE_.options.evidence_compact ? "small" : "large"
                     }
                 });
 
@@ -842,6 +901,9 @@
                         padding: "6px"
                     }
                 });
+
+                if (_CE_.options.evidence_compact) divSubtitle.style.textIndent = "-66px";
+
                 divSubtitle.insertAdjacentElement("beforebegin", divActions);
 
                 divActions.setAttributes({
@@ -856,11 +918,12 @@
                     }
                 });
 
-                divActions.querySelectorAll("button.v-btn").forEach(btn => { btn.style.margin = "0"; btn.style.padding = "0"; });
+                divActions.querySelectorAll("button.v-btn").forEach(btn => { btn.classList.add("mx-0", "px-0"); });
 
                 // Add "link" button
                 const buttonLink = document.createElement("button");
-                buttonLink.className = "v-btn v-btn--icon v-btn--round theme--dark v-size--default mr-0 ml-1";
+                buttonLink.type = "button";
+                buttonLink.className = "v-btn v-btn--icon v-btn--round theme--dark v-size--default mx-0";
 
                 const buttonLinkSpan = document.createElement("span");
                 buttonLinkSpan.className = "v-btn__content";
@@ -886,6 +949,13 @@
 
                 // Hide eye button (clicking on the image itself clicks on the eye)
                 buttonEye.style.display = "none";
+
+                // Replace mention button text with an icon
+                buttonMention.classList.add("v-btn--round", "v-btn--icon");
+                buttonMention.classList.remove("v-btn--text");
+                buttonMention.title = "Mention";
+                buttonMention.querySelector("span").textContent = "";
+                buttonMention.querySelector("span").classList.add("mdi", "mdi-text-box-plus");
             };
 
             if (ui.evidence_list.childElementCount) {
@@ -908,6 +978,12 @@
         if (_CE_.$vue.$store.getters["courtroom/addEvidencePermission"]) {
             ui.enhanceEvidenceForm();
         }
+
+        // Fix delete icon on being modded
+        _CE_.$vue.$watch(() => _CE_.$vue.isMod || _CE_.$vue.isOwner, (newValue, oldValue) => {
+            if (newValue === false) return;
+            ui.evidence_list.querySelectorAll("i.mdi-delete").forEach(el => { el.parentNode.parentNode.classList.add("mx-0", "px-0"); });
+        });
 
         // Watch for evidence permission or mod/owner status changes
         _CE_.$vue.$watch(() => _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.$vue.isMod || _CE_.$vue.isOwner) || _CE_.$vue.isOwner,
@@ -1371,7 +1447,6 @@
                     // Remove duplicates, empty spaces and non-word characters, and split into an array
                     const list = [...new Set(value.split(",").map(word => word.replace(/[^\w\s@$]/g, "").trim()).filter(word => word && typeof word === "string"))];
                     ev.target.value = list.join(",");
-                    console.log(list);
                     setSetting("chatlog_highlights_wordlist", list);
                     _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
                 }
@@ -2163,5 +2238,4 @@
         };
         recursiveSet(attr, this);
     };
-
 })();
