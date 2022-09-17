@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.812
+// @version      0.813
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -327,6 +327,24 @@
                             }
                         }
                     }
+                }],
+                ["h4g", {
+                    method: "POST",
+                    formatDataFile(data) {
+                        return {
+                            headers: {},
+                            data: _CE_.Uploader.parseForm({file: data })
+                        };
+                    },
+                    formatDataUrl(data) {
+                        return {
+                            headers: {},
+                            data: _CE_.Uploader.parseForm({ url: data })
+                        };
+                    },
+                    urlFromResponse(response) {
+                        return response.toString();
+                    }
                 }]
             ]),
             fileHosts: new Map([
@@ -358,6 +376,18 @@
                     name: "take-me-to.space",
                     url: "https://take-me-to.space/api/upload",
                     api: "lolisafe",
+                    supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
+                }],
+                ["cockfile", {
+                    name: "cockfile (24h expire)",
+                    url: "https://cockfile.com/upload.php",
+                    api: "lolisafe",
+                    supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
+                }],
+                ["h4g", {
+                    name: "h4g (30d expire)",
+                    url: "https://files.h4g.co/api.php?d=upload-tool",
+                    api: "h4g",
                     supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
                 }]
             ]),
