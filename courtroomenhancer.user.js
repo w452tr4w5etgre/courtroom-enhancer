@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.813
+// @version      0.814
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2167,7 +2167,7 @@
 
     function on_beforeUnload(ev) {
         _CE_.findAllHighestAssetID();
-        if (_CE_.options.warn_on_exit && _CE_.$store.state.courtroom.dialogs.error !== true) {
+        if (_CE_.options.warn_on_exit && _CE_.$vue.$socket.connected === true) {
             ev.preventDefault();
             ev.returnValue = "Are you sure you want to leave?";
             return "Are you sure you want to leave?";
