@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.814
+// @version      0.815
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -72,7 +72,7 @@
 
         // When the Join Courtroom dialog is shown
         if (_CE_.options.remember_username) {
-            _CE_.$vue.$store.state.courtroom.user.username = storeGet("courtroom_username");
+            _CE_.$store.state.courtroom.user.username = storeGet("courtroom_username");
         }
     }
 
@@ -110,125 +110,136 @@
         window.addEventListener("beforeunload", on_beforeUnload, false);
 
         // Remember username
-        storeSet("courtroom_username", _CE_.$vue.$store.state.courtroom.user.username);
+        storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
 
         // Remember last used character/pose and text color
-        _CE_.$vue.$store.state.courtroom.frame.poseId = storeGet("last_poseId") || 1;
-        _CE_.$vue.$store.state.courtroom.frame.characterId = storeGet("last_characterId");
-        _CE_.$vue.$store.state.courtroom.color = storeGet("courtroom_chat_color");
+        let last_poseId = storeGet("last_poseId");
+        let last_characterId = storeGet("last_characterId");
+        let courtroom_chat_color = storeGet("courtroom_chat_color");
 
-        // Set up watchers after a delay
-        setTimeout(() => {
-            _CE_.$vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
-                storeSet("last_poseId", String(poseId));
-            });
-            _CE_.$vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
-                storeSet("last_characterId", String(characterId));
-            });
-            _CE_.$vue.$watch("$store.state.courtroom.color", color => {
-                storeSet("courtroom_chat_color", String(color));
-            });
-            _CE_.$vue.$watch("$store.state.courtroom.user.username", name => {
-                if (!name || !_CE_.options.remember_username) return;
-                storeSet("courtroom_username", String(name));
-                _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
+        // Check if the stored character and pose are loaded in the custom list
+        if (!last_characterId && _CE_.$store.state.assets.character.list.some(char => char.poses.some(pose => pose.id === last_poseId))) {
+            _CE_.$store.state.courtroom.frame.poseId = last_poseId;
+        } else if (_CE_.$store.state.assets.character.customList.some(char => char.id === last_characterId && char.poses.some(pose => pose.id === last_poseId))) {
+            _CE_.$store.state.courtroom.frame.poseId = last_poseId;
+            _CE_.$store.state.courtroom.frame.characterId = last_characterId;
+        }
+
+        // Check if the stored color is valid
+        if (courtroom_chat_color && /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(courtroom_chat_color)) {
+            _CE_.$store.state.courtroom.color = storeGet("courtroom_chat_color");
+        }
+
+        // Set up watchers
+        _CE_.$vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
+            storeSet("last_poseId", poseId);
+        });
+        _CE_.$vue.$watch("$store.state.courtroom.frame.characterId", characterId => {
+            storeSet("last_characterId", characterId);
+        });
+        _CE_.$vue.$watch("$store.state.courtroom.color", color => {
+            storeSet("courtroom_chat_color", color);
+        });
+        _CE_.$vue.$watch("$store.state.courtroom.user.username", name => {
+            if (!name || !_CE_.options.remember_username) return;
+            storeSet("courtroom_username", String(name));
+            _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
+        });
+
+        // Watch My Assets dialog
+        _CE_.$vue.$watch("$store.state.assetsDialog", (newValue, oldValue) => {
+            if (newValue !== true) return;
+            const assetsManager = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "assetsManager"; });
+            const assetsManager__dialog = assetsManager.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; });
+            const assetsManager__tabs = assetsManager__dialog.$refs.dialog.querySelector("div.v-tabs-items").__vue__.$children;
+
+            const assetsManager__background = assetsManager__tabs[0];
+            if (assetsManager__background.hasContent === true) {
+                assetsManager__background.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__background.$children[0].name = uploaderResponse.filename;
+                        assetsManager__background.$children[0].url = uploaderResponse.url;
+                    }, { label: "BG", icon: "image", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 4e6, pastetargets: assetsManager__background.$el.querySelectorAll("div.v-text-field__slot > input[type=text]") })
+                );
+            }
+
+            const assetsManager__music = assetsManager__tabs[3];
+            assetsManager__music.$watch("hasContent", hasContent => {
+                if (hasContent !== true) return;
+                assetsManager__music.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__music.$children[0].name = uploaderResponse.filename;
+                        assetsManager__music.$children[0].url = uploaderResponse.url;
+                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__music.$el.querySelectorAll("input[type=text]") })
+                );
             });
 
-            // Watch My Assets dialog
-            _CE_.$vue.$watch("$store.state.assetsDialog", (newValue, oldValue) => {
-                if (newValue !== true) return;
-                const assetsManager = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "assetsManager"; });
-                const assetsManager__dialog = assetsManager.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; });
-                const assetsManager__tabs = assetsManager__dialog.$refs.dialog.querySelector("div.v-tabs-items").__vue__.$children;
+            const assetsManager__sounds = assetsManager__tabs[4];
+            assetsManager__sounds.$watch("hasContent", hasContent => {
+                if (hasContent !== true) return;
+                assetsManager__sounds.$el.querySelector("div.v-card__actions").prepend(
+                    new _CE_.Uploader.filePicker(uploaderResponse => {
+                        assetsManager__sounds.$children[0].name = uploaderResponse.filename;
+                        assetsManager__sounds.$children[0].url = uploaderResponse.url;
+                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__sounds.$el.querySelectorAll("input[type=text]") })
+                );
+            });
 
-                const assetsManager__background = assetsManager__tabs[0];
-                if (assetsManager__background.hasContent === true) {
-                    assetsManager__background.$el.querySelector("div.v-card__actions").prepend(
-                        new _CE_.Uploader.filePicker(uploaderResponse => {
-                            assetsManager__background.$children[0].name = uploaderResponse.filename;
-                            assetsManager__background.$children[0].url = uploaderResponse.url;
-                        }, { label: "BG", icon: "image", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 4e6, pastetargets: assetsManager__background.$el.querySelectorAll("div.v-text-field__slot > input[type=text]") })
-                    );
+        }, { flush: "post" });
+
+        // Watch Manage Character dialog
+        _CE_.$vue.$watch("$store.state.manageCharacterDialog", (newValue, oldValue) => {
+            if (newValue !== true) return;
+            const manageCharacterDialog = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "manageCharacterDialog"; });
+            const manageCharacterDialog__dialog = manageCharacterDialog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; }).$refs.dialog;
+
+            var characterHelperURL = document.createElement("input");
+            characterHelperURL.setAttributes({
+                type: "text",
+                maxLength: "255",
+                title: "URL",
+                readonly: true,
+                style: {
+                    backgroundColor: "white",
+                    color: "black",
+                    height: "1vw",
+                    fontSize: "8px",
+                    border: "1px solid black",
+                    minWidth: "140px",
+                    maxWidth: "100%",
+                    display: "none",
+                    flexBasis: "100"
                 }
+            });
+            characterHelperURL.addEventListener("click", ev => { ev.target.select(); });
 
-                const assetsManager__music = assetsManager__tabs[3];
-                assetsManager__music.$watch("hasContent", hasContent => {
-                    if (hasContent !== true) return;
-                    assetsManager__music.$el.querySelector("div.v-card__actions").prepend(
-                        new _CE_.Uploader.filePicker(uploaderResponse => {
-                            assetsManager__music.$children[0].name = uploaderResponse.filename;
-                            assetsManager__music.$children[0].url = uploaderResponse.url;
-                        }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__music.$el.querySelectorAll("input[type=text]") })
-                    );
-                });
+            var characterHelper_Uploader = new _CE_.Uploader.filePicker(res => {
+                if (characterHelperURL.style.display === "none") {
+                    characterHelperURL.style.display = "block";
+                }
+                characterHelperURL.value = res.url;
+            }, { label: "file", icon: "image-size-select-large", acceptedhtml: "*", acceptedregex: ".*", maxsize: 2e7, pastetargets: characterHelperURL });
+            characterHelper_Uploader.style.flexBasis = "100";
+            characterHelper_Uploader.style.borderColor = "#83ffff";
 
-                const assetsManager__sounds = assetsManager__tabs[4];
-                assetsManager__sounds.$watch("hasContent", hasContent => {
-                    if (hasContent !== true) return;
-                    assetsManager__sounds.$el.querySelector("div.v-card__actions").prepend(
-                        new _CE_.Uploader.filePicker(uploaderResponse => {
-                            assetsManager__sounds.$children[0].name = uploaderResponse.filename;
-                            assetsManager__sounds.$children[0].url = uploaderResponse.url;
-                        }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__sounds.$el.querySelectorAll("input[type=text]") })
-                    );
-                });
+            var characterHelper = document.createElement("div");
+            characterHelper.setAttributes({
+                className: "v-toolbar__items",
+                style: {
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    alignContent: "center",
+                    justifyContent: "center",
+                    maxWidth: "150px"
+                }
+            });
 
-            }, { flush: "post" });
+            characterHelper.append(characterHelper_Uploader, characterHelperURL);
 
-            // Watch Manage Character dialog
-            _CE_.$vue.$watch("$store.state.manageCharacterDialog", (newValue, oldValue) => {
-                if (newValue !== true) return;
-                const manageCharacterDialog = ui.app.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "manageCharacterDialog"; });
-                const manageCharacterDialog__dialog = manageCharacterDialog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-dialog"; }).$refs.dialog;
-
-                var characterHelperURL = document.createElement("input");
-                characterHelperURL.setAttributes({
-                    type: "text",
-                    maxLength: "255",
-                    title: "URL",
-                    readonly: true,
-                    style: {
-                        backgroundColor: "white",
-                        color: "black",
-                        height: "1vw",
-                        fontSize: "8px",
-                        border: "1px solid black",
-                        minWidth: "140px",
-                        maxWidth: "100%",
-                        display: "none",
-                        flexBasis: "100"
-                    }
-                });
-                characterHelperURL.addEventListener("click", ev => { ev.target.select(); });
-
-                var characterHelper_Uploader = new _CE_.Uploader.filePicker(res => {
-                    if (characterHelperURL.style.display === "none") {
-                        characterHelperURL.style.display = "block";
-                    }
-                    characterHelperURL.value = res.url;
-                }, { label: "file", icon: "image-size-select-large", acceptedhtml: "*", acceptedregex: ".*", maxsize: 2e7, pastetargets: characterHelperURL });
-                characterHelper_Uploader.style.flexBasis = "100";
-                characterHelper_Uploader.style.borderColor = "#83ffff";
-
-                var characterHelper = document.createElement("div");
-                characterHelper.setAttributes({
-                    className: "v-toolbar__items",
-                    style: {
-                        flexWrap: "wrap",
-                        alignItems: "center",
-                        alignContent: "center",
-                        justifyContent: "center",
-                        maxWidth: "150px"
-                    }
-                });
-
-                characterHelper.append(characterHelper_Uploader, characterHelperURL);
-
-                var spacer = document.createElement("div");
-                spacer.className = "spacer";
-                manageCharacterDialog__dialog.querySelector("div.spacer").after(characterHelper, spacer);
-            }, { flush: "post" });
-        }, 250);
+            var spacer = document.createElement("div");
+            spacer.className = "spacer";
+            manageCharacterDialog__dialog.querySelector("div.spacer").after(characterHelper, spacer);
+        }, { flush: "post" });
 
         const createButton = function (options) {
             const container = document.createElement("div");
@@ -333,7 +344,7 @@
                     formatDataFile(data) {
                         return {
                             headers: {},
-                            data: _CE_.Uploader.parseForm({file: data })
+                            data: _CE_.Uploader.parseForm({ file: data })
                         };
                     },
                     formatDataUrl(data) {
@@ -1005,7 +1016,7 @@
 
         };
 
-        if (_CE_.$vue.$store.getters["courtroom/addEvidencePermission"]) {
+        if (_CE_.$store.getters["courtroom/addEvidencePermission"]) {
             ui.enhanceEvidenceForm();
         }
 
@@ -1016,7 +1027,7 @@
         });
 
         // Watch for evidence permission or mod/owner status changes
-        _CE_.$vue.$watch(() => _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.$vue.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.$vue.isMod || _CE_.$vue.isOwner) || _CE_.$vue.isOwner,
+        _CE_.$vue.$watch(() => _CE_.$store.state.courtroom.room.permissions.addEvidence == 0 || _CE_.$store.state.courtroom.room.permissions.addEvidence == 1 && (_CE_.$vue.isMod || _CE_.$vue.isOwner) || _CE_.$vue.isOwner,
             (newValue, oldValue) => {
                 // Only run the enhancer function when permission changes OFF to ON
                 if (!newValue || (newValue && oldValue)) return;
@@ -1478,7 +1489,7 @@
                     const list = [...new Set(value.split(",").map(word => word.replace(/[^\w\s@$]/g, "").trim()).filter(word => word && typeof word === "string"))];
                     ev.target.value = list.join(",");
                     setSetting("chatlog_highlights_wordlist", list);
-                    _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
+                    _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
                 }
             });
 
@@ -1568,7 +1579,7 @@
                 display: _CE_.options.show_roulettes,
                 icon: "dice-multiple",
                 onclick: () => {
-                    if (_CE_.$vue.$store.state.courtroom.room.restrictEvidence) {
+                    if (_CE_.$store.state.courtroom.room.restrictEvidence) {
                         _CE_.$snotify.error("Showing evidence is restricted to this courtroom's evidence list.");
                         return;
                     }
@@ -1770,7 +1781,7 @@
             }, _CE_.notificationSound.duration);
         };
 
-        _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$vue.$store.state.courtroom.user.username));
+        _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
 
         _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
@@ -1839,7 +1850,7 @@
 
             if (printInChatlog === false) return;
 
-            _CE_.$vue.$store.dispatch("courtroom/appendMessage", {
+            _CE_.$store.dispatch("courtroom/appendMessage", {
                 type: "system",
                 text: (typeof printInChatlog === "string" ? printInChatlog + ": " : "") + command
             });
@@ -1848,7 +1859,7 @@
         // Find a cached asset with an ID highest than the recorded one and if it exists remember it
         _CE_.findHighestAssetID = function (asset) {
             if (!["evidence", "music", "sound"].includes(asset)) return;
-            const highestCached = Math.max(...Object.keys(_CE_.$vue.$store.state.assets[asset].cache), 0);
+            const highestCached = Math.max(...Object.keys(_CE_.$store.state.assets[asset].cache), 0);
             if (highestCached > _CE_.options[`roulette_max_${asset}`]) {
                 setSetting(`roulette_max_${asset}`, highestCached);
             }
