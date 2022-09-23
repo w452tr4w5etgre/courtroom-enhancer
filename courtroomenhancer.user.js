@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.815
+// @version      0.816
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1772,7 +1772,7 @@
         });
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
-        _CE_.notificationSound = { sound: new Audio("https://objection.lol/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240 };
+        _CE_.notificationSound = { sound: new Audio("https://objection.lol/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240, cooldown: false };
         _CE_.notificationSound.sound.onplay = ev => {
             var sound = ev.target;
             sound.currentTime = _CE_.notificationSound.seek / 1000;
@@ -1787,8 +1787,12 @@
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
             if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true
-                && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
+                && _CE_.notificationSound.cooldown === false && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
                 && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}\\b`, "gmi")))) {
+
+                _CE_.notificationSound.cooldown = true;
+                // 10 seconds cooldown between notification pings
+                setTimeout(() => { _CE_.notificationSound.cooldown = false; }, 10000);
                 _CE_.notificationSound.sound.play();
 
                 // If there is music playing lower its volume while the notification sound is playing
