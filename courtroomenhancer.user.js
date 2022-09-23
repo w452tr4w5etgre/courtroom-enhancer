@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.817
+// @version      0.818
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -131,6 +131,14 @@
         }
 
         // Set up watchers
+        _CE_.$vue.$socket.addEventListener("disconnect", socketError => {
+            const errorWatcher = _CE_.$vue.$watch("$store.state.courtroom.error.title", errorText => {
+                if (errorText !== "Disconnected") return;
+                _CE_.$vue.$store.state.courtroom.error.text += "\nReason: " + socketError;
+                errorWatcher(); //Unwatch 
+            }, { once: true });
+        }, { once: true });
+
         _CE_.$vue.$watch("$store.state.courtroom.frame.poseId", poseId => {
             storeSet("last_poseId", poseId);
         });
