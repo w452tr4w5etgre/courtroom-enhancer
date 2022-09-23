@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.816
+// @version      0.817
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1772,7 +1772,7 @@
         });
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
-        _CE_.notificationSound = { sound: new Audio("https://objection.lol/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240, cooldown: false };
+        _CE_.notificationSound = { sound: new Audio("/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240, cooldown: false };
         _CE_.notificationSound.sound.onplay = ev => {
             var sound = ev.target;
             sound.currentTime = _CE_.notificationSound.seek / 1000;
