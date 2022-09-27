@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.818
+// @version      0.819
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -178,7 +178,7 @@
                     new _CE_.Uploader.filePicker(uploaderResponse => {
                         assetsManager__music.$children[0].name = uploaderResponse.filename;
                         assetsManager__music.$children[0].url = uploaderResponse.url;
-                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__music.$el.querySelectorAll("input[type=text]") })
+                    }, { label: "music", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 50e6, pastetargets: assetsManager__music.$el.querySelectorAll("input[type=text]") })
                 );
             });
 
@@ -189,7 +189,7 @@
                     new _CE_.Uploader.filePicker(uploaderResponse => {
                         assetsManager__sounds.$children[0].name = uploaderResponse.filename;
                         assetsManager__sounds.$children[0].url = uploaderResponse.url;
-                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 25e6, pastetargets: assetsManager__sounds.$el.querySelectorAll("input[type=text]") })
+                    }, { label: "sound", icon: "file-music", acceptedhtml: "audio/*", acceptedregex: "^audio/", maxsize: 4e6, pastetargets: assetsManager__sounds.$el.querySelectorAll("input[type=text]") })
                 );
             });
 
@@ -371,42 +371,49 @@
                     name: "catbox.moe",
                     url: "https://catbox.moe/user/api.php",
                     api: "catbox",
+                    maxsize: 200e6,
                     supported: new Map([["audio", true], ["urls", true], ["m4a", true]])
                 }],
                 ["uguuse", {
                     name: "uguu.se",
                     url: "https://uguu.se/upload.php",
                     api: "lolisafe",
+                    maxsize: 128e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
                 }],
                 ["pomflainla", {
                     name: "pomf.lain.la",
                     url: "https://pomf.lain.la/upload.php",
                     api: "lolisafe",
+                    maxsize: 512e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
                 }],
                 ["imoutokawaii", {
                     name: "imouto.kawaii.su",
                     url: "https://imouto.kawaii.su/api/upload",
                     api: "lolisafe",
+                    maxsize: 20e6,
                     supported: new Map([["audio", false], ["urls", true], ["m4a", false]])
                 }],
                 ["takemetospace", {
                     name: "take-me-to.space",
                     url: "https://take-me-to.space/api/upload",
                     api: "lolisafe",
+                    maxsize: 50e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
                 }],
                 ["cockfile", {
                     name: "cockfile (24h expire)",
                     url: "https://cockfile.com/upload.php",
                     api: "lolisafe",
+                    maxsize: 128e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
                 }],
                 ["h4g", {
                     name: "h4g (30d expire)",
                     url: "https://files.h4g.co/api.php?d=upload-tool",
                     api: "h4g",
+                    maxsize: 100e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
                 }]
             ]),
@@ -438,6 +445,12 @@
                 } else {
                     throw new Error("Invalid data");
                 }
+
+                if (file.size > this.fileHosts.get(fileHost).maxsize) {
+                    console.log("File too big, swapping to " + hostFallback.get("base"))
+                    fileHost = hostFallback.get("base");
+                }
+
                 CrossOrigin({
                     url: this.fileHosts.get(fileHost).url,
                     method: this.hostApis.get(this.fileHosts.get(fileHost).api).method,
@@ -1451,7 +1464,7 @@
             });
 
             ui.extraSettings_fileHostSelector = new createInputSelect({
-                label: "File host",
+                label: "Preferred file host. Some hosts don't support certain file types or upload methods. A default file host will automatically be selected if the current option is unavailable as fallback.",
                 values: Array.from(_CE_.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
                 selectedValue: _CE_.options.file_host,
                 onchange: ev => {
