@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.819
+// @version      0.820
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -447,7 +447,6 @@
                 }
 
                 if (file.size > this.fileHosts.get(fileHost).maxsize) {
-                    console.log("File too big, swapping to " + hostFallback.get("base"))
                     fileHost = hostFallback.get("base");
                 }
 
