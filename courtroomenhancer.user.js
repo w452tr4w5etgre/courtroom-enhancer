@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.821
+// @version      0.822
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1747,7 +1747,7 @@
                 icon: "music-circle-outline",
                 backgroundColor: "teal",
                 onclick: () => {
-                    if (_CE_.musicPlayer.soundsPlaying.length === 0) {
+                    if (_CE_.musicPlayer.soundsPlaying.length === 0 || !_CE_.musicPlayer.soundsPlaying.some(snd => snd.howler._duration)) {
                         if (_CE_.$snotify.notifications.some(notification => notification.title === "SFX Info Error") === false) {
                             _CE_.$snotify.error("No sounds are playing.", "SFX Info Error", {
                                 html: `<div class="snotifyToast__body" style="word-break: break-all;">No sounds are playing.</div>`
@@ -1758,11 +1758,13 @@
 
                     var notif_html = "";
                     _CE_.musicPlayer.soundsPlaying.forEach(snd => {
-                        if (!snd.howler.duration) return;
+                        if (!snd.howler._duration) return;
                         const snd_url = snd.howler._src;
                         const snd_object = Object.values(ui.courtPlayer.soundCache).find(csnd => csnd.url === snd_url);
                         notif_html += `<div>[#bgs${snd_object.id}] <b>${sanitizeHTML(snd_object.name)}</b><p><a style="color:#0f28e6" href="${snd_url}" target="_blank" rel="noreferrer">${snd_url}</a></p></div>`;
                     });
+
+                    if (_CE_.$snotify.notifications.some(notification => notification.title === "SFX Info")) return;
 
                     _CE_.$snotify.success("SFX Info", "SFX Info", {
                         html: `<div class="snotifyToast__body" style="word-break: break-all;">${notif_html}</div>`,
