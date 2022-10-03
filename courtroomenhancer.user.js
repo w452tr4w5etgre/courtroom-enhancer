@@ -1758,6 +1758,7 @@
 
                     var notif_html = "";
                     _CE_.musicPlayer.soundsPlaying.forEach(snd => {
+                        if (!snd.howler.duration) return;
                         const snd_url = snd.howler._src;
                         const snd_object = Object.values(ui.courtPlayer.soundCache).find(csnd => csnd.url === snd_url);
                         notif_html += `<div>[#bgs${snd_object.id}] <b>${sanitizeHTML(snd_object.name)}</b><p><a style="color:#0f28e6" href="${snd_url}" target="_blank" rel="noreferrer">${snd_url}</a></p></div>`;
