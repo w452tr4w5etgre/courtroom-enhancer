@@ -32,7 +32,7 @@
         "show_roulettes": getSetting("show_roulettes", true),
         "global_audio_control_buttons": getSetting("global_audio_control_buttons", false),
         "mute_bgm_button": getSetting("mute_bgm_button", false),
-        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 582000),
+        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 605000),
         "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 140000),
         "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 53000),
         "file_host": getSetting("file_host", "catboxmoe"),
