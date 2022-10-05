@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.822
+// @version      0.823
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -74,6 +74,9 @@
         if (_CE_.options.remember_username) {
             _CE_.$store.state.courtroom.user.username = storeGet("courtroom_username");
         }
+        if (storeGet("courtroom_last_room_password")) {
+            _CE_.$store.state.courtroom.room.password = storeGet("courtroom_last_room_password");
+        }
     }
 
     function onCourtroomJoin() {
@@ -111,6 +114,7 @@
 
         // Remember username
         storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
+        storeSet("courtroom_last_room_password", _CE_.$store.state.courtroom.room.password);
 
         // Remember last used character/pose and text color
         let last_poseId = storeGet("last_poseId");
