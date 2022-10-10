@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.823
+// @version      0.824
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,14 +32,15 @@
         "show_roulettes": getSetting("show_roulettes", true),
         "global_audio_control_buttons": getSetting("global_audio_control_buttons", false),
         "mute_bgm_button": getSetting("mute_bgm_button", false),
-        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 605000),
-        "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 140000),
-        "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 53000),
+        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 608000),
+        "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 183600),
+        "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 57300),
         "file_host": getSetting("file_host", "catboxmoe"),
         "textbox_style": getSetting("textbox_style", "none"),
         "custom_styles": getSetting("custom_styles"),
         "chatlog_highlights": getSetting("chatlog_highlights", false),
         "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
+        "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url"),
         "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
         "evidence_compact": getSetting("evidence_compact", false)
     };
@@ -1485,6 +1486,7 @@
                     const value = ev.target.checked;
                     setSetting("chatlog_highlights", value);
                     ui.extraSettings_chatlogHighlightsPlaySound.style.display = value ? "flex" : "none";
+                    ui.extraSettings_chatlogHighlightsSoundUrl.style.display = value ? "flex" : "none";
                     ui.extraSettings_chatlogHighlightsWordlist.style.display = value ? "flex" : "none";
                 }
             });
@@ -1497,13 +1499,40 @@
                 onchange: ev => {
                     const value = ev.target.checked;
                     setSetting("chatlog_highlights_playsound", value);
+                    ui.extraSettings_chatlogHighlightsSoundUrl.style.display = value ? "flex" : "none";
                 }
             });
+
+
+            ui.extraSettings_chatlogHighlightsSoundUrl = new createInputText({
+                value: _CE_.options.chatlog_highlights_sound_url,
+                label: "Sound URL",
+                title: "URL to the audio file for the sound to be played. Leave empty for the default sound",
+                display: _CE_.options.chatlog_highlights_playsound,
+                type: "text",
+                maxWidth: "max-content",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    setSetting("chatlog_highlights_sound_url", value);
+                    _CE_.notificationSound.sound.pause();
+                    if (value) {
+                        _CE_.notificationSound.sound.src = value;
+                        _CE_.notificationSound.seek = 0;
+                        _CE_.notificationSound.duration = 0;
+                    } else {
+                        _CE_.notificationSound.sound.src = "/Audio/Music/ringtone%202.ogg";
+                        _CE_.notificationSound.seek = 1710;
+                        _CE_.notificationSound.duration = 1240;
+                    }
+                    _CE_.notificationSound.sound.load();
+                }
+            });
+
 
             ui.extraSettings_chatlogHighlightsWordlist = new createInputText({
                 value: _CE_.options.chatlog_highlights_wordlist,
                 label: "Words separated by commas",
-                title: "List of words to be highlighted, separated by commas. $me always refers to your current username.",
+                title: "List of words to be highlighted, separated by commas. $me always refers to the current username",
                 display: _CE_.options.chatlog_highlights,
                 type: "text",
                 maxWidth: "max-content",
@@ -1566,6 +1595,7 @@
                 ui.extraSettings_globalAudioControlButtons,
                 ui.extraSettings_chatlogHighlights,
                 ui.extraSettings_chatlogHighlightsPlaySound,
+                ui.extraSettings_chatlogHighlightsSoundUrl,
                 ui.extraSettings_chatlogHighlightsWordlist,
             );
             extraSettings_rows.push(ui.extraSettings_rowButtons);
@@ -1647,6 +1677,8 @@
                 onclick: () => {
                     _CE_.musicPlayer.stopMusic();
                     _CE_.musicPlayer.stopSounds();
+                    if (_CE_.notificationSound.sound)
+                        _CE_.notificationSound.sound.pause();
                 }
             });
 
@@ -1799,13 +1831,18 @@
         });
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
-        _CE_.notificationSound = { sound: new Audio("/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240, cooldown: false };
+        if (_CE_.options.chatlog_highlights_sound_url) {
+            _CE_.notificationSound = { sound: new Audio(_CE_.options.chatlog_highlights_sound_url), seek: 0, duration: 0 };
+        } else {
+            _CE_.notificationSound = { sound: new Audio("/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240 };
+        }
+
         _CE_.notificationSound.sound.onplay = ev => {
             var sound = ev.target;
-            sound.currentTime = _CE_.notificationSound.seek / 1000;
-            setTimeout(() => {
-                sound.pause();
-            }, _CE_.notificationSound.duration);
+            sound.currentTime = (_CE_.notificationSound.seek || 0) / 1000;
+            if (_CE_.notificationSound.duration > 0) {
+                setTimeout(() => { sound.pause(); }, _CE_.notificationSound.duration);
+            }
         };
 
         _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
@@ -1814,12 +1851,12 @@
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
             if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true
-                && _CE_.notificationSound.cooldown === false && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
+                && _CE_.notificationSound.cooldown !== true && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
                 && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}\\b`, "gmi")))) {
 
-                _CE_.notificationSound.cooldown = true;
+                _CE_.notificationSound_cooldown = true;
                 // 10 seconds cooldown between notification pings
-                setTimeout(() => { _CE_.notificationSound.cooldown = false; }, 10000);
+                setTimeout(() => { _CE_.notificationSound_cooldown = false; }, 10000);
                 _CE_.notificationSound.sound.play();
 
                 // If there is music playing lower its volume while the notification sound is playing
