@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.826
+// @version      0.827
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -116,7 +116,6 @@
         // Remember username
         storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
         if (_CE_.$store.state.courtroom.room.passwordRequired === true) {
-            console.log("setting password")
             storeSet("courtroom_last_room_password", _CE_.$store.state.courtroom.room.password);
         }
 
