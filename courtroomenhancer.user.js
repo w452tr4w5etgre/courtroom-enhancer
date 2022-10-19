@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.827
+// @version      0.828
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,7 +32,7 @@
         "show_roulettes": getSetting("show_roulettes", true),
         "global_audio_control_buttons": getSetting("global_audio_control_buttons", false),
         "mute_bgm_button": getSetting("mute_bgm_button", false),
-        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 608000),
+        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 611000),
         "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 183600),
         "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 57300),
         "file_host": getSetting("file_host", "catboxmoe"),
@@ -425,7 +425,7 @@
                 }]
             ]),
 
-            upload: function (file, callbackSuccess, callbackError) {
+            upload: function (file, callbackSuccess, callbackError, callbackProgress) {
                 const hostFallback = new Map([["base", "catboxmoe"], ["audio", "catboxmoe"], ["urls", "imoutokawaii"], ["m4a", "uguuse"]]);
                 var dataToUpload, filename, fileHost = (this.fileHosts.has(_CE_.options.file_host) ? _CE_.options.file_host : hostFallback.get("base"));
                 if (typeof file === "string") { // Argument passed is an URL
@@ -473,17 +473,24 @@
                                 callbackError(err.toString());
                             }
                         } else {
-                            callbackError("Err " + response.status + ": " + response.responseText);
+                            callbackError("Error " + response.status + ": " + response.responseText);
                         }
                     },
                     onabort: response => {
-                        callbackError("Aborted" + response.responseText);
+                        callbackError("Aborted: " + response.responseText);
                     },
                     onerror: response => {
-                        callbackError("Error" + response.responseText);
+                        callbackError("Error: " + response.responseText);
                     },
                     ontimeout: response => {
-                        callbackError("Timeout" + response.responseText);
+                        callbackError("Timeout: " + response.responseText);
+                    },
+                    upload: {
+                        onprogress: response => {
+                            if (callbackProgress !== undefined && response.lengthComputable === true) {
+                                callbackProgress(response.loaded, response.total);
+                            }
+                        }
                     }
                 });
             },
@@ -527,6 +534,12 @@
                     resetElem();
                     callback.apply(this, arguments);
                 };
+
+                const uploadCallbackProgress = function (current, total) {
+                    elemContainer.setAttributes({
+                        lastChild: { textContent: String(Math.round(current / total * 100)) + " %" }
+                    });
+                }
 
                 const elemContainer = document.createElement("div");
                 elemContainer.setAttributes({
@@ -615,10 +628,10 @@
                             }
                         });
                         if (file instanceof File) {
-                            _CE_.Uploader.upload(file, uploadCallbackSuccess, uploadError);
+                            _CE_.Uploader.upload(file, uploadCallbackSuccess, uploadError, uploadCallbackProgress);
                         } else if (file instanceof DataTransferItem && file.kind == "string") {
                             file.getAsString(url => {
-                                _CE_.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this));
+                                _CE_.Uploader.upload(url, uploadCallbackSuccess.bind(this), uploadError.bind(this), uploadCallbackProgress.bind(this));
                             });
                         } else {
                             throw new Error("Invalid file.");
@@ -627,6 +640,9 @@
                         uploadError(err.toString());
                     }
                 };
+
+                // Reset the value of the file input to allow the change event to be fired even when selecting the same file more than once
+                elemFile.addEventListener("click", ev => { ev.target.value = ""; });
 
                 elemFile.addEventListener("change", uploaderElementEvent.bind(this));
                 elemContainer.addEventListener("drop", uploaderElementEvent.bind(this));
@@ -830,7 +846,9 @@
                                             } catch (err) {
                                                 throw (err);
                                             }
-                                        }, gelbooruUploaderError);
+                                        }, gelbooruUploaderError, (current, total) => {
+                                            gelbooruInputTags.value = "Uploading... " + Math.round(current / total * 100) + " %";
+                                        });
                                     }
                                 } catch (err) {
                                     gelbooruUploaderError(err);
@@ -2332,7 +2350,7 @@
         try {
             return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
         } catch (err) {
-            return console.error(err);
+            return "CrossOrigin error:" + console.error(err);
         }
     })();
 
