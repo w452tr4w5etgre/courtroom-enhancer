@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.832
+// @version      0.833
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1383,7 +1383,7 @@
 
             ui.extraSettings_globalAudioControlButtons = new createInputCheckbox({
                 checked: _CE_.options.global_audio_control_buttons,
-                label: "Global audio buttons",
+                label: "Global BGM/SFX control buttons",
                 onchange: ev => {
                     const value = ev.target.checked;
                     setSetting("global_audio_control_buttons", value);
@@ -1509,6 +1509,7 @@
                     setSetting("chatlog_highlights", value);
                     ui.extraSettings_chatlogHighlightsPlaySound.style.display = value ? "flex" : "none";
                     ui.extraSettings_chatlogHighlightsSoundUrl.style.display = value ? "flex" : "none";
+                    ui.extraSettings_chatlogHighlightsSoundVolume.style.display = value ? "flex" : "none";
                     ui.extraSettings_chatlogHighlightsWordlist.style.display = value ? "flex" : "none";
                 }
             });
@@ -1531,7 +1532,7 @@
                 value: _CE_.options.chatlog_highlights_sound_url,
                 label: "Sound URL",
                 title: "URL to the audio file for the sound to be played. Leave empty for the default sound",
-                display: _CE_.options.chatlog_highlights_playsound,
+                display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "text",
                 maxWidth: "max-content",
                 onfocusout: ev => {
@@ -1555,7 +1556,7 @@
                 value: _CE_.options.chatlog_highlights_sound_volume,
                 label: "Sound Volume",
                 title: "Notification sound volume.",
-                display: _CE_.options.chatlog_highlights_playsound,
+                display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "range",
                 min: "0",
                 max: "100",
