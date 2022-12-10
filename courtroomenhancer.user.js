@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.835
+// @version      0.836
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1531,7 +1531,7 @@
             ui.extraSettings_chatlogHighlightsSoundUrl = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_url,
                 label: "Sound URL",
-                title: "URL to the audio file for the sound to be played. Leave empty for default",
+                title: "URL to the audio file for the sound to be played. Can be in any audio format. Leave empty or type \"default\" for default",
                 display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "text",
                 maxWidth: "max-content",
@@ -1554,7 +1554,7 @@
 
             ui.extraSettings_chatlogHighlightsSoundVolume = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_volume,
-                label: "Sound Volume",
+                label: "Volume",
                 title: "Notification sound volume.",
                 display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "range",
