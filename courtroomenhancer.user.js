@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.834
+// @version      0.835
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -40,7 +40,7 @@
         "custom_styles": getSetting("custom_styles"),
         "chatlog_highlights": getSetting("chatlog_highlights", false),
         "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
-        "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url"),
+        "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url", "default"),
         "chatlog_highlights_sound_volume": getSetting("chatlog_highlights_sound_volume", 0.5),
         "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
         "evidence_compact": getSetting("evidence_compact", false)
@@ -1531,7 +1531,7 @@
             ui.extraSettings_chatlogHighlightsSoundUrl = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_url,
                 label: "Sound URL",
-                title: "URL to the audio file for the sound to be played. Leave empty for the default sound",
+                title: "URL to the audio file for the sound to be played. Leave empty for default",
                 display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "text",
                 maxWidth: "max-content",
@@ -1539,7 +1539,7 @@
                     const value = ev.target.value;
                     setSetting("chatlog_highlights_sound_url", value);
                     _CE_.notificationSound.sound.pause();
-                    if (value) {
+                    if (value && value !== "default") {
                         _CE_.notificationSound.sound.src = value;
                         _CE_.notificationSound.seek = 0;
                         _CE_.notificationSound.duration = 0;
@@ -1891,7 +1891,7 @@
         });
         ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
 
-        if (_CE_.options.chatlog_highlights_sound_url) {
+        if (_CE_.options.chatlog_highlights_sound_url && _CE_.options.chatlog_highlights_sound_url !== "default") {
             _CE_.notificationSound = { sound: new Audio(_CE_.options.chatlog_highlights_sound_url), seek: 0, duration: 0 };
         } else {
             _CE_.notificationSound = { sound: new Audio("/Audio/Music/ringtone%202.ogg"), seek: 1710, duration: 1240 };
