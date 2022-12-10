@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.831
+// @version      0.832
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1489,7 +1489,8 @@
             });
 
             ui.extraSettings_fileHostSelector = new createInputSelect({
-                label: "Preferred file host. Some hosts don't support certain file types or upload methods. A default file host will automatically be selected if the current option is unavailable as fallback.",
+                label: "File host",
+                title: "Preferred file host. Some hosts don't support certain file types or upload methods. A default file host will automatically be selected if the current option is unavailable as fallback.",
                 values: Array.from(_CE_.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
                 selectedValue: _CE_.options.file_host,
                 onchange: ev => {
@@ -1553,10 +1554,11 @@
             ui.extraSettings_chatlogHighlightsSoundVolume = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_volume,
                 label: "Sound Volume",
-                title: "Volume for the notification sound. Enter a number from 0 to 100",
+                title: "Notification sound volume.",
                 display: _CE_.options.chatlog_highlights_playsound,
                 type: "range",
-                maxLength: "3",
+                min: "0",
+                max: "100",
                 maxWidth: "max-content",
                 onfocusout: ev => {
                     const value = ev.target.value;
