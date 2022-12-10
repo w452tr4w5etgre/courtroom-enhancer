@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.833
+// @version      0.834
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1371,7 +1371,7 @@
 
             ui.extraSettings_showRoulettes = new createInputCheckbox({
                 checked: _CE_.options.show_roulettes,
-                label: "Roulettes",
+                label: "Roulette buttons",
                 onchange: ev => {
                     const value = ev.target.checked;
                     setSetting("show_roulettes", value);
@@ -1623,7 +1623,7 @@
                 className: "col col-12 d-flex align-center",
                 style: {
                     flexWrap: "wrap",
-                    gap: "12px 5px"
+                    gap: "12px 8px"
                 }
             });
 
@@ -1635,14 +1635,30 @@
                 ui.extraSettings_textboxStyleSelector,
                 ui.extraSettings_fileHostSelector,
                 ui.extraSettings_showRoulettes,
-                ui.extraSettings_globalAudioControlButtons,
-                ui.extraSettings_chatlogHighlights,
+                ui.extraSettings_globalAudioControlButtons
+            );
+            extraSettings_rows.push(ui.extraSettings_rowButtons);
+
+            // Chat Notifications buttons
+            ui.extraSettings_chatNotificationButtons = document.createElement("div");
+            ui.extraSettings_chatNotificationButtons.className = "row mt-4 no-gutters";
+            ui.extraSettings_chatNotificationButtonsCol = document.createElement("div");
+            ui.extraSettings_chatNotificationButtonsCol.setAttributes({
+                className: "col col-12 d-flex align-center",
+                style: {
+                    flexWrap: "wrap",
+                    gap: "12px 8px"
+                }
+            });
+            ui.extraSettings_chatNotificationButtons.appendChild(ui.extraSettings_chatNotificationButtonsCol);
+            ui.extraSettings_chatNotificationButtonsCol.append(ui.extraSettings_chatlogHighlights,
                 ui.extraSettings_chatlogHighlightsPlaySound,
                 ui.extraSettings_chatlogHighlightsSoundUrl,
                 ui.extraSettings_chatlogHighlightsSoundVolume,
                 ui.extraSettings_chatlogHighlightsWordlist,
             );
-            extraSettings_rows.push(ui.extraSettings_rowButtons);
+
+            extraSettings_rows.push(ui.extraSettings_chatNotificationButtons);
 
             // Append the custom controls before the volume control
             const volumeControl = ui.courtSettings.$children.find(child => { return child.$vnode.componentOptions.tag === "volumeControl"; }).$el.parentNode;
