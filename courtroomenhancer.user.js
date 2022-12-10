@@ -41,6 +41,7 @@
         "chatlog_highlights": getSetting("chatlog_highlights", false),
         "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
         "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url"),
+        "chatlog_highlights_sound_volume": getSetting("chatlog_highlights_sound_volume", 0.5),
         "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
         "evidence_compact": getSetting("evidence_compact", false)
     };
@@ -158,7 +159,7 @@
         _CE_.$vue.$watch("$store.state.courtroom.user.username", name => {
             if (!name || !_CE_.options.remember_username) return;
             storeSet("courtroom_username", String(name));
-            _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
+            _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", escapeRegExp(_CE_.$store.state.courtroom.user.username)));
         });
 
         // Watch My Assets dialog
@@ -1520,6 +1521,7 @@
                     const value = ev.target.checked;
                     setSetting("chatlog_highlights_playsound", value);
                     ui.extraSettings_chatlogHighlightsSoundUrl.style.display = value ? "flex" : "none";
+                    ui.extraSettings_chatlogHighlightsSoundVolume.style.display = value ? "flex" : "none";
                 }
             });
 
@@ -1545,6 +1547,24 @@
                         _CE_.notificationSound.duration = 1240;
                     }
                     _CE_.notificationSound.sound.load();
+                }
+            });
+
+            ui.extraSettings_chatlogHighlightsSoundVolume = new createInputText({
+                value: _CE_.options.chatlog_highlights_sound_volume,
+                label: "Sound Volume",
+                title: "Volume for the notification sound. Enter a number from 0 to 100",
+                display: _CE_.options.chatlog_highlights_playsound,
+                type: "range",
+                maxLength: "3",
+                maxWidth: "max-content",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    if ((value >= 0 && value <= 100) === false) {
+                        return false;
+                    }
+                    setSetting("chatlog_highlights_sound_volume", value);
+                    _CE_.notificationSound.sound.volume = value / 100;
                 }
             });
 
@@ -1616,6 +1636,7 @@
                 ui.extraSettings_chatlogHighlights,
                 ui.extraSettings_chatlogHighlightsPlaySound,
                 ui.extraSettings_chatlogHighlightsSoundUrl,
+                ui.extraSettings_chatlogHighlightsSoundVolume,
                 ui.extraSettings_chatlogHighlightsWordlist,
             );
             extraSettings_rows.push(ui.extraSettings_rowButtons);
@@ -1865,6 +1886,7 @@
             }
         };
 
+        _CE_.notificationSound.sound.volume = _CE_.options.chatlog_highlights_sound_volume / 100;
         _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
 
         _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
@@ -2344,6 +2366,10 @@
 
     function sanitizeHTML(text) {
         return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 
     const CrossOrigin = (function () {
