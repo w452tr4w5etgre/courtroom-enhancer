@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.836
+// @version      0.837
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -32,9 +32,9 @@
         "show_roulettes": getSetting("show_roulettes", true),
         "global_audio_control_buttons": getSetting("global_audio_control_buttons", false),
         "mute_bgm_button": getSetting("mute_bgm_button", false),
-        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 611000),
-        "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 183600),
-        "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 57300),
+        "roulette_max_evidence": Math.max(getSetting("roulette_max_evidence", 0), 632000),
+        "roulette_max_music": Math.max(getSetting("roulette_max_music", 0), 196500),
+        "roulette_max_sound": Math.max(getSetting("roulette_max_sound", 0), 62100),
         "file_host": getSetting("file_host", "catboxmoe"),
         "textbox_style": getSetting("textbox_style", "none"),
         "custom_styles": getSetting("custom_styles"),
@@ -2356,13 +2356,13 @@
             res = GM_getValue(key);
         }
         try {
-            if (typeof res === "undefined" || res === null) {
+            if (typeof res === "undefined" || res === null || res === "") {
                 return def;
             } else {
                 return JSON.parse(res);
             }
         } catch {
-            if (typeof res === "undefined" || res === null) {
+            if (typeof res === "undefined" || res === null || res === "") {
                 return def;
             } else {
                 return res;
