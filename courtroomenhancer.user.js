@@ -1207,7 +1207,9 @@
                     className: "v-select__selections pa-0 mr-0",
                     type: options.type,
                     title: options.title,
-                    style: { color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px" }
+                    style: { color: "white", backgroundColor: "#1e1e1e", lineHeight: "18px" },
+                    min: options.min,
+                    max: options.max
                 });
 
                 container.appendChild(inputControl);
@@ -1233,6 +1235,12 @@
                     label.classList.remove("primary--text");
                     options.onfocusout.call(this, ev);
                 });
+
+                if (options.onchange !== null)
+                    input.addEventListener("change", options.onchange);
+
+                if (options.oninput !== null)
+                    input.addEventListener("input", options.oninput);
 
                 input.addEventListener("keypress", ev => {
                     if (ev.key === "Enter") {
@@ -1554,13 +1562,13 @@
 
             ui.extraSettings_chatlogHighlightsSoundVolume = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_volume,
-                label: "Volume",
-                title: "Notification sound volume.",
+                label: "Volume: " + _CE_.options.chatlog_highlights_sound_volume,
+                title: "Volume for the notification sound.",
                 display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "range",
                 min: "0",
                 max: "100",
-                maxWidth: "max-content",
+                maxWidth: "75px",
                 onfocusout: ev => {
                     const value = ev.target.value;
                     if ((value >= 0 && value <= 100) === false) {
@@ -1568,6 +1576,11 @@
                     }
                     setSetting("chatlog_highlights_sound_volume", value);
                     _CE_.notificationSound.sound.volume = value / 100;
+                },
+                oninput: ev => {
+                    const value = ev.target.value;
+                    const label = ui.extraSettings_chatlogHighlightsSoundVolume.querySelector("label");
+                    label.textContent = label.textContent.replace(/\d+$/, value);
                 }
             });
 
@@ -2291,15 +2304,14 @@
 
         // Disable WASDT shortcuts
         const disableKeyboardShortcuts = function (ev) {
-            if (true || "wasdt".includes(ev.srcKey)) {
+            if ("wasdt".includes(ev.srcKey)) {
+                ev.preventDefault();
                 ev.stopImmediatePropagation();
-                ev.preventDefault()
-                return false;
             }
         };
 
         if (_CE_.options.disable_keyboard_shortcuts) {
-            ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true);
+            ui.main.addEventListener("shortkey", disableKeyboardShortcuts, { capture: true });
             ui.settings_keyboardShortcutsWS.style.display = "none";
             ui.settings_keyboardShortcutsAD.style.display = "none";
             ui.settings_keyboardShortcutsT.style.display = "none";
