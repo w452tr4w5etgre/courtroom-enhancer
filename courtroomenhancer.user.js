@@ -815,7 +815,7 @@
                         gelbooruInputTags.addEventListener("focus", ev => {
                             ev.target.value = "";
                         }, { once: true });
-                        _CE_.$snotify(errorText, "Gelbooru");
+                        _CE_.$snotify.error(errorText, "Gelbooru");
                     };
 
                     gelbooruBtnSend.addEventListener("click", () => {
@@ -1885,12 +1885,7 @@
             });
         }();
 
-        // Make the "fade" courtroom elements click-through to right-click images underneath directly
-        ui.courtroom_container.querySelectorAll("div.fade_everything, div.fade_scene, div.fade_background").forEach(element => {
-            element.style.pointerEvents = "none";
-        });
-        ui.courtroom_container.querySelector("div.scene-container").style.pointerEvents = "auto";
-
+        // Set up chat notifications
         if (_CE_.options.chatlog_highlights_sound_url && _CE_.options.chatlog_highlights_sound_url !== "default") {
             _CE_.notificationSound = { sound: new Audio(_CE_.options.chatlog_highlights_sound_url), seek: 0, duration: 0 };
         } else {
@@ -1958,7 +1953,7 @@
             }, 0);
         });
 
-        // If BGM is muted, mute when a new song is played
+        // Set up a watcher for when a new BGM is played to automatically mute it if BGM is muted
         ui.courtPlayer.$refs.player.$watch("musicPlayer.music", (newValue, oldValue) => {
             if (!newValue) return;
 
@@ -1971,7 +1966,7 @@
             }
         });
 
-        // Sends a message with optional output in the chatlog
+        // Function to send a chat message with optional output in the chatlog
         _CE_.sendFrameMessage = function (command, printInChatlog = false) {
             if (ui.courtTextEditor.canSend !== true) return;
             ui.courtTextEditor.$store.state.courtroom.frame.text += command;
@@ -2282,6 +2277,13 @@
         ui.chatTooltip = _CE_.chatTooltip.init();
         ui.app.appendChild(ui.chatTooltip);
 
+        // CSS fixes: allow right clicking and dragging images, fix wide evidence
+        document.head.insertAdjacentHTML('beforeend', `<style>
+        img {pointer-events: auto; -webkit-user-drag:auto;}
+        div.scene-container {pointer-events: auto; justify-content:center;}
+        .evidence {max-width:100%;align-self:center;object-fit:contain;}
+        </style>`);
+
         // Restore right click functionality to courtroom container
         ui.courtroom_container.addEventListener("contextmenu", ev => {
             ev.stopImmediatePropagation();
@@ -2289,8 +2291,10 @@
 
         // Disable WASDT shortcuts
         const disableKeyboardShortcuts = function (ev) {
-            if ("wasdt".includes(ev.srcKey)) {
+            if (true || "wasdt".includes(ev.srcKey)) {
                 ev.stopImmediatePropagation();
+                ev.preventDefault()
+                return false;
             }
         };
 
