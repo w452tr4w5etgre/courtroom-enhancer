@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.837
+// @version      0.838
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2311,7 +2311,7 @@
         };
 
         if (_CE_.options.disable_keyboard_shortcuts) {
-            ui.main.addEventListener("shortkey", disableKeyboardShortcuts, { capture: true });
+            ui.main.addEventListener("shortkey", disableKeyboardShortcuts, true;
             ui.settings_keyboardShortcutsWS.style.display = "none";
             ui.settings_keyboardShortcutsAD.style.display = "none";
             ui.settings_keyboardShortcutsT.style.display = "none";
