@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.839
+// @version      0.840
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2293,6 +2293,7 @@
         // CSS fixes: allow right clicking and dragging images, fix wide evidence
         document.head.insertAdjacentHTML('beforeend', `<style>
         img {pointer-events: auto; -webkit-user-drag:auto;}
+        .name-plate-img {pointer-events: none;}
         div.scene-container {pointer-events: auto; justify-content:center;}
         .evidence {max-width:100%;align-self:center;object-fit:contain;}
         </style>`);
