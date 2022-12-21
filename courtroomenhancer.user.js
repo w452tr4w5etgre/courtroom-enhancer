@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.842
+// @version      0.843
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2291,7 +2291,7 @@
                 // return if the YouTube video is fullscreen
                 if (document.fullscreenElement instanceof HTMLIFrameElement && /^https:\/\/www\.youtube\.com/.test(document.fullscreenElement.src)) return;
                 // return if any audio or video is playing
-                if (Array.from(this.tooltipElement.querySelectorAll("audio,video")).every(ob => !ob.paused)) return;
+                if (Array.from(this.tooltipElement.querySelectorAll("audio,video")).some(ob => !ob.paused)) return;
                 this.tooltipElement.style.opacity = "0";
             }
         };
