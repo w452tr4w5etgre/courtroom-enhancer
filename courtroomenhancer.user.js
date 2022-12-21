@@ -2053,9 +2053,14 @@
                     }
                 });
                 this.tooltipElement.addEventListener("transitionend", ev => {
+                    const audioVideoElements = this.tooltipElement.querySelectorAll("audio, video");
+                    if (Array.from(audioVideoElements).some(ob => !ob.playing)) {
+                        ev.target.style.opacity = 100;
+                        return;
+                    }
                     if (ev.target.style.opacity == "0") {
                         ev.target.style.visibility = "hidden";
-                        this.tooltipElement.querySelectorAll("audio, video").forEach(f => { f.pause(); });
+                        audioVideoElements.forEach(f => { f.pause(); });
                         this.tooltipElement.querySelectorAll("iframe[src^=\"https://www.youtube.com/embed/\"]").forEach(f => { f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); });
                         this.tooltipElement.removeEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
                         this.chat.element.removeEventListener("mouseleave", this.onChatItemMouseLeave, { capture: false });
@@ -2283,7 +2288,10 @@
 
             onChatItemMouseLeave(ev) {
                 if (this.tooltipElement.contains(ev.toElement)) return;
+                // return if the YouTube video is fullscreen
                 if (document.fullscreenElement instanceof HTMLIFrameElement && /^https:\/\/www\.youtube\.com/.test(document.fullscreenElement.src)) return;
+                // return if any audio or video is playing
+                if (Array.from(this.tooltipElement.querySelectorAll("audio,video")).every(ob => !ob.paused)) return;
                 this.tooltipElement.style.opacity = "0";
             }
         };
