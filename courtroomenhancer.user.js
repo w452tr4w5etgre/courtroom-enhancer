@@ -2054,8 +2054,8 @@
                 });
                 this.tooltipElement.addEventListener("transitionend", ev => {
                     const audioVideoElements = this.tooltipElement.querySelectorAll("audio, video");
-                    if (Array.from(audioVideoElements).some(ob => !ob.playing)) {
-                        ev.target.style.opacity = 100;
+                    if (Array.from(audioVideoElements).some(ob => !ob.paused)) {
+                        ev.target.style.opacity = "100";
                         return;
                     }
                     if (ev.target.style.opacity == "0") {
