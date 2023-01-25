@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.843
+// @version      0.844
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -339,7 +339,7 @@
                     },
                     formatDataUrl(data) {
                         return {
-                            headers: { "Content-type": "application/x-www-form-urlencoded" },
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
                             data: _CE_.Uploader.parseParams({ "urls[]": data })
                         };
                     },
@@ -397,7 +397,7 @@
                     supported: new Map([["audio", true], ["urls", false], ["m4a", true]])
                 }],
                 ["imoutokawaii", {
-                    name: "imouto.kawaii.su",
+                    name: "imouto.kawaii.su (30d expire)",
                     url: "https://imouto.kawaii.su/api/upload",
                     api: "lolisafe",
                     maxsize: 20e6,
@@ -427,7 +427,7 @@
             ]),
 
             upload: function (file, callbackSuccess, callbackError, callbackProgress) {
-                const hostFallback = new Map([["base", "catboxmoe"], ["audio", "catboxmoe"], ["urls", "imoutokawaii"], ["m4a", "uguuse"]]);
+                const hostFallback = new Map([["base", "catboxmoe"], ["audio", "catboxmoe"], ["urls", "catboxmoe"], ["m4a", "uguuse"]]);
                 var dataToUpload, filename, fileHost = (this.fileHosts.has(_CE_.options.file_host) ? _CE_.options.file_host : hostFallback.get("base"));
                 if (typeof file === "string") { // Argument passed is an URL
                     let url = new URL(file);
@@ -827,6 +827,9 @@
                         CrossOrigin({
                             url: "https://gelbooru.com/index.php?page=dapi&json=1&s=post&q=index&limit=1&tags=" + encodeURIComponent(tags + " -video -huge_filesize -absurdres -incredibly_absurdres sort:random"),
                             method: "GET",
+                            headers: {
+                                "Accept": "application/json"
+                            },
                             onload: getterResponse => {
                                 try {
                                     if (getterResponse.readyState == 4 && getterResponse.status == 200) {
