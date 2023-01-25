@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.844
+// @version      0.845
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -401,7 +401,7 @@
                     url: "https://imouto.kawaii.su/api/upload",
                     api: "lolisafe",
                     maxsize: 20e6,
-                    supported: new Map([["audio", false], ["urls", true], ["m4a", false]])
+                    supported: new Map([["audio", false], ["urls", false], ["m4a", false]])
                 }],
                 ["takemetospace", {
                     name: "take-me-to.space",
