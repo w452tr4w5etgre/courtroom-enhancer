@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.845
+// @version      0.846
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -113,6 +113,8 @@
         ui.presentDialog = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
 
         window.addEventListener("beforeunload", on_beforeUnload, false);
+
+        window.addEventListener("resize", on_windowResize);
 
         // Remember username
         storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
@@ -1688,7 +1690,7 @@
         }();
 
         // Create additional buttons container below the right panels
-        var addRightFrameExtraButtons = function () {
+        ui.addRightFrameExtraButtons = function () {
             ui.customButtonsContainer = ui.CourtRightPanel.$el.insertAdjacentElement("afterend", document.createElement("div"));
             ui.customButtonsContainer.className = "mx-3 mt-4";
 
@@ -1899,7 +1901,8 @@
             ui.customButtons_rows.forEach(row => {
                 ui.customButtonsContainer.appendChild(row);
             });
-        }();
+        };
+        ui.addRightFrameExtraButtons();
 
         // Set up chat notifications
         if (_CE_.options.chatlog_highlights_sound_url && _CE_.options.chatlog_highlights_sound_url !== "default") {
@@ -2340,6 +2343,14 @@
             ev.preventDefault();
             ev.returnValue = "Are you sure you want to leave?";
             return "Are you sure you want to leave?";
+        }
+    }
+
+    function on_windowResize(ev) {
+        if (document.contains(ui.customButtonsContainer)) {
+            return;
+        } else {
+            ui.addRightFrameExtraButtons();
         }
     }
 
