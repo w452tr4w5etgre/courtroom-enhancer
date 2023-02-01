@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.846
+// @version      0.847
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -114,7 +114,11 @@
 
         window.addEventListener("beforeunload", on_beforeUnload, false);
 
-        window.addEventListener("resize", on_windowResize);
+        var windowResizerTimeout;
+        window.addEventListener("resize", (ev) => {
+            clearTimeout(windowResizerTimeout);
+            windowResizerTimeout = setTimeout(on_windowResize, 250);
+        });
 
         // Remember username
         storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
@@ -1945,32 +1949,36 @@
                 }
             }
 
-            setTimeout(() => {
-                for (let messageNode of ui.chatLog_chatList.children) {
-                    const messageIcon = messageNode.querySelector("i");
-                    if (!messageIcon.matches(".mdi-account, .mdi-crown, .mdi-account-tie")) continue;
-
-                    const messageTextDiv = messageNode.querySelector("div.chat-text");
-                    const html = messageTextDiv.innerHTML;
-                    if (html.includes("<")) continue;
-
-                    messageTextDiv.innerHTML = html.replaceAll(
-                        URL_REGEX,
-                        `<a target="_blank" rel="noreferrer" href="$1">$1</a>`
-                    );
-
-                    // Highlight notification words
-                    if (_CE_.options.chatlog_highlights === true) {
-                        messageTextDiv.innerHTML = _CE_.notificationWords.reduce(
-                            (previousValue, currentValue) => previousValue.replaceAll(
-                                new RegExp(`\\b${currentValue}\\b`, "gmi"),
-                                `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
-                            ),
-                            messageTextDiv.innerHTML);
-                    }
-                }
-            }, 0);
+            setTimeout(_CE_.chatLog_enhanceMessages, 0);
         });
+
+        _CE_.chatLog_enhanceMessages = function () {
+            if (!document.contains(ui.chatLog_chatList)) return;
+
+            for (let messageNode of ui.chatLog_chatList.children) {
+                const messageIcon = messageNode.querySelector("i");
+                if (!messageIcon.matches(".mdi-account, .mdi-crown, .mdi-account-tie")) continue;
+
+                const messageTextDiv = messageNode.querySelector("div.chat-text");
+                const html = messageTextDiv.innerHTML;
+                if (html.includes("<")) continue;
+
+                messageTextDiv.innerHTML = html.replaceAll(
+                    URL_REGEX,
+                    `<a target="_blank" rel="noreferrer" href="$1">$1</a>`
+                );
+
+                // Highlight notification words
+                if (_CE_.options.chatlog_highlights === true) {
+                    messageTextDiv.innerHTML = _CE_.notificationWords.reduce(
+                        (previousValue, currentValue) => previousValue.replaceAll(
+                            new RegExp(`\\b${currentValue}\\b`, "gmi"),
+                            `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
+                        ),
+                        messageTextDiv.innerHTML);
+                }
+            }
+        }
 
         // Set up a watcher for when a new BGM is played to automatically mute it if BGM is muted
         ui.courtPlayer.$refs.player.$watch("musicPlayer.music", (newValue, oldValue) => {
@@ -2346,11 +2354,18 @@
         }
     }
 
-    function on_windowResize(ev) {
-        if (document.contains(ui.customButtonsContainer)) {
-            return;
-        } else {
+    function on_windowResize() {
+        if (!document.contains(ui.customButtonsContainer)) {
             ui.addRightFrameExtraButtons();
+        }
+        if (!document.contains(ui.chatLog_chatList)) {
+            ui.chatLog_chatList = ui.courtChatLog.$children.find(child => { return child.$vnode.componentOptions.tag === "v-list"; })?.$el;
+            if (document.contains(ui.chatLog_chatList)) {
+                setTimeout(_CE_.chatLog_enhanceMessages, 0);
+                if (_CE_.options.chat_hover_tooltip) {
+                    ui.chatLog_chatList.addEventListener("mouseover", _CE_.chatTooltip.onChatListMouseOver, false);
+                }
+            }
         }
     }
 
