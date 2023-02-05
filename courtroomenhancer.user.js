@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.847
+// @version      0.848
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -974,10 +974,13 @@
                         return;
                     }
 
-                    buttonEye.click();
-
-                    // Immediately show image
-                    ui.presentDialog.checkImageUrl = divImage.src;
+                    // Delay to fix switching from one image to another
+                    setTimeout(()=>{
+                        buttonEye.click();
+                        // Immediately show image
+                        ui.presentDialog.checkImageUrl = divImage.src;
+                    }, 0);
+                    
                 }, true);
 
                 divTitle.setAttributes({
