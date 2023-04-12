@@ -1936,7 +1936,7 @@
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
 
             if (!lastMessage)
-                return console.log("test1");
+                return;
 
             setTimeout(_CE_.chatLog_enhanceMessages, 0);
 
