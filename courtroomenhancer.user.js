@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.849
+// @version      0.850
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -166,6 +166,7 @@
             if (!name || !_CE_.options.remember_username) return;
             storeSet("courtroom_username", String(name));
             _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", escapeRegExp(_CE_.$store.state.courtroom.user.username)));
+            _CE_.notificationRegex = new RegExp(`\\b(?:${_CE_.notificationWords.join("|")})\\b`, "gmi");
         });
 
         // Watch My Assets dialog
@@ -975,12 +976,12 @@
                     }
 
                     // Delay to fix switching from one image to another
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         buttonEye.click();
                         // Immediately show image
                         ui.presentDialog.checkImageUrl = divImage.src;
                     }, 0);
-                    
+
                 }, true);
 
                 divTitle.setAttributes({
@@ -1611,6 +1612,7 @@
                     ev.target.value = list.join(",");
                     setSetting("chatlog_highlights_wordlist", list);
                     _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
+                    _CE_.notificationRegex = new RegExp(`\\b(?:${_CE_.notificationWords.join("|")})\\b`, "gmi");
                 }
             });
 
@@ -1928,13 +1930,39 @@
 
         _CE_.notificationSound.sound.volume = _CE_.options.chatlog_highlights_sound_volume / 100;
         _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
+        _CE_.notificationRegex = new RegExp(`\\b(?:${_CE_.notificationWords.join("|")})\\b`, "gmi");
 
         _CE_.$vue.$watch("$store.state.courtroom.messages", () => {
             const lastMessage = _CE_.$store.state.courtroom.messages[Object.entries(_CE_.$store.state.courtroom.messages).length - 1];
+
+            if (!lastMessage)
+                return console.log("test1");
+
+            setTimeout(_CE_.chatLog_enhanceMessages, 0);
+
+            if (document.hasFocus())
+                return;
+
+            if (_CE_.options.chatlog_highlights !== true)
+                return;
+
+            if (_CE_.options.chatlog_highlights_playsound !== true)
+                return;
+
+            // Sound is on cooldown
+            if (_CE_.notificationSound_cooldown === true)
+                return;
+
+            // Sound is already playing
+            if (_CE_.notificationSound.sound.paused !== true)
+                return;
+
+            // Message is a system message
+            if (!lastMessage.authUsername)
+                return;
+
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
-            if (!document.hasFocus() && _CE_.options.chatlog_highlights === true && _CE_.options.chatlog_highlights_playsound === true
-                && _CE_.notificationSound_cooldown !== true && _CE_.notificationSound.sound.paused === true && lastMessage.authUsername
-                && _CE_.notificationWords.some(word => lastMessage.text.match(new RegExp(`\\b${word}\\b`, "gmi")))) {
+            if (lastMessage.text.match(_CE_.notificationRegex)) {
 
                 _CE_.notificationSound_cooldown = true;
                 // 10 seconds cooldown between notification pings
@@ -1951,8 +1979,6 @@
                     };
                 }
             }
-
-            setTimeout(_CE_.chatLog_enhanceMessages, 0);
         });
 
         _CE_.chatLog_enhanceMessages = function () {
@@ -1960,10 +1986,14 @@
 
             for (let messageNode of ui.chatLog_chatList.children) {
                 const messageIcon = messageNode.querySelector("i");
+
+                // Message is a system message
                 if (!messageIcon.matches(".mdi-account, .mdi-crown, .mdi-account-tie")) continue;
 
                 const messageTextDiv = messageNode.querySelector("div.chat-text");
                 const html = messageTextDiv.innerHTML;
+
+                // Message was already changed
                 if (html.includes("<")) continue;
 
                 messageTextDiv.innerHTML = html.replaceAll(
@@ -1973,12 +2003,10 @@
 
                 // Highlight notification words
                 if (_CE_.options.chatlog_highlights === true) {
-                    messageTextDiv.innerHTML = _CE_.notificationWords.reduce(
-                        (previousValue, currentValue) => previousValue.replaceAll(
-                            new RegExp(`\\b${currentValue}\\b`, "gmi"),
-                            `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
-                        ),
-                        messageTextDiv.innerHTML);
+                    messageTextDiv.innerHTML = messageTextDiv.innerHTML.replaceAll(
+                        _CE_.notificationRegex,
+                        `<span style="background-color: aqua; color:black; margin:0px 1px">$&</span>`
+                    )
                 }
             }
         }
