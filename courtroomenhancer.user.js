@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.856
+// @version      0.857
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2055,33 +2055,36 @@
             turnoff() {
                 speechSynthesis.cancel();
             },
-            authcodeToUtterance(authcode) {
+            idToUtterance(id) {
+                if (!id) return;
+
                 // If a cached utterance already exists reuse it
-                if (this.utterances[authcode] !== undefined) {
-                    return this.utterances[authcode];
+                if (this.utterances[id] !== undefined) {
+                    return this.utterances[id];
                 }
 
                 // Generate an unique utterance based on authcode
                 var totalValue = 0;
-                for (let i = 0; i < authcode.length; i++) {
-                    totalValue += authcode.charCodeAt(i);
+                for (let i = 0; i < id.length; i++) {
+                    totalValue += id.charCodeAt(i);
                 }
                 const utterance = new SpeechSynthesisUtterance;
                 utterance.voice = this.voices[totalValue % this.voices.length] // pick a voice
                 utterance.rate = 0.7 + ((totalValue * 3 % 9) * 0.1); // rate from 0.7 to 1.5
                 utterance.pitch = (totalValue * 4 % 17) * 0.1; // pitch from 0 to 1.7
 
-                this.utterances[authcode] = utterance;
+                this.utterances[id] = utterance;
                 return utterance;
             },
             translateText(text) {
                 var text = text.replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to {$3}");
                 text.replace("&gt;", ";");
+                text.replace(/(\[\w*\])/g, "");
                 return text;
             },
             speak(message) {
                 if (!this.voices) return;
-                const utterance = this.authcodeToUtterance(message.authUsername);
+                const utterance = this.idToUtterance(message.id);
                 utterance.text = this.translateText(message.text);
                 speechSynthesis.speak(utterance);
             }
