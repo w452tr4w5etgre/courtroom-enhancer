@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.857
+// @version      0.858
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1962,6 +1962,10 @@
 
             setTimeout(_CE_.chatLog_enhanceMessages, 0);
 
+            // Message is a system message
+            if (!lastMessage.authUsername)
+                return;
+
             if (_CE_.options.chat_tts_on)
                 _CE_.chatTTS.speak(lastMessage);
 
@@ -1980,10 +1984,6 @@
 
             // Sound is already playing
             if (_CE_.notificationSound.sound.paused !== true)
-                return;
-
-            // Message is a system message
-            if (!lastMessage.authUsername)
                 return;
 
             // check if the window is not focused, and the last message is a text message, and the message contains any words in the list
