@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.854
+// @version      0.855
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2044,8 +2044,11 @@
 
                 // Filter only English voices
                 this.voices = speechSynthesis.getVoices();
-                speechSynthesis.onvoiceschanged = () => {
-                    this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+
+                if (speechSynthesis.onvoiceschanged === null) {
+                    speechSynthesis.onvoiceschanged = () => {
+                        this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                    }
                 }
 
                 this.utterances = {};
