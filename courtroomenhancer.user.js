@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.850
+// @version      0.851
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -43,7 +43,8 @@
         "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url", "default"),
         "chatlog_highlights_sound_volume": getSetting("chatlog_highlights_sound_volume", 0.5),
         "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
-        "evidence_compact": getSetting("evidence_compact", false)
+        "evidence_compact": getSetting("evidence_compact", false),
+        "chat_tts_on": getSetting("chat_tts_on", false)
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8}(?:\:\d{1,5})?\b(?:\/\S*)*)/gi;
@@ -1751,9 +1752,29 @@
                 }
             });
 
+            ui.customButtons_ttsButton = new createButton({
+                label: "Toggle TTS",
+                title: "Toggle chat TTS",
+                icon: "account-voice",
+                onclick: () => {
+                    if (_CE_.options.chat_tts_on === true) {
+                        _CE_.chatTTS.turnoff();
+                        setSetting("chat_tts_on", false);
+                        ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
+                        ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice");
+                    } else {
+                        _CE_.chatTTS.init();
+                        setSetting("chat_tts_on", true);
+                        ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
+                        ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
+                    }
+                }
+            });
+
             ui.customButtons_rowButtons.append(ui.customButtons_evidenceRouletteButton,
                 ui.customButtons_musicRouletteButton,
-                ui.customButtons_soundRouletteButton);
+                ui.customButtons_soundRouletteButton,
+                ui.customButtons_ttsButton);
 
             // Music buttons
             ui.customButton_stopAllSounds = new createButton({
@@ -1940,6 +1961,9 @@
 
             setTimeout(_CE_.chatLog_enhanceMessages, 0);
 
+            if (_CE_.options.chat_tts_on)
+                _CE_.chatTTS.speak(lastMessage);
+
             if (document.hasFocus())
                 return;
 
@@ -2009,6 +2033,64 @@
                     )
                 }
             }
+        }
+
+        _CE_.chatTTS = {
+            init() {
+                if (typeof speechSynthesis === "undefined") {
+                    return;
+                }
+
+                // Filter only English voices
+                this.voices = speechSynthesis.getVoices();
+                speechSynthesis.onvoiceschanged = () => {
+                    this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                }
+
+                this.utterances = {};
+            },
+            turnoff() {
+                speechSynthesis.cancel();
+            },
+            authcodeToUtterance(authcode) {
+                // If a cached utterance already exists reuse it
+                if (this.utterances[authcode] !== undefined) {
+                    return this.utterances[authcode];
+                }
+
+                // Generate an unique utterance based on authcode
+                var totalValue = 0;
+                for (let i = 0; i < authcode.length; i++) {
+                    totalValue += authcode.charCodeAt(i);
+                }
+                const utterance = new SpeechSynthesisUtterance;
+                utterance.voice = this.voices[totalValue * 2 % this.voices.length] // pick a voice
+                utterance.rate = 0.7 + ((totalValue * 3 % 9) * 0.1); // rate from 0.7 to 1.5
+                utterance.pitch = (totalValue * 4 % 17) * 0.1; // pitch from 0 to 1.7
+
+                this.utterances[authcode] = utterance;
+                return utterance;
+            },
+            translateText(text) {
+                var text = text.replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to {$3}");
+                text.replace("&gt;", ";");
+                return text;
+            },
+            speak(message) {
+                if (!this.voices) return;
+                const utterance = this.authcodeToUtterance(message.authUsername);
+                utterance.text = this.translateText(message.text);
+                speechSynthesis.speak(utterance);
+            }
+        };
+
+        if (_CE_.options.chat_tts_on === true) {
+            _CE_.chatTTS.init();
+            ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
+            ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
+        } else {
+            ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice");
+            ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
         }
 
         // Set up a watcher for when a new BGM is played to automatically mute it if BGM is muted
