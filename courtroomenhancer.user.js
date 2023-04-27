@@ -2043,9 +2043,8 @@
                 }
 
                 // Filter only English voices
-                this.voices = speechSynthesis.getVoices();
-
-                if (speechSynthesis.onvoiceschanged === null) {
+                this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                if (this.voices.length === 0 && speechSynthesis.onvoiceschanged === null) {
                     speechSynthesis.onvoiceschanged = () => {
                         this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
                     }
