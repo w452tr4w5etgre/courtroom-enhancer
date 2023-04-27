@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.851
+// @version      0.852
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1756,6 +1756,7 @@
                 label: "Toggle TTS",
                 title: "Toggle chat TTS",
                 icon: "account-voice",
+                backgroundColor: "gold",
                 onclick: () => {
                     if (_CE_.options.chat_tts_on === true) {
                         _CE_.chatTTS.turnoff();
