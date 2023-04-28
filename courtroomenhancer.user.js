@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.858
+// @version      0.859
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -86,6 +86,8 @@
         ui.CourtLeftPanel = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "CourtLeftPanel"; });
         ui.courtTextEditor = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtTextEditor"; });
         ui.courtPlayer = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "courtPlayer"; });
+        ui.characterIcon = ui.CourtLeftPanel.$children.find(child => { return child.$vnode.componentOptions.tag === "characterIcon"; });
+        ui.characterIconImg = ui.characterIcon.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
 
         _CE_.musicPlayer = ui.courtPlayer.$refs.player.musicPlayer;
 
@@ -121,7 +123,7 @@
             windowResizerTimeout = setTimeout(on_windowResize, 250);
         });
 
-        // Remember username
+        // Remember username and room password
         storeSet("courtroom_username", _CE_.$store.state.courtroom.user.username);
         if (_CE_.$store.state.courtroom.room.passwordRequired === true) {
             storeSet("courtroom_last_room_password", _CE_.$store.state.courtroom.room.password);
@@ -132,12 +134,50 @@
         let last_characterId = storeGet("last_characterId");
         let courtroom_chat_color = storeGet("courtroom_chat_color");
 
+
+        const customCharacterValid = function (poseId, characterId) {
+            return _CE_.$store.state.assets.character.customList.some(char => char.id === characterId && char.poses.some(pose => pose.id === poseId));
+        }
+
+        const loadCustomCharacter = function (poseId, characterId) {
+            if (!customCharacterValid(poseId, characterId))
+                return;
+            _CE_.$store.state.courtroom.frame.poseId = poseId;
+            _CE_.$store.state.courtroom.frame.characterId = characterId;
+        }
+
         // Check if the stored character and pose are loaded in the custom list
         if (!last_characterId && _CE_.$store.state.assets.character.list.some(char => char.poses.some(pose => pose.id === last_poseId))) {
+            // Default characters only use a poseId and have a null characterId
             _CE_.$store.state.courtroom.frame.poseId = last_poseId;
-        } else if (_CE_.$store.state.assets.character.customList.some(char => char.id === last_characterId && char.poses.some(pose => pose.id === last_poseId))) {
-            _CE_.$store.state.courtroom.frame.poseId = last_poseId;
-            _CE_.$store.state.courtroom.frame.characterId = last_characterId;
+        } else if (last_poseId && last_characterId) {
+            // A custom character is stored
+            if (_CE_.$store.state.assets.character.customList.length > 0) {
+                // Custom character list is not empty
+                if (customCharacterValid(last_poseId, last_characterId))
+                    loadCustomCharacter(last_poseId, last_characterId);
+            } else {
+                // Something broke, attempt retrieving custom characters again
+                ui.characterIconImg.image.src = "../Images/loading.gif";
+                ui.characterIconImg.$el.style.opacity = 0.2;
+                _CE_.$store.dispatch("assets/character/getMine").then(customList => {
+                    // Attempt immediately retrieving custom characters
+                    if (customList && customList.length > 0) {
+                        ui.characterIconImg.$el.style.opacity = 1;
+                        if (customCharacterValid(last_poseId, last_characterId))
+                            loadCustomCharacter(last_poseId, last_characterId);
+                    } else {
+                        // If it fails, try again in 3 seconds
+                        setTimeout(() => {
+                            _CE_.$store.dispatch("assets/character/getMine").then(() => {
+                                ui.characterIconImg.$el.style.opacity = 1;
+                                if (customCharacterValid(last_poseId, last_characterId))
+                                    loadCustomCharacter(last_poseId, last_characterId);
+                            });
+                        }, 3000);
+                    }
+                });
+            }
         }
 
         // Check if the stored color is valid
@@ -308,7 +348,6 @@
         };
 
         // Add evidence sources
-
         _CE_.Uploader = {
             parseForm(data) {
                 const form = new FormData();
@@ -1756,16 +1795,18 @@
                 label: "Toggle TTS",
                 title: "Toggle chat TTS",
                 icon: "account-voice",
-                backgroundColor: "#a5652a",
+                backgroundColor: "#5f8000",
                 onclick: () => {
                     if (_CE_.options.chat_tts_on === true) {
                         _CE_.chatTTS.turnoff();
                         setSetting("chat_tts_on", false);
+                        ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS OFF";
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice");
                     } else {
                         _CE_.chatTTS.init();
                         setSetting("chat_tts_on", true);
+                        ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS ON";
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
                     }
@@ -2084,7 +2125,8 @@
             },
             speak(message) {
                 if (!this.voices) return;
-                const utterance = this.idToUtterance(message.id);
+                const utterance = this.idToUtterance(message.authUsername);
+                if (!utterance) return;
                 utterance.text = this.translateText(message.text);
                 speechSynthesis.speak(utterance);
             }
@@ -2092,9 +2134,11 @@
 
         if (_CE_.options.chat_tts_on === true) {
             _CE_.chatTTS.init();
+            ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS ON";
             ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
             ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
         } else {
+            ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS OFF";
             ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice");
             ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
         }
