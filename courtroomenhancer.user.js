@@ -2007,9 +2007,6 @@
             if (!lastMessage.authUsername)
                 return;
 
-            if (_CE_.options.chat_tts_on)
-                _CE_.chatTTS.speak(lastMessage);
-
             if (document.hasFocus())
                 return;
 
@@ -2077,6 +2074,22 @@
             }
         }
 
+        _CE_.$vue.$watch("$store.state.courtroom.chatFrames", () => {
+            var chatFrame = ui.courtPlayer.getCurrentChatFrame;
+            if (!chatFrame)
+                return;
+
+            console.log(chatFrame)
+
+            if (_CE_.options.chat_tts_on === false)
+                return;
+
+            if (speechSynthesis.speaking)
+                speechSynthesis.cancel();
+
+            _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
+        });
+
         _CE_.chatTTS = {
             init() {
                 if (typeof speechSynthesis === "undefined") {
@@ -2118,16 +2131,18 @@
                 return utterance;
             },
             translateText(text) {
-                var text = text.replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to {$3}");
-                text.replace("&gt;", ";");
-                text.replace(/(\[\w*\])/g, "");
+                var text = text.replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to $3")
+                    .replace("&gt;", ";")
+                    .replace(">", ";")
+                    .replace(/(\[[\w\d#/]+\])/g, "");
                 return text;
             },
             speak(message) {
                 if (!this.voices) return;
-                const utterance = this.idToUtterance(message.authUsername);
+                const utterance = this.idToUtterance(message.id);
                 if (!utterance) return;
                 utterance.text = this.translateText(message.text);
+                console.log("Reading:", utterance)
                 speechSynthesis.speak(utterance);
             }
         };
