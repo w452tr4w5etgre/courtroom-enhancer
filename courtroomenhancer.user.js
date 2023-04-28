@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.861
+// @version      0.862
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1806,7 +1806,7 @@
                     } else {
                         setSetting("chat_tts_on", true);
 
-                        _CE_.chatTTS.init(ev.shiftKey); // Don't restrict to EN languages when the button is clicked while holding shift
+                        _CE_.chatTTS.init(!ev.shiftKey); // On shift-click, use voices of all languages
                         ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS ON" + (ev.shiftKey ? " (ALL)" : "");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
@@ -2090,30 +2090,32 @@
         });
 
         _CE_.chatTTS = {
-            init(allLanguages = false) {
+            init(englishOnly = true) {
                 if (typeof speechSynthesis === "undefined") {
                     return;
                 }
+                this.englishOnly = englishOnly;
 
                 // Filter only English voices
-                if (allLanguages === false)
-                    this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
-                else
-                    this.voices = speechSynthesis.getVoices()
+                this.voices = this.getVoices();
 
                 if (this.voices.length === 0 && speechSynthesis.onvoiceschanged === null) {
                     speechSynthesis.onvoiceschanged = () => {
-                        if (allLanguages === false)
-                            this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
-                        else
-                            this.voices = speechSynthesis.getVoices()
+                        this.voices = this.getVoices();
                     }
                 }
 
                 this.utterances = {};
             },
+            getVoices() {
+                if (this.englishOnly)
+                    return Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                else
+                    return speechSynthesis.getVoices();
+            },
             turnoff() {
                 speechSynthesis.cancel();
+                this.utterances = {};
             },
             idToUtterance(id) {
                 if (!id) return;
