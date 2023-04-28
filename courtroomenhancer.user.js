@@ -2080,12 +2080,10 @@
             if (!chatFrame)
                 return;
 
-            console.log(chatFrame)
-
             if (_CE_.options.chat_tts_on === false)
                 return;
 
-            if (speechSynthesis.speaking)
+            if (speechSynthesis.speaking && speechSynthesis.pending)
                 speechSynthesis.cancel();
 
             _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
@@ -2150,7 +2148,6 @@
                 const utterance = this.idToUtterance(message.id);
                 if (!utterance) return;
                 utterance.text = this.translateText(message.text);
-                console.log("Reading:", utterance)
                 speechSynthesis.speak(utterance);
             }
         };
