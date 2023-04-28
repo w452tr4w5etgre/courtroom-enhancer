@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.862
+// @version      0.863
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2075,8 +2075,9 @@
             }
         }
 
-        _CE_.$vue.$watch("$store.state.courtroom.chatFrames", () => {
-            var chatFrame = ui.courtPlayer.getCurrentChatFrame;
+        _CE_.$vue.$watch("$store.state.courtroom.chatFrames", chatFrames => {
+            var chatFrame = chatFrames[0];
+
             if (!chatFrame)
                 return;
 
