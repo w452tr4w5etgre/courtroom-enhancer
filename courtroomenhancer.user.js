@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.860
+// @version      0.861
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1796,7 +1796,7 @@
                 title: "Toggle chat TTS",
                 icon: "account-voice",
                 backgroundColor: "#5f8000",
-                onclick: () => {
+                onclick: ev => {
                     if (_CE_.options.chat_tts_on === true) {
                         _CE_.chatTTS.turnoff();
                         setSetting("chat_tts_on", false);
@@ -1804,9 +1804,10 @@
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice");
                     } else {
-                        _CE_.chatTTS.init();
                         setSetting("chat_tts_on", true);
-                        ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS ON";
+
+                        _CE_.chatTTS.init(ev.shiftKey); // Don't restrict to EN languages when the button is clicked while holding shift
+                        ui.customButtons_ttsButton.querySelector("span.v-btn__content").lastChild.textContent = "TTS ON" + (ev.shiftKey ? " (ALL)" : "");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.remove("mdi-account-voice-off");
                         ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice");
                     }
@@ -2091,16 +2092,23 @@
         });
 
         _CE_.chatTTS = {
-            init() {
+            init(allLanguages = false) {
                 if (typeof speechSynthesis === "undefined") {
                     return;
                 }
 
                 // Filter only English voices
-                this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                if (allLanguages === false)
+                    this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                else
+                    this.voices = speechSynthesis.getVoices()
+
                 if (this.voices.length === 0 && speechSynthesis.onvoiceschanged === null) {
                     speechSynthesis.onvoiceschanged = () => {
-                        this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                        if (allLanguages === false)
+                            this.voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                        else
+                            this.voices = speechSynthesis.getVoices()
                     }
                 }
 
