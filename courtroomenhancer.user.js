@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.865
+// @version      0.866
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2084,6 +2084,10 @@
                     return;
 
                 if (_CE_.options.chat_tts_on === false)
+                    return;
+
+                // Check if user is muted
+                if (Object.values(_CE_.$vue.$store.state.courtroom.settings.muted).some(user => user == chatFrame.userId))
                     return;
 
                 if (speechSynthesis.speaking && speechSynthesis.pending)
