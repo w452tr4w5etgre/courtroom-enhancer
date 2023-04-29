@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.866
+// @version      0.867
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2075,29 +2075,6 @@
             }
         };
 
-        _CE_.$vue.$store.subscribe((mutation, state) => {
-
-            if (mutation.type == "courtroom/APPEND_CHAT_FRAME") {
-                var chatFrame = mutation.payload;
-
-                if (!chatFrame)
-                    return;
-
-                if (_CE_.options.chat_tts_on === false)
-                    return;
-
-                // Check if user is muted
-                if (Object.values(_CE_.$vue.$store.state.courtroom.settings.muted).some(user => user == chatFrame.userId))
-                    return;
-
-                if (speechSynthesis.speaking && speechSynthesis.pending)
-                    speechSynthesis.cancel();
-
-                _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
-            }
-
-        });
-
         _CE_.chatTTS = {
             init(englishOnly = true) {
                 if (typeof speechSynthesis === "undefined") {
@@ -2115,6 +2092,26 @@
                 }
 
                 this.utterances = {};
+                this.mutationWatcher = _CE_.$vue.$store.subscribe(this.mutationWatcherAction);
+            },
+            mutationWatcherAction(mutation, state) {
+
+                if (mutation.type == "courtroom/APPEND_CHAT_FRAME") {
+                    var chatFrame = mutation.payload;
+
+                    if (!chatFrame)
+                        return;
+
+                    // Check if user is muted
+                    if (Object.values(_CE_.$vue.$store.state.courtroom.settings.muted).some(user => user == chatFrame.userId))
+                        return;
+
+                    if (speechSynthesis.speaking && speechSynthesis.pending)
+                        speechSynthesis.cancel();
+
+                    _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
+                }
+
             },
             getVoices() {
                 if (this.englishOnly)
@@ -2125,6 +2122,7 @@
             turnoff() {
                 speechSynthesis.cancel();
                 this.utterances = {};
+                this.mutationWatcher(); // Unsubscribe
             },
             idToUtterance(id) {
                 if (!id) return;
