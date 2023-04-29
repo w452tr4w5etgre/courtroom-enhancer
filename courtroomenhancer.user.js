@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.863
+// @version      0.864
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2073,21 +2073,25 @@
                     )
                 }
             }
-        }
+        };
 
-        _CE_.$vue.$watch("$store.state.courtroom.chatFrames", chatFrames => {
-            var chatFrame = chatFrames[0];
+        _CE_.$vue.$store.subscribe((mutation, state) => {
 
-            if (!chatFrame)
-                return;
+            if (mutation.type == "courtroom/APPEND_CHAT_FRAME") {
+                var chatFrame = mutation.payload;
 
-            if (_CE_.options.chat_tts_on === false)
-                return;
+                if (!chatFrame)
+                    return;
 
-            if (speechSynthesis.speaking && speechSynthesis.pending)
-                speechSynthesis.cancel();
+                if (_CE_.options.chat_tts_on === false)
+                    return;
 
-            _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
+                if (speechSynthesis.speaking && speechSynthesis.pending)
+                    speechSynthesis.cancel();
+
+                _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
+            }
+
         });
 
         _CE_.chatTTS = {
