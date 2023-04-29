@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.864
+// @version      0.865
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2144,10 +2144,16 @@
                 return utterance;
             },
             translateText(text) {
-                var text = text.replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to $3")
+                var text = text
+                    .replace(/(https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8})(?:\:\d{1,5})?\b(?:\/\S*)*)/gi, "Link to $3")
                     .replace("&gt;", ";")
                     .replace(">", ";")
-                    .replace(/(\[[\w\d#/]+\])/g, "");
+                    .replace(/(\[[\w\d#/]+\])/g, "")
+                    .replace("( ͡° ͜ʖ ͡°)", "lenny face");
+
+                if (text == text.toUpperCase())
+                    text = text.toLowerCase();
+
                 return text;
             },
             speak(message) {
