@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.868
+// @version      0.869
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -41,10 +41,11 @@
         "chatlog_highlights": getSetting("chatlog_highlights", false),
         "chatlog_highlights_playsound": getSetting("chatlog_highlights_playsound", false),
         "chatlog_highlights_sound_url": getSetting("chatlog_highlights_sound_url", "default"),
-        "chatlog_highlights_sound_volume": getSetting("chatlog_highlights_sound_volume", 0.5),
+        "chatlog_highlights_sound_volume": getSetting("chatlog_highlights_sound_volume", 50),
         "chatlog_highlights_wordlist": getSetting("chatlog_highlights_wordlist", ["$me", "example", "change this"]),
         "evidence_compact": getSetting("evidence_compact", false),
-        "chat_tts_on": getSetting("chat_tts_on", false)
+        "chat_tts_on": getSetting("chat_tts_on", false),
+        "chat_tts_volume": getSetting("chat_tts_volume", 80),
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8}(?:\:\d{1,5})?\b(?:\/\S*)*)/gi;
@@ -1637,7 +1638,6 @@
                 }
             });
 
-
             ui.extraSettings_chatlogHighlightsWordlist = new createInputText({
                 value: _CE_.options.chatlog_highlights_wordlist,
                 label: "Words separated by commas",
@@ -1653,6 +1653,29 @@
                     setSetting("chatlog_highlights_wordlist", list);
                     _CE_.notificationWords = _CE_.options.chatlog_highlights_wordlist.map(word => word.replace("$me", _CE_.$store.state.courtroom.user.username));
                     _CE_.notificationRegex = new RegExp(`\\b(?:${_CE_.notificationWords.join("|")})\\b`, "gmi");
+                }
+            });
+
+            ui.extraSettings_TTSVolume = new createInputText({
+                value: _CE_.options.chat_tts_volume,
+                label: "TTS Vol: " + _CE_.options.chat_tts_volume,
+                title: "Volume for Text-to-Speech.",
+                type: "range",
+                min: "0",
+                max: "100",
+                maxWidth: "75px",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    if ((value >= 0 && value <= 100) === false) {
+                        return false;
+                    }
+                    setSetting("chat_tts_volume", value);
+                    _CE_.chatTTS.volume = value;
+                },
+                oninput: ev => {
+                    const value = ev.target.value;
+                    const label = ui.extraSettings_TTSVolume.querySelector("label");
+                    label.textContent = label.textContent.replace(/\d+$/, value);
                 }
             });
 
@@ -1702,8 +1725,10 @@
                 ui.extraSettings_textboxStyleSelector,
                 ui.extraSettings_fileHostSelector,
                 ui.extraSettings_showRoulettes,
-                ui.extraSettings_globalAudioControlButtons
+                ui.extraSettings_globalAudioControlButtons,
+                (window.speechSynthesis !== undefined ? ui.extraSettings_TTSVolume : null)
             );
+
             extraSettings_rows.push(ui.extraSettings_rowButtons);
 
             // Chat Notifications buttons
@@ -1722,7 +1747,7 @@
                 ui.extraSettings_chatlogHighlightsPlaySound,
                 ui.extraSettings_chatlogHighlightsSoundUrl,
                 ui.extraSettings_chatlogHighlightsSoundVolume,
-                ui.extraSettings_chatlogHighlightsWordlist,
+                ui.extraSettings_chatlogHighlightsWordlist
             );
 
             extraSettings_rows.push(ui.extraSettings_chatNotificationButtons);
@@ -1793,7 +1818,7 @@
 
             ui.customButtons_ttsButton = new createButton({
                 label: "Toggle TTS",
-                title: "Toggle chat TTS",
+                title: "Toggle chat Text-to-Speech",
                 icon: "account-voice",
                 backgroundColor: "#5f8000",
                 onclick: ev => {
@@ -1817,7 +1842,7 @@
             ui.customButtons_rowButtons.append(ui.customButtons_evidenceRouletteButton,
                 ui.customButtons_musicRouletteButton,
                 ui.customButtons_soundRouletteButton,
-                ui.customButtons_ttsButton);
+                (window.speechSynthesis !== undefined ? ui.customButtons_ttsButton : null));
 
             // Music buttons
             ui.customButton_stopAllSounds = new createButton({
@@ -2082,7 +2107,6 @@
                 }
                 this.englishOnly = englishOnly;
 
-                // Filter only English voices
                 this.voices = this.getVoices();
 
                 if (this.voices.length === 0 && speechSynthesis.onvoiceschanged === null) {
@@ -2093,14 +2117,13 @@
 
                 this.utterances = {};
                 this.mutationWatcher = _CE_.$vue.$store.subscribe(this.mutationWatcherAction);
+                this.volume = _CE_.options.chat_tts_volume;
             },
             mutationWatcherAction(mutation, state) {
-
                 if (mutation.type == "courtroom/APPEND_CHAT_FRAME") {
                     var chatFrame = mutation.payload;
 
-                    if (!chatFrame)
-                        return;
+                    if (!chatFrame) return;
 
                     // Check if user is muted
                     if (Object.values(_CE_.$vue.$store.state.courtroom.settings.muted).some(user => user == chatFrame.userId))
@@ -2109,9 +2132,7 @@
                     speechSynthesis.cancel();
 
                     _CE_.chatTTS.speak({ id: chatFrame.userId, text: chatFrame.frame.text });
-
                 }
-
             },
             getVoices() {
                 if (this.englishOnly)
@@ -2127,12 +2148,12 @@
             idToUtterance(id) {
                 if (!id) return;
 
-                // If a cached utterance already exists reuse it
+                // Recycle cached utterance
                 if (this.utterances[id] !== undefined) {
                     return this.utterances[id];
                 }
 
-                // Generate an unique utterance based on authcode
+                // Generate an unique utterance based on user id
                 var totalValue = 0;
                 for (let i = 0; i < id.length; i++) {
                     totalValue += id.charCodeAt(i);
@@ -2162,6 +2183,8 @@
                 if (!this.voices) return;
                 const utterance = this.idToUtterance(message.id);
                 if (!utterance) return;
+
+                utterance.volume = this.volume / 100;
                 utterance.text = this.translateText(message.text);
                 speechSynthesis.speak(utterance);
             }
