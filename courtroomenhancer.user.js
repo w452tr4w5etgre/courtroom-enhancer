@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.870
+// @version      0.871
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2162,7 +2162,7 @@
                 }
                 const utterance = new SpeechSynthesisUtterance;
                 utterance.voice = this.voices[totalValue % this.voices.length] // pick a voice
-                utterance.rate = 0.7 + ((totalValue * 3 % 9) * 0.1); // rate from 0.7 to 1.5
+                utterance.rate = 0.8 + ((totalValue * 3 % 9) * 0.1); // rate from 0.8 to 1.6
                 utterance.pitch = (totalValue * 4 % 17) * 0.1; // pitch from 0 to 1.7
 
                 this.utterances[id] = utterance;
