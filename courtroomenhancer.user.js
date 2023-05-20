@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.872
+// @version      0.873
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1028,7 +1028,11 @@
                     setTimeout(() => {
                         buttonEye.click();
                         // Immediately show image
-                        ui.presentDialog.checkImageUrl = divImage.src;
+
+                        // Get the evidence index based on the current node position
+                        var evidence_index = Array.from(node.parentNode.children).indexOf(node);
+                        // Use the evidence index to get the evidence ID and call the onCheck function
+                        ui.presentDialog.onCheck(ui.courtEvidence.evidenceList[evidence_index].iid);
                     }, 0);
 
                 }, true);
