@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.873
+// @version      0.874
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -151,7 +151,7 @@
         if (!last_characterId && _CE_.$store.state.assets.character.list.some(char => char.poses.some(pose => pose.id === last_poseId))) {
             // Default characters only use a poseId and have a null characterId
             _CE_.$store.state.courtroom.frame.poseId = last_poseId;
-        } else if (last_poseId && last_characterId) {
+        } else if (last_poseId && last_characterId && $vue.$store.getters["auth/isLoggedIn"]) {
             // A custom character is stored
             if (_CE_.$store.state.assets.character.customList.length > 0) {
                 // Custom character list is not empty
