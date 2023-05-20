@@ -33,6 +33,9 @@ A browser userscript manager such as Greasemonkey, Tampermonkey or Violentmonkey
   - Quickly upload images or sounds to a number of free filehosts.
   - Click to choose a file, or drag & drop, or CTRL+V paste from clipboard.
   - The relevant input boxes are automatically filled with the file name and URL.
+- Text To Speech button to read messages out loud
+  - Gives each user a different voice (depending on what the user has installed on their system), rate and tone based on their ID
+  - By default filters out non-English voices, can be overridden turning TTS On while holding down SHIFT
 - On disconnect show an error message.
 - Allow dragging images in the main frame.
 - Allow right clicking.
