@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.871
+// @version      0.872
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -749,24 +749,32 @@
 
             // Fix evidence form layout
 
-            // Name
-            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pr-sm-1", "mb-2");
-            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-4", "pr-1");
-            // Icon URL
-            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pl-sm-1", "mb-2");
-            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-4", "pl-1", "pr-1");
-            // Check URL
-            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "mb-2");
-            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-4", "pl-1");
-            // Description
-            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
-            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("col-12", "col-sm-6", "my-3");
-            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("col-6", "pr-1");
-            ui.courtEvidence.$refs.form.$children[3].$refs.input.style.height = "50px";
-            ui.courtEvidence.$refs.form.$children[3].$refs.input.style.lineHeight = "normal";
+            // Category
+            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.remove("mt-1", "mb-6", "col-sm-6", "col-12", "pl-1");
+            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.classList.add("col-3", "mb-2");
+            ui.courtEvidence.$refs.form.$children[0].$el.parentNode.querySelector("h4").remove();
             // Type
-            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("col-12");
-            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-6", "pl-1");
+            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.remove("mt-1", "mb-6", "col-sm-6", "col-12", "pl-1");
+            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.classList.add("col-3", "mb-2");
+            ui.courtEvidence.$refs.form.$children[1].$el.parentNode.querySelector("h4").remove();
+            // Name
+            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pr-sm-1", "mb-2");
+            ui.courtEvidence.$refs.form.$children[2].$el.parentNode.classList.add("col-4", "pr-1");
+            // Icon URL
+            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "pl-sm-1", "mb-2");
+            ui.courtEvidence.$refs.form.$children[3].$el.parentNode.classList.add("col-4", "pl-1", "pr-1");
+            // Check URL
+            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.remove("mb-sm-2", "col-12", "col-sm-6", "mb-2");
+            ui.courtEvidence.$refs.form.$children[4].$el.parentNode.classList.add("col-4", "pl-1");
+            // Description
+            ui.courtEvidence.$refs.form.$children[5].$el.parentNode.previousSibling.classList.add("d-none"); // Hide invisible element
+            ui.courtEvidence.$refs.form.$children[5].$el.parentNode.classList.remove("col-12", "col-sm-6", "my-3");
+            ui.courtEvidence.$refs.form.$children[5].$el.parentNode.classList.add("col-6", "pr-4");
+            ui.courtEvidence.$refs.form.$children[5].$refs.input.style.height = "50px";
+            ui.courtEvidence.$refs.form.$children[5].$refs.input.style.lineHeight = "normal";
+            // Move category and type to the end
+            ui.evidence_formDivs.append(ui.courtEvidence.$refs.form.$children[0].$el.parentNode);
+            ui.evidence_formDivs.append(ui.courtEvidence.$refs.form.$children[1].$el.parentNode);
 
             // Add evidence uploaders
             const createEvidenceUploaders = {
