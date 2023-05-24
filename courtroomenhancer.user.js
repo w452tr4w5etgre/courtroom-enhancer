@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.877
+// @version      0.878
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -313,7 +313,7 @@
                 ui.MediaViewer = ui.presentDialog.$children[0].$children[0].$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "MediaViewer"; });
                 if (!ui.MediaViewer || !document.contains(ui.MediaViewer.$el)) return;
 
-                if (ui.MediaViewer.type !== ui.presentDialog.checkItem.evidenceType) {
+                if (ui.presentDialog.checkItem.evidenceType && ui.MediaViewer.type !== ui.presentDialog.checkItem.evidenceType) {
                     ui.MediaViewer.type = ui.presentDialog.checkItem.evidenceType;
                 }
 
