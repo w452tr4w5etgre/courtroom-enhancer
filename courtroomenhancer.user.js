@@ -1099,7 +1099,7 @@
                         html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${url}" target="_blank" rel="noreferrer">${url}</a></div>`,
                         closeOnClick: false, buttons: [
                             { text: "Copy URL", action: () => { navigator.clipboard.writeText(url); } },
-                            { text: "Open in new tab", action: () => { window.open(imageUrl, "_blank", "noreferrer"); } }
+                            { text: "Open in new tab", action: () => { window.open(url, "_blank", "noreferrer"); } }
                         ]
                     });
                 });
