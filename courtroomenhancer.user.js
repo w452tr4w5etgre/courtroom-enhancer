@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.875
+// @version      0.876
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -986,6 +986,11 @@
             ui.evidence_list.fixEvidenceItem = function (node) {
                 node.classList.remove("col-lg-3", "col-md-6", "col-sm-4", "col-6");
                 node.classList.add(_CE_.options.evidence_compact ? "col-lg-2" : "col-lg-3", "col-md-3", "col-sm-2");
+
+                // Retrieve the evidence index based on the current node position
+                const evid_index = Array.from(node.parentNode.children).indexOf(node);
+                const evid_item = ui.courtEvidence.evidenceList[evid_index];
+
                 const divCard = node.firstChild;
                 const divImage = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
                 const divTitle = divCard.querySelector("div.v-card__title");
@@ -1029,10 +1034,8 @@
                         buttonEye.click();
                         // Immediately show image
 
-                        // Get the evidence index based on the current node position
-                        var evidence_index = Array.from(node.parentNode.children).indexOf(node);
-                        // Use the evidence index to get the evidence ID and call the onCheck function
-                        ui.presentDialog.onCheck(ui.courtEvidence.evidenceList[evidence_index].iid);
+                        // Call the OnCheck function with this evidence ID
+                        ui.presentDialog.onCheck(evid_item.iid);
                     }, 0);
 
                 }, true);
@@ -1080,6 +1083,7 @@
 
                 const buttonLinkSpan = document.createElement("span");
                 buttonLinkSpan.className = "v-btn__content";
+                buttonLinkSpan.title = "Show URL";
                 buttonLink.append(buttonLinkSpan);
 
                 const buttonLinkSpanIcon = document.createElement("i");
@@ -1090,11 +1094,11 @@
 
                 buttonLink.addEventListener("click", ev => {
                     if (ev.target.disabled) return;
-                    var imageUrl = divImage.src;
-                    _CE_.bgmNotification = _CE_.$snotify.success(imageUrl, "Evidence Info " + imageUrl, {
-                        html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${imageUrl}" target="_blank" rel="noreferrer">${imageUrl}</a></div>`,
+                    const url = evid_item.url;
+                    _CE_.bgmNotification = _CE_.$snotify.success(url, "Evidence Info " + evid_item.iid, {
+                        html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${url}" target="_blank" rel="noreferrer">${url}</a></div>`,
                         closeOnClick: false, buttons: [
-                            { text: "Copy URL", action: () => { navigator.clipboard.writeText(imageUrl); } },
+                            { text: "Copy URL", action: () => { navigator.clipboard.writeText(url); } },
                             { text: "Open in new tab", action: () => { window.open(imageUrl, "_blank", "noreferrer"); } }
                         ]
                     });
