@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.876
+// @version      0.877
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -306,6 +306,21 @@
             manageCharacterDialog__dialog.querySelector("div.spacer").after(characterHelper, spacer);
         }, { flush: "post" });
 
+        // Watch Present Dialog
+        _CE_.$vue.$watch("$store.state.courtroom.dialogs.presentDialog", (newValue, oldValue) => {
+            setTimeout(() => {
+                // Fixes bug with the site with evidence type not applying properly
+                ui.MediaViewer = ui.presentDialog.$children[0].$children[0].$children[0].$children.find(child => { return child.$vnode.componentOptions.tag === "MediaViewer"; });
+                if (!ui.MediaViewer || !document.contains(ui.MediaViewer.$el)) return;
+
+                if (ui.MediaViewer.type !== ui.presentDialog.checkItem.evidenceType) {
+                    ui.MediaViewer.type = ui.presentDialog.checkItem.evidenceType;
+                }
+
+            }, 0)
+        }, { flush: "post" });
+
+        // Helper function to create Vue style buttons
         const createButton = function (options) {
             const container = document.createElement("div");
             const button = document.createElement("button");
