@@ -2086,6 +2086,7 @@
             }
         });
 
+        // Chat log (clickable urls, etc)
         _CE_.chatLog_enhanceMessages = function () {
             if (!document.contains(ui.chatLog_chatList)) return;
 
@@ -2116,6 +2117,7 @@
             }
         };
 
+        // Set up chat TTS
         _CE_.chatTTS = {
             init(englishOnly = true) {
                 if (typeof speechSynthesis === "undefined") {
