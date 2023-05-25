@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.879
+// @version      0.880
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -743,7 +743,7 @@
                                     _CE_.Uploader.upload(
                                         new File([videoFile], "thumb.jpg"),
                                         videoRes => {
-                                            callback.call(this, { iconUrl: videoRes.url });
+                                            callback.call(this, { iconUrl: videoRes.url, file: file });
                                         },
                                         uploadError, () => { }
                                     );
@@ -860,14 +860,18 @@
                     });
 
                     const evidenceImageUploader = new _CE_.Uploader.filePicker(res => {
+                        const fileIsVideo = res.file.type.match("^video/");
                         if (res.iconUrl) {
                             ui.courtEvidence.iconUrl = res.iconUrl;
                         } else {
                             ui.courtEvidence.name = res.filename.substr(0, 20);
                             ui.courtEvidence.url = res.url;
-                            if (!res.file.type.match("^video/")) // If a non-video was uploaded, set it as the icon url also
+                            if (!fileIsVideo) // If a non-video was uploaded, set it as the icon url also
                                 ui.courtEvidence.iconUrl = res.url;
                         }
+
+                        ui.courtEvidence.evidenceType = fileIsVideo ? "video" : "image";
+
                     }, { label: "media", icon: "image-size-select-large", acceptedhtml: "image/*;video/*", acceptedregex: "^(?:image|video)/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                     evidenceImageUploader.setAttributes({
