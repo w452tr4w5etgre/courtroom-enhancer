@@ -807,7 +807,7 @@
                         ui.courtEvidence.name = res.filename.substr(0, 20);
                         ui.courtEvidence.iconUrl = res.url;
                         ui.courtEvidence.url = res.url;
-                    }, { label: "image", icon: "image-size-select-large", acceptedhtml: "image/*", acceptedregex: "^image/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
+                    }, { label: "media", icon: "image-size-select-large", acceptedhtml: "image/*;video/*", acceptedregex: "^(?:image|video)/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                     evidenceImageUploader.setAttributes({
                         style: {
