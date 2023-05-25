@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.880
+// @version      0.881
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1066,11 +1066,6 @@
             ui.evidence_list.fixEvidenceItem = function (node) {
                 node.classList.remove("col-lg-3", "col-md-6", "col-sm-4", "col-6");
                 node.classList.add(_CE_.options.evidence_compact ? "col-lg-2" : "col-lg-3", "col-md-3", "col-sm-2");
-
-                // Retrieve the evidence index based on the current node position
-                const evid_index = Array.from(node.parentNode.children).indexOf(node);
-                const evid_item = ui.courtEvidence.evidenceList[evid_index];
-
                 const divCard = node.firstChild;
                 const divImage = divCard.__vue__.$children.find(child => { return child.$vnode.componentOptions.tag === "v-img"; });
                 const divTitle = divCard.querySelector("div.v-card__title");
@@ -1113,7 +1108,9 @@
                     setTimeout(() => {
                         buttonEye.click();
                         // Immediately show image
-
+                        // Retrieve the evidence index based on the current node position
+                        const evid_index = Array.from(node.parentNode.children).indexOf(node);
+                        const evid_item = ui.courtEvidence.evidenceList[evid_index];
                         // Call the OnCheck function with this evidence ID
                         ui.presentDialog.onCheck(evid_item.iid);
                     }, 0);
@@ -1174,6 +1171,9 @@
 
                 buttonLink.addEventListener("click", ev => {
                     if (ev.target.disabled) return;
+                    // Retrieve the evidence index based on the current node position
+                    const evid_index = Array.from(node.parentNode.children).indexOf(node);
+                    const evid_item = ui.courtEvidence.evidenceList[evid_index];
                     const url = evid_item.url;
                     _CE_.bgmNotification = _CE_.$snotify.success(url, "Evidence Info " + evid_item.iid, {
                         html: `<div class="snotifyToast__body" style="word-break: break-all;"><h3>Evidence</h3><div><a style="color:#0f28e6" href="${url}" target="_blank" rel="noreferrer">${url}</a></div>`,
