@@ -702,7 +702,7 @@
                                 if (!data.type.match(this.acceptedregex)) {
                                     throw new Error("Invalid file type.");
                                 }
-                                if (data.size >= this.maxsize) {
+                                if (!data.type.match("^video/") && data.size >= this.maxsize) {
                                     throw new Error("File too big. Max size: " + this.maxsize / 1e6 + "MB");
                                 }
                                 file = data;
