@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.882
+// @version      0.883
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -46,6 +46,9 @@
         "evidence_compact": getSetting("evidence_compact", false),
         "chat_tts_on": getSetting("chat_tts_on", false),
         "chat_tts_volume": getSetting("chat_tts_volume", 80),
+        "separateSoundVolumes": getSetting("separateSoundVolumes", false),
+        "bgmVol": getSetting("bgmVol", 100),
+        "sfxVol": getSetting("sfxVol", 100),
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8}(?:\:\d{1,5})?\b(?:\/\S*)*)/gi;
@@ -1713,7 +1716,7 @@
             ui.extraSettings_chatlogHighlightsSoundVolume = new createInputText({
                 value: _CE_.options.chatlog_highlights_sound_volume,
                 label: "Volume: " + _CE_.options.chatlog_highlights_sound_volume,
-                title: "Volume for the notification sound.",
+                title: "Volume for the notification sound",
                 display: _CE_.options.chatlog_highlights && _CE_.options.chatlog_highlights_playsound,
                 type: "range",
                 min: "0",
@@ -1755,7 +1758,7 @@
             ui.extraSettings_TTSVolume = new createInputText({
                 value: _CE_.options.chat_tts_volume,
                 label: "TTS Vol: " + _CE_.options.chat_tts_volume,
-                title: "Volume for Text-to-Speech.",
+                title: "Volume for Text-to-Speech",
                 type: "range",
                 min: "0",
                 max: "100",
@@ -1772,6 +1775,87 @@
                     const value = ev.target.value;
                     const label = ui.extraSettings_TTSVolume.querySelector("label");
                     label.textContent = label.textContent.replace(/\d+$/, value);
+                }
+            });
+
+            ui.extraSettings_separateSoundVolumes = new createInputCheckbox({
+                checked: _CE_.options.separateSoundVolumes,
+                label: "Separate BGM/SFX Volume",
+                title: "Use a separate volume value for BGM and SFX as a percentage of the global volume slider",
+                onchange: ev => {
+                    const value = ev.target.checked;
+                    setSetting("separateSoundVolumes", value);
+
+                    ui.extraSettings_bgmVol.style.display = value ? "flex" : "none";
+                    ui.extraSettings_sfxVol.style.display = value ? "flex" : "none";
+
+                    if (_CE_.musicPlayer.music) {
+                        _CE_.musicPlayer.volume = value ? _CE_.options.bgmVol / 100 : 1;
+                        _CE_.musicPlayer.music.volume(value ? _CE_.options.bgmVol / 100 : 1);
+                    }
+
+                    if (_CE_.musicPlayer.soundsPlaying) {
+                        _CE_.musicPlayer.soundsPlaying.forEach(sound => {
+                            sound.howler.volume(value ? _CE_.options.sfxVol / 100 : 1);
+                        });
+                    }
+                }
+            });
+
+            ui.extraSettings_bgmVol = new createInputText({
+                value: _CE_.options.bgmVol,
+                label: "BGM Vol: " + _CE_.options.bgmVol,
+                title: "Background Music volume",
+                display: _CE_.options.separateSoundVolumes,
+                type: "range",
+                min: "0",
+                max: "100",
+                maxWidth: "75px",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    if ((value >= 0 && value <= 100) === false) {
+                        return false;
+                    }
+                    setSetting("bgmVol", value);
+                },
+                oninput: ev => {
+                    const value = ev.target.value;
+                    const label = ui.extraSettings_bgmVol.querySelector("label");
+                    label.textContent = label.textContent.replace(/\d+$/, value);
+
+                    if (_CE_.options.separateSoundVolumes && _CE_.musicPlayer.music) {
+                        _CE_.musicPlayer.volume = value / 100;
+                        _CE_.musicPlayer.music.volume(value / 100);
+                    }
+                }
+            });
+
+            ui.extraSettings_sfxVol = new createInputText({
+                value: _CE_.options.sfxVol,
+                label: "SFX Vol: " + _CE_.options.sfxVol,
+                title: "Background SFX volume",
+                display: _CE_.options.separateSoundVolumes,
+                type: "range",
+                min: "0",
+                max: "100",
+                maxWidth: "75px",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    if ((value >= 0 && value <= 100) === false) {
+                        return false;
+                    }
+                    setSetting("sfxVol", value);
+                },
+                oninput: ev => {
+                    const value = ev.target.value;
+                    const label = ui.extraSettings_sfxVol.querySelector("label");
+                    label.textContent = label.textContent.replace(/\d+$/, value);
+
+                    if (_CE_.options.separateSoundVolumes && _CE_.musicPlayer.soundsPlaying) {
+                        _CE_.musicPlayer.soundsPlaying.forEach(sound => {
+                            sound.howler.volume(value / 100);
+                        });
+                    }
                 }
             });
 
@@ -1821,8 +1905,11 @@
                 ui.extraSettings_textboxStyleSelector,
                 ui.extraSettings_fileHostSelector,
                 ui.extraSettings_showRoulettes,
+                ui.extraSettings_separateSoundVolumes,
+                ui.extraSettings_bgmVol,
+                ui.extraSettings_sfxVol,
                 ui.extraSettings_globalAudioControlButtons,
-                (window.speechSynthesis !== undefined ? ui.extraSettings_TTSVolume : null)
+                (window.speechSynthesis !== undefined ? ui.extraSettings_TTSVolume : null),
             );
 
             extraSettings_rows.push(ui.extraSettings_rowButtons);
@@ -2304,15 +2391,29 @@
             ui.customButtons_ttsButton.querySelector(".v-icon").classList.add("mdi-account-voice-off");
         }
 
-        // Set up a watcher for when a new BGM is played to automatically mute it if BGM is muted
+        // Set up music watcher
         ui.courtPlayer.$refs.player.$watch("musicPlayer.music", (newValue, oldValue) => {
             if (!newValue) return;
 
-            if (_CE_.bgmMute === true) {
-                newValue.once("load", () => {
+            newValue.once("load", () => {
+                if (_CE_.bgmMute === true) { // Automatically mute the new music if Mute BGM is on
                     _CE_.bgmVol = _CE_.musicPlayer.volume;
                     _CE_.musicPlayer.volume = 0;
                     _CE_.musicPlayer.music.volume(0);
+                } else if (_CE_.options.separateSoundVolumes) {
+                    _CE_.musicPlayer.volume = _CE_.options.bgmVol / 100;
+                    _CE_.musicPlayer.music.volume(_CE_.options.bgmVol / 100);
+                }
+            });
+        });
+
+        // Set up SFX watcher
+        ui.courtPlayer.$refs.player.$watch("musicPlayer.soundsPlaying", (newValue, oldValue) => {
+            if (!newValue) return;
+
+            if (_CE_.options.separateSoundVolumes) {
+                _CE_.musicPlayer.soundsPlaying.forEach(sound => {
+                    sound.howler.volume(_CE_.options.sfxVol / 100);
                 });
             }
         });
