@@ -679,8 +679,6 @@
                     elemFile.click();
                 });
 
-
-
                 const uploaderElementEvent = function (ev) {
                     try {
                         var dataList, file;
@@ -743,6 +741,7 @@
                         if (file instanceof File) {
                             _CE_.Uploader.upload(file, uploadCallbackSuccess, uploadError, uploadCallbackProgress);
                             if (file.type.match("^video/")) {
+                                // When uploading a video, also generate and upload a thumbnail
                                 _CE_.Uploader.getVideoCover(file).then(videoFile => {
                                     resetElem();
                                     _CE_.Uploader.upload(
@@ -878,7 +877,7 @@
                         ui.courtEvidence.evidenceType = "evidence";
                         ui.courtEvidence.type = fileIsVideo ? "video" : "image";
 
-                    }, { label: "media", icon: "image-size-select-large", acceptedhtml: "image/*;video/*", acceptedregex: "^(?:image|video)/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
+                    }, { label: "file", icon: "image-size-select-large", acceptedhtml: "image/*, video/*", acceptedregex: "^(?:image|video)/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
                     evidenceImageUploader.setAttributes({
                         style: {
