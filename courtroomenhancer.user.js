@@ -875,7 +875,8 @@
                                 ui.courtEvidence.iconUrl = res.url;
                         }
 
-                        ui.courtEvidence.evidenceType = fileIsVideo ? "video" : "image";
+                        ui.courtEvidence.evidenceType = "evidence";
+                        ui.courtEvidence.type = fileIsVideo ? "video" : "image";
 
                     }, { label: "media", icon: "image-size-select-large", acceptedhtml: "image/*;video/*", acceptedregex: "^(?:image|video)/", maxsize: 2e6, pastetargets: ui.evidence_formFields });
 
