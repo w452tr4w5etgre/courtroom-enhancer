@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.884
+// @version      0.885
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -2324,10 +2324,11 @@
                 }
             },
             getVoices() {
+                var voices = Object.values(speechSynthesis.getVoices()).filter(voice => voice.localService);;
                 if (this.englishOnly)
-                    return Object.values(speechSynthesis.getVoices()).filter(voice => voice.lang.startsWith("en-"));
+                    return voices.filter(voice => voice.lang.startsWith("en-"));
                 else
-                    return speechSynthesis.getVoices();
+                    return voices;
             },
             turnoff() {
                 speechSynthesis.cancel();
