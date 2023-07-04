@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.885
+// @version      0.886
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -52,6 +52,8 @@
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8}(?:\:\d{1,5})?\b(?:\/\S*)*)/gi;
+    const IS_GM_OBJECT = typeof GM !== "undefined" && GM !== null;
+    const SCRIPT_VERSION = IS_GM_OBJECT ? GM.info.script.version : GM_info.script.version;
 
     const ui = {};
 
@@ -1864,7 +1866,7 @@
             // Row 1 - Header
             const extraSettings_rows = [];
             ui.extraSettings_rowHeader = document.createElement("h3");
-            ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer";
+            ui.extraSettings_rowHeader.textContent = "Courtroom Enhancer v" + SCRIPT_VERSION;
 
             ui.extraSettings_resetButton = new createButton({
                 label: "Reset and reload",
@@ -2574,6 +2576,10 @@
                 },
                 video(url) {
                     const video = document.createElement("video");
+
+                    if (url.host == "i.4cdn.org") // Fix embedding 4chan webm links with a domain that doesn't check for referer
+                        url.href = `${url.protocol}//is2.4chan.org${url.pathname}`;
+
                     video.setAttributes({
                         src: url.href,
                         loop: "true",
@@ -2876,7 +2882,7 @@
 
     const CrossOrigin = (function () {
         try {
-            return (typeof GM !== "undefined" && GM !== null ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
+            return (IS_GM_OBJECT ? GM.xmlHttpRequest : void 0) || GM_xmlhttpRequest;
         } catch (err) {
             return "CrossOrigin error:" + console.error(err);
         }
