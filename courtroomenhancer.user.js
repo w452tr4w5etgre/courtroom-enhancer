@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.888
+// @version      0.889
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -1702,7 +1702,9 @@
                     // Show or hide the Api Token textbox as required
                     if (_CE_.Uploader.fileHosts.get(chosenHost).tokenRequired === true) {
                         ui.extraSettings_fileHostApiToken.style.display = "flex";
-                        ui.extraSettings_fileHostApiToken.querySelector("input").value = _CE_.options.fileHostApiToken[chosenHost];
+                        let apiTokenInput = ui.extraSettings_fileHostApiToken.querySelector("input");
+                        apiTokenInput.value = _CE_.options.fileHostApiToken[chosenHost];
+                        apiTokenInput.title = "API token for " + chosenHost;
                     } else {
                         ui.extraSettings_fileHostApiToken.style.display = "none";
                     }
