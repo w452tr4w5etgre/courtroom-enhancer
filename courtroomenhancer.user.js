@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.886
+// @version      0.888
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -49,6 +49,7 @@
         "separateSoundVolumes": getSetting("separateSoundVolumes", false),
         "bgmVol": getSetting("bgmVol", 100),
         "sfxVol": getSetting("sfxVol", 100),
+        "fileHostApiToken": getSetting("fileHostApiToken", {}),
     };
 
     const URL_REGEX = /(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,8}(?:\:\d{1,5})?\b(?:\/\S*)*)/gi;
@@ -196,7 +197,7 @@
             const errorWatcher = _CE_.$vue.$watch("$store.state.courtroom.error.title", errorText => {
                 if (errorText !== "Disconnected") return;
                 _CE_.$vue.$store.state.courtroom.error.text += "\nReason: " + socketError;
-                errorWatcher(); //Unwatch 
+                errorWatcher(); //Unwatch
             }, { once: true });
         }, { once: true });
 
@@ -378,6 +379,9 @@
             parseParams(data) {
                 return Object.entries(data).map(([key, val]) => `${key}=${val}`).join('&');
             },
+            getToken() {
+                return _CE_.options.fileHostApiToken[_CE_.options.file_host];
+            },
             hostApis: new Map([
                 ["catbox", {
                     method: "POST",
@@ -408,6 +412,35 @@
                     formatDataUrl(data) {
                         return {
                             headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            data: _CE_.Uploader.parseParams({ "urls[]": data })
+                        };
+                    },
+                    urlFromResponse(response) {
+                        const responseJSON = JSON.parse(response);
+                        if (!responseJSON.success) {
+                            throw new Error("Server returned " + responseJSON.description);
+                        }
+                        for (const file of responseJSON.files) {
+                            if (file.url) {
+                                return file.url;
+                            }
+                        }
+                    }
+                }],
+                ["take2space", {
+                    method: "POST",
+                    formatDataFile(data) {
+                        return {
+                            headers: { "token": _CE_.Uploader.getToken() },
+                            data: _CE_.Uploader.parseForm({ "files[]": data })
+                        };
+                    },
+                    formatDataUrl(data) {
+                        return {
+                            headers: {
+                                "token": _CE_.Uploader.getToken(),
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
                             data: _CE_.Uploader.parseParams({ "urls[]": data })
                         };
                     },
@@ -474,7 +507,8 @@
                 ["takemetospace", {
                     name: "take-me-to.space",
                     url: "https://take-me-to.space/api/upload",
-                    api: "lolisafe",
+                    api: "take2space",
+                    tokenRequired: true,
                     maxsize: 50e6,
                     supported: new Map([["audio", true], ["urls", false], ["m4a", false]])
                 }],
@@ -1375,12 +1409,14 @@
                 selectSlot.append(label, input);
 
                 container.style.maxWidth = options.maxWidth;
-                if (options.display === false) {
+                if (!options.display) {
                     container.style.display = "none";
                 }
 
                 label.textContent = options.label;
-                input.value = options.value;
+
+                if (options.value)
+                    input.value = options.value;
 
                 input.addEventListener("focus", function () {
                     container.classList.add("v-input--is-focused", "primary--text");
@@ -1659,9 +1695,19 @@
                 values: Array.from(_CE_.Uploader.fileHosts).map(([k, v]) => [k, v.name]),
                 selectedValue: _CE_.options.file_host,
                 onchange: ev => {
-                    if (_CE_.Uploader.fileHosts.has(ev.target.value)) {
-                        setSetting("file_host", ev.target.value);
+                    let chosenHost = ev.target.value;
+                    if (!_CE_.Uploader.fileHosts.has(chosenHost))
+                        return
+
+                    // Show or hide the Api Token textbox as required
+                    if (_CE_.Uploader.fileHosts.get(chosenHost).tokenRequired === true) {
+                        ui.extraSettings_fileHostApiToken.style.display = "flex";
+                        ui.extraSettings_fileHostApiToken.querySelector("input").value = _CE_.options.fileHostApiToken[chosenHost];
+                    } else {
+                        ui.extraSettings_fileHostApiToken.style.display = "none";
                     }
+
+                    setSetting("file_host", chosenHost);
                 }
             });
 
@@ -1714,6 +1760,25 @@
                         _CE_.notificationSound.duration = 1240;
                     }
                     _CE_.notificationSound.sound.load();
+                }
+            });
+
+            ui.extraSettings_fileHostApiToken = new createInputText({
+                value: _CE_.options.fileHostApiToken[_CE_.options.file_host],
+                label: "API token",
+                title: "API token for " + _CE_.options.file_host,
+                display: (_CE_.Uploader.fileHosts.get(_CE_.options.file_host).tokenRequired === true),
+                type: "text",
+                maxWidth: "max-content",
+                onfocusout: ev => {
+                    const value = ev.target.value;
+                    let apiToken = _CE_.options.fileHostApiToken;
+
+                    if (value === apiToken[_CE_.options.file_host])
+                        return
+
+                    apiToken[_CE_.options.file_host] = value;
+                    setSetting("fileHostApiToken", apiToken);
                 }
             });
 
@@ -1908,6 +1973,7 @@
                 ui.extraSettings_disableKeyboardShortcuts,
                 ui.extraSettings_textboxStyleSelector,
                 ui.extraSettings_fileHostSelector,
+                ui.extraSettings_fileHostApiToken,
                 ui.extraSettings_showRoulettes,
                 ui.extraSettings_separateSoundVolumes,
                 ui.extraSettings_bgmVol,
