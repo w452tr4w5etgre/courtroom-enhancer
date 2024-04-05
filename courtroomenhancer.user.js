@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.889
+// @version      0.890
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -851,6 +851,8 @@
 
             // Override the validation function to allow anonymous evidence
             ui.courtEvidence.$refs.form.validate = () => {
+                if (!ui.courtEvidence && !ui.courtEvidence.iconUrl) return false;
+
                 if (!ui.courtEvidence.url && ui.courtEvidence.iconUrl) ui.courtEvidence.url = ui.courtEvidence.iconUrl;
                 if (!ui.courtEvidence.iconUrl && ui.courtEvidence.url) ui.courtEvidence.iconUrl = ui.courtEvidence.url;
                 if (!ui.courtEvidence.name) ui.courtEvidence.name = " ";
