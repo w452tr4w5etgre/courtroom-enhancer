@@ -212,7 +212,7 @@
                 errorWatcher(); //Unwatch
 
                 document.title = "(DC) " + initialTitle;
-                if (!document.hasFocus)
+                if (!document.hasFocus())
                     _CE_.notificationSound.sound.play();
                 _CE_.musicPlayer.stopMusic();
 
