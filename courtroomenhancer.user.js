@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.890
+// @version      0.891
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -122,6 +122,18 @@
 
         ui.presentDialog = _CE_.$vue.$children.find(child => { return child.$vnode.componentOptions.tag === "PresentDialog"; });
 
+        let initialTitle = document.title;
+
+        // Change and restore page title when the browser (un)freezes the tab
+        document.addEventListener("freeze", (ev) => {
+            document.title = "(Frozen) " + initialTitle;
+        });
+
+        document.addEventListener("resume", (ev) => {
+            document.title = initialTitle;
+        });
+
+
         window.addEventListener("beforeunload", on_beforeUnload, false);
 
         var windowResizerTimeout;
@@ -198,6 +210,11 @@
                 if (errorText !== "Disconnected") return;
                 _CE_.$vue.$store.state.courtroom.error.text += "\nReason: " + socketError;
                 errorWatcher(); //Unwatch
+
+                document.title = "(DC) " + initialTitle;
+                _CE_.notificationSound.sound.play();
+                _CE_.musicPlayer.stopMusic();
+
             }, { once: true });
         }, { once: true });
 
