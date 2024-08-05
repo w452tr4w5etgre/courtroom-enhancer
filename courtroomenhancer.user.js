@@ -212,7 +212,8 @@
                 errorWatcher(); //Unwatch
 
                 document.title = "(DC) " + initialTitle;
-                _CE_.notificationSound.sound.play();
+                if (!document.hasFocus)
+                    _CE_.notificationSound.sound.play();
                 _CE_.musicPlayer.stopMusic();
 
             }, { once: true });
