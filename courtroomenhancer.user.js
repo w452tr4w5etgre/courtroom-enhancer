@@ -2,7 +2,7 @@
 // @name         Objection.lol Courtroom Enhancer
 // @namespace    https://github.com/w452tr4w5etgre/
 // @description  Enhances Objection.lol Courtroom functionality
-// @version      0.892
+// @version      0.893
 // @author       w452tr4w5etgre
 // @homepage     https://github.com/w452tr4w5etgre/courtroom-enhancer
 // @match        https://objection.lol/courtroom/*
@@ -124,15 +124,14 @@
 
         let initialTitle = document.title;
 
-        // Change and restore page title when the browser (un)freezes the tab
         document.addEventListener("freeze", (ev) => {
             document.title = "(Frozen) " + initialTitle;
+            _CE_.musicPlayer.playSound("/Audio/Sound/whoops.mp3", 1.0); // Attempt playing a sound, most likely won't work with the tab being frozen
         });
 
         document.addEventListener("resume", (ev) => {
             document.title = initialTitle;
         });
-
 
         window.addEventListener("beforeunload", on_beforeUnload, false);
 
@@ -213,7 +212,7 @@
 
                 document.title = "(DC) " + initialTitle;
                 if (!document.hasFocus())
-                    _CE_.notificationSound.sound.play();
+                    _CE_.musicPlayer.playSound("/Audio/Sound/whoops.mp3", 1.0);
                 _CE_.musicPlayer.stopMusic();
 
             }, { once: true });
